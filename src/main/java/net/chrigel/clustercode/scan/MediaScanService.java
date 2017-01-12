@@ -6,10 +6,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
-public interface ScanService {
+public interface MediaScanService {
 
     /**
-     * Gets a map of files under {@link ScanSettings#getBaseInputDir()}. Each key contains the sourcePath to a directory
+     * Gets a map of files under {@link MediaScanSettings#getBaseInputDir()}. Each key contains the sourcePath to a directory
      * which contains a number as name. The number represents the priority of the queue. The sourcePath is relative to the
      * base input directory. The value of the map is a list of files that were found in the sourcePath, with each sourcePath
      * being relative to the base input directory. The non-null list is empty if no candidates for queueing were
@@ -29,7 +29,7 @@ public interface ScanService {
      * </p>
      *
      * @return the map as described. Empty map if no priority directories found.
-     * @throws RuntimeException if {@link ScanSettings#getBaseInputDir()} is not readable.
+     * @throws RuntimeException if {@link MediaScanSettings#getBaseInputDir()} is not readable.
      */
     Map<Path, List<MediaCandidate>> retrieveFiles();
 

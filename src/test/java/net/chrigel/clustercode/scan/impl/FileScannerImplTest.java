@@ -1,122 +1,98 @@
 package net.chrigel.clustercode.scan.impl;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import net.chrigel.clustercode.util.FilesystemProvider;
+import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import java.nio.file.FileSystem;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class FileScannerImplTest {
+public class FileScannerImplTest implements FileBasedUnitTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
     private FileScannerImpl subject;
-    private FileSystem fs;
 
     @Before
     public void setUp() throws Exception {
-        FilesystemProvider.setFileSystem(Jimfs.newFileSystem(Configuration.forCurrentPlatform()));
-        fs = FilesystemProvider.getInstance();
+        setupFileSystem();
         subject = new FileScannerImpl();
     }
 
 
     @Test
     public void scan_ShouldReturnEmptyList_IfSearchDirDoesNotExist() throws Exception {
-        Path searchDir = fs.getPath("input");
+        Path searchDir = getPath("input");
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
                 .scan();
 
-        assertThat(results.isPresent(), equalTo(false));
+        assertThat(results.isPresent()).isFalse();
     }
 
     @Test
     public void scan_ShouldFindOneFile_IfRecursionIsDisabled() throws Exception {
-        Path searchDir = fs.getPath("input");
-        Files.createDirectories(searchDir);
-
-        Path testMedia = searchDir.resolve("media.mp4");
-        Files.createFile(testMedia);
-
-        Path subDir = searchDir.resolve("subdirToIgnore");
-        Files.createDirectory(subDir);
-
-        Path ignoreFile = subDir.resolve("ignored.mp4");
+        Path searchDir = getPath("input");
+        Path testMedia = createFile(searchDir.resolve("media.mp4"));
+        createFile(searchDir.resolve("subdir/ignored.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withDepth(1).withRecursion(false)
                 .scan();
 
-        assertThat(results.get(), hasItem(testMedia));
-        assertThat(results.get(), not(hasItem(ignoreFile)));
-        assertThat(results.get().size(), equalTo(1));
+        assertThat(results.get()).containsExactly(testMedia);
+        assertThat(results.get()).hasSize(1);
     }
 
     @Test
     public void scan_ShouldFindDirectory_IfDirSearchIsEnabled() throws Exception {
-        Path searchDir = fs.getPath("input");
-        Files.createDirectories(searchDir);
+        Path searchDir = getPath("input");
 
-        Path subdir = searchDir.resolve("subdir");
-        Files.createDirectory(subdir);
+        Path subdir = createDirectory(searchDir.resolve("subdir"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true).withDirectories(true)
                 .scan();
 
-        assertThat(results.get(), hasItem(subdir));
-        assertThat(results.get().size(), equalTo(1));
+        assertThat(results.get()).containsExactly(subdir);
+        assertThat(results.get()).hasSize(1);
     }
 
     @Test
     public void scan_ShouldFindRecursiveFile_IfFileExists() throws Exception {
+        Path searchDir = getPath("input");
 
-        Path searchDir = fs.getPath("input");
-        Path subDir = searchDir.resolve("subdir");
-
-        Files.createDirectories(subDir);
-        Path testMedia = subDir.resolve("media.mp4");
-        Files.createFile(testMedia);
+        Path testMedia = createFile(searchDir.resolve("subdir/media.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
                 .scan();
 
-        assertThat(results.get(), hasItem(testMedia));
-        assertThat(results.get().size(), equalTo(1));
+        assertThat(results.get()).containsExactly(testMedia);
+        assertThat(results.get()).hasSize(1);
     }
 
     @Test
     public void hasAllowedExtension_ShouldReturnTrue_IfHasExtension() throws Exception {
         subject.withFileExtensions(Arrays.asList(".mp4"));
-        Path testFile = fs.getPath("something.mp4");
+        Path testFile = getPath("something.mp4");
 
-        assertThat(subject.hasAllowedExtension(testFile), equalTo(true));
+        assertThat(subject.hasAllowedExtension(testFile)).isTrue();
     }
 
     @Test
     public void hasAllowedExtension_ShouldReturnFalse_IfNotHasExtension() throws Exception {
         subject.withFileExtensions(Arrays.asList("mp4"));
-        Path testFile = fs.getPath("mp4.mkv");
+        Path testFile = getPath("mp4.mkv");
 
-        assertThat(subject.hasAllowedExtension(testFile), equalTo(false));
+        assertThat(subject.hasAllowedExtension(testFile)).isFalse();
     }
 
     @Test
     public void hasAllowedExtension_ShouldReturnTrue_IfNoFilterInstalled() throws Exception {
-        Path testFile = fs.getPath("mp4.mkv");
+        Path testFile = getPath("mp4.mkv");
 
-        assertThat(subject.hasAllowedExtension(testFile), equalTo(true));
+        assertThat(subject.hasAllowedExtension(testFile)).isTrue();
     }
 
     @Test
@@ -124,15 +100,10 @@ public class FileScannerImplTest {
         String ext = ".done";
         subject.whileSkippingExtraFilesWith(ext);
 
-        Path testDir = fs.getPath("foo");
-        Path testFile = fs.getPath("foo", "bar.ext");
-        Path companionFile = fs.getPath("foo", "bar.ext.done");
+        Path testFile = createFile(getPath("foo", "bar.ext"));
+        createFile(getPath("foo", "bar.ext.done"));
 
-        Files.createDirectories(testDir);
-        Files.createFile(testFile);
-        Files.createFile(companionFile);
-
-        assertThat(subject.hasNotCompanionFile(testFile), equalTo(false));
+        assertThat(subject.hasNotCompanionFile(testFile)).isEqualTo(false);
     }
 
     @Test
@@ -140,36 +111,28 @@ public class FileScannerImplTest {
         String ext = ".done";
         subject.whileSkippingExtraFilesWith(ext);
 
-        Path testDir = fs.getPath("foo");
-        Path testFile = fs.getPath("foo", "bar.ext");
+        Path testFile = createFile(getPath("foo", "bar.ext"));
 
-        Files.createDirectories(testDir);
-        Files.createFile(testFile);
-
-        assertThat(subject.hasNotCompanionFile(testFile), equalTo(true));
+        assertThat(subject.hasNotCompanionFile(testFile)).isTrue();
     }
 
     @Test
     public void hasNotCompanionFile_ShouldReturnTrue_IfExtensionNotProvided() throws Exception {
-        Path testDir = fs.getPath("foo");
-        Path testFile = fs.getPath("foo", "bar.ext");
+        Path testFile = createFile(getPath("foo", "bar.ext"));
 
-        Files.createDirectories(testDir);
-        Files.createFile(testFile);
-
-        assertThat(subject.hasNotCompanionFile(testFile), equalTo(true));
+        assertThat(subject.hasNotCompanionFile(testFile)).isTrue();
     }
 
     @Test
     public void stream_ShouldReturnEmptyStream_IfIOExceptionOccurred() throws Exception {
-        Path testDir = fs.getPath("foo", "bar");
-        assertThat(subject.searchIn(testDir).streamAndIgnoreErrors().count(), equalTo(0L));
+        Path testDir = getPath("foo", "bar");
+        assertThat(subject.searchIn(testDir).streamAndIgnoreErrors()).isEmpty();
     }
 
     @Test
     public void emptyStreamOnError_ShouldThrowException_IfIOExceptionOccurred() throws Exception {
-        expectedException.expect(RuntimeException.class);
-        Path testDir = fs.getPath("foo", "bar");
-        subject.searchIn(testDir).stream();
+        Path testDir = getPath("foo", "bar");
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
+                subject.searchIn(testDir).stream());
     }
 }

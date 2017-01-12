@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @XSlf4j
-public class FileScannerImpl
+class FileScannerImpl
         implements FileScanner {
 
     private boolean isDirEnabled;
@@ -103,10 +103,10 @@ public class FileScannerImpl
 
     /**
      * Tests whether the given sourcePath name ends with an extension specified with {@link #withFileExtensions(List)}.
-     * Returns true if no filter is present.
+     * Returns true if no matcher is present.
      *
      * @param path
-     * @return true if no filter present or at least one of the extensions is applicable, otherwise false.
+     * @return true if no matcher present or at least one of the extensions is applicable, otherwise false.
      */
     boolean hasAllowedExtension(Path path) {
         if (allowedExtensions.isPresent()) {

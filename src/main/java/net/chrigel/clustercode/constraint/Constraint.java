@@ -3,7 +3,7 @@ package net.chrigel.clustercode.constraint;
 import net.chrigel.clustercode.task.MediaCandidate;
 
 /**
- * Represents a filter with which a media candidate can be excluded or included for job scheduling. The implementing
+ * Represents a matcher with which a media candidate can be excluded or included for job scheduling. The implementing
  * class should throw a runtime exception in the constructor if there is a configuration error. The order of
  * constraints is unspecified if there are more than one. As soon as one constraint returns false, the candidate is
  * being excluded from scheduling.

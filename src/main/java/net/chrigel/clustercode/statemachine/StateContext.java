@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.statemachine;
 
 import net.chrigel.clustercode.task.MediaCandidate;
-import net.chrigel.clustercode.scan.ScanSettings;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -14,7 +14,7 @@ public interface StateContext {
 
     /**
      * Gets the collection which holds the priority dir and their media candidates within it. Each sourcePath is relative to
-     * {@link ScanSettings#getBaseInputDir()}
+     * {@link MediaScanSettings#getBaseInputDir()}
      *
      * @return the (empty) map.
      */

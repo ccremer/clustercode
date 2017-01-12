@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan;
 import java.nio.file.Path;
 import java.util.List;
 
-public interface ScanSettings {
+public interface MediaScanSettings {
 
     /**
      * Gets the root directory for scanning.

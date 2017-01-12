@@ -2,8 +2,8 @@ package net.chrigel.clustercode.scan.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.FileScanner;
-import net.chrigel.clustercode.scan.ScanService;
-import net.chrigel.clustercode.scan.ScanSettings;
+import net.chrigel.clustercode.scan.MediaScanService;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.task.MediaCandidate;
 import org.slf4j.ext.XLogger;
 
@@ -16,13 +16,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @XSlf4j
-public class ScanServiceImpl implements ScanService {
+class MediaScanServiceImpl implements MediaScanService {
 
-    private final ScanSettings scanSettings;
+    private final MediaScanSettings scanSettings;
     private final Provider<FileScanner> scannerProvider;
 
     @Inject
-    ScanServiceImpl(ScanSettings scanSettings, Provider<FileScanner> scannerProvider) {
+    MediaScanServiceImpl(MediaScanSettings scanSettings, Provider<FileScanner> scannerProvider) {
         this.scanSettings = scanSettings;
         this.scannerProvider = scannerProvider;
     }

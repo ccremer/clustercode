@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface SelectionService {
 
-    Optional<MediaCandidate> selectJob(Map<Path, List<MediaCandidate>> listMap);
+    Optional<MediaCandidate> selectJob(List<MediaCandidate> list);
 
 }

@@ -1,38 +1,29 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import net.chrigel.clustercode.scan.ScanSettings;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.task.MediaCandidate;
-import net.chrigel.clustercode.util.FilesystemProvider;
+import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
-public class FileSizeConstraintTest {
-
-    @Rule
-    public final ExpectedException expectedException = ExpectedException.none();
+public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     private FileSizeConstraint subject;
     private Path inputDir;
-    private FileSystem fs;
 
     @Mock
-    private ScanSettings scanSettings;
+    private MediaScanSettings scanSettings;
 
     @Spy
     private MediaCandidate media;
@@ -40,9 +31,8 @@ public class FileSizeConstraintTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        FilesystemProvider.setFileSystem(Jimfs.newFileSystem(Configuration.forCurrentPlatform()));
-        fs = FilesystemProvider.getInstance();
-        when(scanSettings.getBaseInputDir()).thenReturn(FilesystemProvider.getInstance().getPath("input"));
+        setupFileSystem();
+        when(scanSettings.getBaseInputDir()).thenReturn(getPath("input"));
         inputDir = scanSettings.getBaseInputDir();
         Files.createDirectory(inputDir);
     }
@@ -66,7 +56,7 @@ public class FileSizeConstraintTest {
 
         media.setSourcePath(inputDir.relativize(file));
 
-        assertThat(subject.accept(media), equalTo(true));
+        assertThat(subject.accept(media)).isTrue();
     }
 
     @Test
@@ -80,12 +70,12 @@ public class FileSizeConstraintTest {
 
         media.setSourcePath(inputDir.relativize(file));
 
-        assertThat(subject.accept(media), equalTo(true));
+        assertThat(subject.accept(media)).isTrue();
     }
 
     @Test
     public void accept_ShouldReturnTrue_IfFileIsSmallerThanMinSize_AndMMinSizeDisabled() throws Exception {
-        long minSize = -1;
+        long minSize = 0;
         long maxSize = 16;
         initSubject(minSize, maxSize);
 
@@ -94,7 +84,7 @@ public class FileSizeConstraintTest {
 
         media.setSourcePath(inputDir.relativize(file));
 
-        assertThat(subject.accept(media), equalTo(true));
+        assertThat(subject.accept(media)).isTrue();
     }
 
     @Test
@@ -108,20 +98,20 @@ public class FileSizeConstraintTest {
 
         media.setSourcePath(inputDir.relativize(file));
 
-        assertThat(subject.accept(media), equalTo(false));
+        assertThat(subject.accept(media)).isFalse();
     }
 
     @Test
     public void accept_ShouldReturnFalse_IfFileIsGreaterThanMaxSize() throws Exception {
-        long minSize = 10;
-        long maxSize = 100;
+        long minSize = 1000000;
+        long maxSize = 10000000;
         initSubject(minSize, maxSize);
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(101, file);
 
         media.setSourcePath(inputDir.relativize(file));
-        assertThat(subject.accept(media), equalTo(false));
+        assertThat(subject.accept(media)).isFalse();
     }
 
     @Test
@@ -133,7 +123,7 @@ public class FileSizeConstraintTest {
         Path file = inputDir.resolve("movie.mp4");
 
         media.setSourcePath(inputDir.relativize(file));
-        assertThat(subject.accept(media), equalTo(false));
+        assertThat(subject.accept(media)).isFalse();
     }
 
     @Test
@@ -142,15 +132,21 @@ public class FileSizeConstraintTest {
         long maxSize = 0;
         initSubject(minSize, maxSize);
 
-        assertThat(subject.accept(media), equalTo(true));
+        assertThat(subject.accept(media)).isTrue();
     }
 
     @Test
-    public void constructor_ShouldThrowException_IfConfiguredIncorrectly() throws Exception {
-        expectedException.expect(IllegalArgumentException.class);
+    public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesSwapped() throws Exception {
         long minSize = 12;
         long maxSize = 1;
-        initSubject(minSize, maxSize);
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+    }
+
+    @Test
+    public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesNegative() throws Exception {
+        long minSize = -1;
+        long maxSize = 1;
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> initSubject(minSize, maxSize));
     }
 
 }

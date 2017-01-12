@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasValue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigurationHelperTest {
 
@@ -21,9 +18,9 @@ public class ConfigurationHelperTest {
             List<String> keys = Arrays.asList(getSampleEnvironmentKey(), "HOPEFULLY_INEXISTENT_VARIABLE");
             String variable = System.getenv(getSampleEnvironmentKey());
             Map<String, String> results = ConfigurationHelper.getEnvironmentalVariablesFromKeys(keys);
-            assertThat(results, hasKey(getSampleEnvironmentKey()));
-            assertThat(results, hasValue(variable));
-            assertThat(results.size(), equalTo(1));
+            assertThat(results).containsKey(getSampleEnvironmentKey());
+            assertThat(results).containsValue(variable);
+            assertThat(results).hasSize(1);
         }
     }
 
@@ -63,7 +60,7 @@ public class ConfigurationHelperTest {
         Map<String, String> results = ConfigurationHelper.getEnvironmentVariablesWithDefaults(testMap);
 
 
-        assertThat(results, hasValue(System.getenv(getSampleEnvironmentKey())));
-        assertThat(results, hasValue(value2));
+        assertThat(results).containsValue(System.getenv(getSampleEnvironmentKey()));
+        assertThat(results).containsValue(value2);
     }
 }

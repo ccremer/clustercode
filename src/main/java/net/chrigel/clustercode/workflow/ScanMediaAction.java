@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.workflow;
 
 import lombok.extern.slf4j.XSlf4j;
-import net.chrigel.clustercode.scan.ScanService;
+import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.task.MediaCandidate;
 import net.chrigel.clustercode.workflow.actions.AsyncAction;
@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 @XSlf4j
 public class ScanMediaAction extends AsyncAction<List<MediaCandidate>> {
 
-    private final ScanService scanService;
+    private final MediaScanService scanService;
 
     @Inject
-    ScanMediaAction(ScanService scanService
+    ScanMediaAction(MediaScanService scanService
     ) {
         this.scanService = scanService;
     }

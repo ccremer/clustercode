@@ -22,6 +22,7 @@ public class ConstraintModule extends AbstractPropertiesModule {
         Multibinder<Constraint> constraintBinder = Multibinder.newSetBinder(binder(), Constraint.class);
         constraintBinder.addBinding().to(FileSizeConstraint.class);
         constraintBinder.addBinding().to(TimeConstraint.class);
+        constraintBinder.addBinding().to(FileNameConstraint.class);
 
         try {
             Properties properties = ConfigurationHelper.loadPropertiesFromFile(fileName);

@@ -5,8 +5,10 @@ import net.chrigel.clustercode.task.MediaCandidate;
 import net.chrigel.clustercode.task.SelectionService;
 
 import javax.inject.Inject;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class SelectionServiceImpl implements SelectionService {
 
@@ -18,11 +20,8 @@ public class SelectionServiceImpl implements SelectionService {
     }
 
     @Override
-    public Optional<MediaCandidate> selectJob(Map<Path, List<MediaCandidate>> listMap) {
-        return listMap.entrySet()
-                .stream()
-                .filter(pathListEntry -> pathListEntry.getValue().isEmpty())
-                .flatMap(pathListEntry -> pathListEntry.getValue().stream())
+    public Optional<MediaCandidate> selectJob(List<MediaCandidate> list) {
+        return list.stream()
                 .sorted(Comparator.comparingInt(MediaCandidate::getPriority).reversed())
                 .filter(this::checkConstraints)
                 .findFirst();

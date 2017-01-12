@@ -20,7 +20,8 @@ public class Startup {
     public static void main(String[] args) throws Exception {
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            log.error("Uncaught exception:", throwable);
+            // Normally the exceptions will be caught, but to debug any unexpected ones we log them (again).
+            log.error("Application-wide uncaught exception:", throwable);
             System.exit(1);
         });
 

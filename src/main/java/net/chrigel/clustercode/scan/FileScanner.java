@@ -49,7 +49,7 @@ public interface FileScanner {
 
     /**
      * Sets the list of file extensions which are allowed to be included in the scan. Specify an entry with e.g. "
-     * .txt" or "txt". If no filter is provided, all sourcePath are being included.
+     * .txt" or "txt". If no matcher is provided, all sourcePath are being included.
      *
      * @param allowedExtensions the allowed extension list.
      * @return this.
@@ -58,7 +58,7 @@ public interface FileScanner {
 
     /**
      * Sets the extension which will cause e.g. the "foo/bar" file to be skipped if a sourcePath named "foo/bar.skipping"
-     * exists too. This filter is executed after {@link #withFileExtensions(List)}
+     * exists too. This matcher is executed after {@link #withFileExtensions(List)}
      * * @param skipping the skipping extension.
      *
      * @return this.
