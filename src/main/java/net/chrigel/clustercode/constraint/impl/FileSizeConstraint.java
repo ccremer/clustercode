@@ -27,8 +27,8 @@ class FileSizeConstraint
     private final DecimalFormat formatter = new DecimalFormat("#.####");
 
     @Inject
-    FileSizeConstraint(@Named(ConstraintConfiguration.CONSTRAINT_FILESIZE_MIN_SIZE_KEY) double minSize,
-                       @Named(ConstraintConfiguration.CONSTRAINT_FILESIZE_MAX_SIZE_KEY) double maxSize,
+    FileSizeConstraint(@Named(ConstraintModule.CONSTRAINT_FILESIZE_MIN_SIZE_KEY) double minSize,
+                       @Named(ConstraintModule.CONSTRAINT_FILESIZE_MAX_SIZE_KEY) double maxSize,
                        MediaScanSettings scanSettings) {
         this(minSize, maxSize, MEBI_BYTES, scanSettings);
     }

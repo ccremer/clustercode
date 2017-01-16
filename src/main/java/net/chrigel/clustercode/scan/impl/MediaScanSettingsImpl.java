@@ -4,6 +4,7 @@ import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.FilesystemProvider;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -16,7 +17,9 @@ public class MediaScanSettingsImpl implements MediaScanSettings {
     private final List<String> extensionList;
 
     @Inject
-    MediaScanSettingsImpl(String baseDir, String extensions, String skip) {
+    MediaScanSettingsImpl(@Named(ScanModule.MEDIA_INPUT_DIR_KEY) String baseDir,
+                          @Named(ScanModule.MEDIA_EXTENSIONS_KEY) String extensions,
+                          @Named(ScanModule.MEDIA_SKIP_NAME_KEY) String skip) {
         this.skip = skip;
         this.baseInputDir = FilesystemProvider.getInstance().getPath(baseDir);
         this.extensionList = new LinkedList<>(Arrays.asList(extensions.split(",")));

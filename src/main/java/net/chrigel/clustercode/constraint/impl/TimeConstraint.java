@@ -22,8 +22,8 @@ class TimeConstraint
     private LocalTime begin;
 
     @Inject
-    protected TimeConstraint(@Named(ConstraintConfiguration.CONSTRAINT_TIME_BEGIN_KEY) String begin,
-                             @Named(ConstraintConfiguration.CONSTRAINT_TIME_STOP_KEY) String stop,
+    protected TimeConstraint(@Named(ConstraintModule.CONSTRAINT_TIME_BEGIN_KEY) String begin,
+                             @Named(ConstraintModule.CONSTRAINT_TIME_STOP_KEY) String stop,
                              Clock clock) {
         this.clock = clock;
         setEnabled(!("-1".equals(begin) || "-1".equals(stop)));

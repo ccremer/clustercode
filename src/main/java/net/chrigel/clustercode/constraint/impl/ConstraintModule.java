@@ -11,6 +11,31 @@ import java.time.Clock;
 import java.util.Properties;
 
 public class ConstraintModule extends AbstractPropertiesModule {
+
+    /**
+     * Defines the key for the file size constraint (min size)
+     */
+    public static final String CONSTRAINT_FILESIZE_MIN_SIZE_KEY = "CC_CONSTRAINT_FILE_MIN_SIZE";
+    /**
+     * Defines the key for the file size constraint (max size)
+     */
+    public static final String CONSTRAINT_FILESIZE_MAX_SIZE_KEY = "CC_CONSTRAINT_FILE_MAX_SIZE";
+
+    /**
+     * Defines the key for the time constraint (begin time)
+     */
+    public static final String CONSTRAINT_TIME_BEGIN_KEY = "CC_CONSTRAINT_TIME_BEGIN";
+
+    /**
+     * Defines the key for the time constraint (stop time)
+     */
+    public static final String CONSTRAINT_TIME_STOP_KEY = "CC_CONSTRAINT_TIME_STOP";
+
+    /**
+     * Defines the key for the file name constraint (regex)
+     */
+    public static final String CONSTRAINT_FILENAME_REGEX_KEY = "CC_CONSTRAINT_FILE_REGEX";
+
     private String fileName;
 
     public ConstraintModule(String fileName) {

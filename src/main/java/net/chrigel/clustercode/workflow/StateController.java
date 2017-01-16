@@ -36,7 +36,7 @@ public class StateController
 
         builder.externalTransition().from(WorkflowState.INITIAL).to(WorkflowState.SCAN_MEDIA)
                 .on(WorkflowEventType.FINISHED);
-        builder.onEntry(WorkflowState.INITIAL).perform(new InitializeAction());
+        //builder.onEntry(WorkflowState.INITIAL).perform(new InitializeAction());
 
 
         builder.onEntry(WorkflowState.SCAN_MEDIA).perform(scanMediaActionProvider.get().withListener(result -> {

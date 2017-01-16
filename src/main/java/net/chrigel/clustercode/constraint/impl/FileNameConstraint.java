@@ -17,7 +17,7 @@ class FileNameConstraint
     private Pattern pattern;
 
     @Inject
-    FileNameConstraint(@Named(ConstraintConfiguration.CONSTRAINT_FILENAME_REGEX_KEY) String regex) {
+    FileNameConstraint(@Named(ConstraintModule.CONSTRAINT_FILENAME_REGEX_KEY) String regex) {
         setEnabled(!":".equals(regex));
         if (isEnabled()) {
             this.pattern = Pattern.compile(regex);

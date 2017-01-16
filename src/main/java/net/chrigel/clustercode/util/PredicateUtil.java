@@ -2,7 +2,7 @@ package net.chrigel.clustercode.util;
 
 import java.util.function.Predicate;
 
-public class PredicateUtil {
+public final class PredicateUtil {
 
     private PredicateUtil() {
         // Prevent Instantiation
