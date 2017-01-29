@@ -11,7 +11,7 @@ import java.nio.file.Path;
 @NoArgsConstructor
 @Data
 @Builder
-public class MediaCandidate {
+public class Media {
 
     /**
      * The file sourcePath which is relative to the base input dir.

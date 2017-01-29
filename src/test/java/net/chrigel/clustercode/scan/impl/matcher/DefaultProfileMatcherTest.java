@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan.impl.matcher;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +27,7 @@ public class DefaultProfileMatcherTest implements FileBasedUnitTest {
     @Mock
     private ProfileScanSettings settings;
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
     @Spy
     private Profile profile;
     private Path profileFolder;

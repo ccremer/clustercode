@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +14,7 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
 
     private FileNameConstraint subject;
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
 
     @Before
     public void setUp() throws Exception {

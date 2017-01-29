@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan.impl.matcher;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
-public class DirectoryStructureFilterTest implements FileBasedUnitTest {
+public class DirectoryStructureMatcherTest implements FileBasedUnitTest {
 
     private DirectoryStructureMatcher subject;
     @Mock
@@ -26,7 +26,7 @@ public class DirectoryStructureFilterTest implements FileBasedUnitTest {
     @Mock
     private ProfileScanSettings settings;
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
     @Spy
     private Profile profile;
     private Path profileFolder;

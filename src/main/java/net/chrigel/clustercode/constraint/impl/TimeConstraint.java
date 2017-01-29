@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.constraint.impl;
 
 import com.google.inject.name.Named;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import java.time.Clock;
@@ -37,7 +37,7 @@ class TimeConstraint
     }
 
     @Override
-    public boolean acceptCandidate(MediaCandidate candidate) {
+    public boolean acceptCandidate(Media candidate) {
         LocalTime now = LocalTime.now(clock);
         if (begin.isBefore(stop)) {
             return logAndReturn(begin.isBefore(now) && now.isBefore(stop), now);

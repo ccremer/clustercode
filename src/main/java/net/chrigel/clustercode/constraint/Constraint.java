@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 /**
  * Represents a matcher with which a media candidate can be excluded or included for job scheduling. The implementing
@@ -17,6 +17,6 @@ public interface Constraint {
      * @param candidate the candidate to test, not null.
      * @return true if viable for scheduling, false otherwise.
      */
-    boolean accept(MediaCandidate candidate);
+    boolean accept(Media candidate);
 
 }

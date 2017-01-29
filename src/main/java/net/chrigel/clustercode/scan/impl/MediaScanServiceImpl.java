@@ -4,7 +4,7 @@ import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.FileScanner;
 import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
@@ -28,7 +28,7 @@ class MediaScanServiceImpl implements MediaScanService {
     }
 
     @Override
-    public Map<Path, List<MediaCandidate>> retrieveFiles() {
+    public Map<Path, List<Media>> retrieveFiles() {
         return scannerProvider.get()
                 .searchIn(scanSettings.getBaseInputDir())
                 .withRecursion(false)
@@ -40,20 +40,19 @@ class MediaScanServiceImpl implements MediaScanService {
                         Function.identity(), this::getListOfMediaFiles));
     }
 
-    List<MediaCandidate> getListOfMediaFiles(Path path) {
+    List<Media> getListOfMediaFiles(Path path) {
         return scannerProvider.get()
                 .searchIn(path)
                 .withRecursion(true)
                 .withFileExtensions(scanSettings.getAllowedExtensions())
                 .whileSkippingExtraFilesWith(scanSettings.getSkipExtension())
                 .streamAndIgnoreErrors()
-                .map(file -> MediaCandidate.builder()
+                .map(file -> Media.builder()
                         .sourcePath(scanSettings.getBaseInputDir().relativize(file))
                         .priority(getNumberFromDir(path))
                         .build()
                 )
-                .peek(candidate -> log.info("Found file: Priority: {}, sourcePath: {}",
-                        candidate.getPriority(), candidate.getSourcePath()))
+                .peek(candidate -> log.info("Found file: {}", candidate))
                 .collect(Collectors.toList());
     }
 

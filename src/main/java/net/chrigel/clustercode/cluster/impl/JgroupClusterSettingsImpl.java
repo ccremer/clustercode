@@ -21,13 +21,14 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
                               @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
                               @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimoutHours) {
+        checkPort(bindingPort);
+        checkTimeout(taskTimoutHours);
         this.clusterName = clusterName;
         this.jgroupsConfig = jgroupsConfig;
         this.preferIPv4 = preferIPv4;
         this.bindingAddress = bindingAddress;
         this.bindingPort = bindingPort;
         this.hostname = hostname;
-        checkTimeout(taskTimoutHours);
         this.taskTimoutHours = taskTimoutHours;
         System.setProperty("java.net.preferIPv4Stack", String.valueOf(preferIPv4));
         System.setProperty("jgroups.bind_addr", bindingAddress);
@@ -37,6 +38,12 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
     private void checkTimeout(long taskTimoutHours) {
         if (taskTimoutHours < 1L) {
             throw new IllegalArgumentException("Task timeout must be >= 1, was " + taskTimoutHours);
+        }
+    }
+
+    private void checkPort(int port) {
+        if (port < 1) {
+            throw new IllegalArgumentException("Port number must be >= 1");
         }
     }
 

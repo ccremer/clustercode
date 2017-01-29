@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.scan;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -31,6 +31,6 @@ public interface MediaScanService {
      * @return the map as described. Empty map if no priority directories found.
      * @throws RuntimeException if {@link MediaScanSettings#getBaseInputDir()} is not readable.
      */
-    Map<Path, List<MediaCandidate>> retrieveFiles();
+    Map<Path, List<Media>> retrieveFiles();
 
 }

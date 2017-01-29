@@ -4,7 +4,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import lombok.extern.slf4j.XSlf4j;
-import net.chrigel.clustercode.util.AbstractPropertiesModule;
 import net.chrigel.clustercode.workflow.StateController;
 
 import java.io.File;

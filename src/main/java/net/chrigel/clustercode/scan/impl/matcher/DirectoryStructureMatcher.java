@@ -5,7 +5,7 @@ import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
 import net.chrigel.clustercode.scan.impl.ProfileMatcher;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
@@ -33,14 +33,15 @@ class DirectoryStructureMatcher implements ProfileMatcher {
     }
 
     @Override
-    public Optional<Profile> apply(MediaCandidate candidate) {
+    public Optional<Profile> apply(Media candidate) {
+        log.entry(candidate);
         Path mediaFileParent = candidate.getSourcePath().getParent();
         Path sisterDir = settings.getProfilesBaseDir().resolve(mediaFileParent);
         Path profileFile = sisterDir.resolve(settings.getProfileFileName() + settings.getProfileFileNameExtension());
 
         Path rootDir = settings.getProfilesBaseDir().resolve(mediaFileParent.getName(0));
 
-        return parseRecursive(profileFile, rootDir);
+        return log.exit(parseRecursive(profileFile, rootDir));
     }
 
     private Optional<Profile> parseRecursive(Path file, Path root) {

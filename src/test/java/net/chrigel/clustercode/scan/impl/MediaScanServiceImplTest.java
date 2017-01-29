@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.scan.impl;
 
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
     @Mock
     private MediaScanSettings scanSettings;
 
-    private Map<Path, List<MediaCandidate>> candidates;
+    private Map<Path, List<Media>> candidates;
 
     @Before
     public void setUp() throws Exception {
@@ -46,7 +46,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
         Path file11 = createFile(dir1.resolve("file11.mp4"));
         Path file12 = createFile(dir1.resolve("file12.mp4"));
 
-        List<MediaCandidate> result = subject.getListOfMediaFiles(dir1);
+        List<Media> result = subject.getListOfMediaFiles(dir1);
 
         assertThat(result).extracting(candidate -> candidate.getSourcePath())
                 .containsExactly(inputDir.relativize(file11), inputDir.relativize(file12));
@@ -61,7 +61,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
         createFile(dir1.resolve("file12.mp4.done"));
         createFile(dir1.resolve("file13.txt"));
 
-        List<MediaCandidate> result = subject.getListOfMediaFiles(dir1);
+        List<Media> result = subject.getListOfMediaFiles(dir1);
 
         assertThat(result).extracting(c -> c.getSourcePath()).containsExactly(inputDir.relativize(file11));
     }
@@ -70,7 +70,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
     public void getListOfMediaFiles_ShouldReturnEmptyList_IfNoFilesFound() throws Exception {
         Path dir1 = createDirectory(inputDir.resolve("1"));
 
-        List<MediaCandidate> result = subject.getListOfMediaFiles(dir1);
+        List<Media> result = subject.getListOfMediaFiles(dir1);
 
         assertThat(result).isEmpty();
     }

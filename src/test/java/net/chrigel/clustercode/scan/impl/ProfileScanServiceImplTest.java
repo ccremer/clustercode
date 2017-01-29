@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.scan.impl;
 
 import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -21,7 +21,7 @@ public class ProfileScanServiceImplTest {
     private ProfileScanServiceImpl subject;
 
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
     @Mock
     private ProfileMatcherStrategy strategy;
     @Mock

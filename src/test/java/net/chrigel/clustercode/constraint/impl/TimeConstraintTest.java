@@ -1,10 +1,8 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -20,7 +18,7 @@ public class TimeConstraintTest {
     private TimeConstraint subject;
 
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
 
     @Before
     public void setUp() throws Exception {

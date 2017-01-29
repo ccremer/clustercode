@@ -5,7 +5,7 @@ import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
 import net.chrigel.clustercode.scan.impl.ProfileMatcher;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
@@ -31,15 +31,16 @@ class CompanionProfileMatcher implements ProfileMatcher {
     }
 
     @Override
-    public Optional<Profile> apply(MediaCandidate candidate) {
+    public Optional<Profile> apply(Media candidate) {
+        log.entry(candidate);
         Path profile = candidate.getSourcePath().resolveSibling(
                 candidate.getSourcePath().getFileName() + scanSettings.getProfileFileNameExtension());
 
         if (Files.exists(profile)) {
-            return profileParser.parseFile(profile);
+            return log.exit(profileParser.parseFile(profile));
         } else {
             log.debug("Companion file {} does not exist.", profile);
-            return Optional.empty();
+            return log.exit(Optional.empty());
         }
     }
 }

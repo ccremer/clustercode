@@ -3,7 +3,7 @@ package net.chrigel.clustercode.constraint.impl;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import net.chrigel.clustercode.constraint.Constraint;
-import net.chrigel.clustercode.util.AbstractPropertiesModule;
+import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 import net.chrigel.clustercode.util.ConfigurationHelper;
 
 import java.io.IOException;

@@ -1,10 +1,14 @@
-package net.chrigel.clustercode.util;
+package net.chrigel.clustercode.util.di;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
+import net.chrigel.clustercode.util.ConfigurationHelper;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -84,4 +88,38 @@ public abstract class AbstractPropertiesModule extends AbstractModule {
         Names.bindProperties(binder(), ConfigurationHelper.getEnvironmentalVariablesFromKeys(keys));
     }
 
+    /**
+     * Loads the properties from the given file. The properties will be loaded using {@link
+     * ConfigurationHelper#loadPropertiesFromFile(String)}. In case of an IO error, the error will be added using {@link
+     * #addError(Throwable)}.
+     *
+     * @param fileName the file name.
+     * @return An optional with the properties object, empty on errors.
+     */
+    protected final Optional<Properties> loadPropertiesFromFile(String fileName) {
+        try {
+            return Optional.of(ConfigurationHelper.loadPropertiesFromFile(fileName));
+        } catch (IOException e) {
+            addError(e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Gets the property value of the given properties and key. If the value could not be found (or is in fact null), an
+     * error will be added using {@link #addError(String, Object...)} and en empty string returned.
+     *
+     * @param properties the properties to search in.
+     * @param key        the property key.
+     * @return the string value of the property
+     */
+    protected final String getProperty(Properties properties, String key) {
+        String value = properties.getProperty(key);
+        if (value == null) {
+            addError("Property " + key + " is not set.");
+            return "";
+        } else {
+            return value;
+        }
+    }
 }

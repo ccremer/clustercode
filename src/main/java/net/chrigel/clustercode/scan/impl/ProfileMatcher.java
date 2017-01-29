@@ -1,12 +1,12 @@
 package net.chrigel.clustercode.scan.impl;
 
 import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import java.util.Optional;
 import java.util.function.Function;
 
-public interface ProfileMatcher extends Function<MediaCandidate, Optional<Profile>> {
+public interface ProfileMatcher extends Function<Media, Optional<Profile>> {
 
     /**
      * Applies the matcher.
@@ -15,5 +15,5 @@ public interface ProfileMatcher extends Function<MediaCandidate, Optional<Profil
      * @return the profile if found, empty if not or error occurred.
      */
     @Override
-    Optional<Profile> apply(MediaCandidate candidate);
+    Optional<Profile> apply(Media candidate);
 }

@@ -5,7 +5,7 @@ import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
 import net.chrigel.clustercode.scan.impl.ProfileMatcher;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
@@ -29,13 +29,14 @@ class DefaultProfileMatcher implements ProfileMatcher {
     }
 
     @Override
-    public Optional<Profile> apply(MediaCandidate candidate) {
+    public Optional<Profile> apply(Media candidate) {
+        log.entry(candidate);
         Path profileFile = settings.getProfilesBaseDir().resolve("default" + settings.getProfileFileNameExtension());
         if (Files.exists(profileFile)) {
-            return parser.parseFile(profileFile);
+            return log.exit(parser.parseFile(profileFile));
         } else {
             log.warn("Default profile file {} does not exist.", profileFile);
-            return Optional.empty();
+            return log.exit(Optional.empty());
         }
     }
 }

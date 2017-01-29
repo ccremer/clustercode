@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.cluster.impl;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
     @Mock
     private JgroupsClusterSettings settings;
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
 
     @Before
     public void setUp() throws Exception {

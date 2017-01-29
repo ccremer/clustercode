@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.constraint.impl;
 
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,7 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
     private MediaScanSettings scanSettings;
 
     @Spy
-    private MediaCandidate media;
+    private Media media;
 
     @Before
     public void setUp() throws Exception {

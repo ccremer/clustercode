@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -25,7 +25,7 @@ class FileNameConstraint
     }
 
     @Override
-    protected boolean acceptCandidate(MediaCandidate candidate) {
+    protected boolean acceptCandidate(Media candidate) {
         String toTest = candidate.getSourcePath().toString();
         return pattern.matcher(toTest).matches();
     }

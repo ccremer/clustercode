@@ -32,7 +32,7 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
 
         List<String> results = subject.parseFile(testFile).get().getArguments();
 
-        assertThat(results).containsExactly(option1.trim(), option2);
+        assertThat(results).containsExactly("option", "with", "space", "another", "line");
     }
 
     @Test

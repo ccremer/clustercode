@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.cluster.impl;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +20,7 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
     @Mock
     private JgroupsClusterSettings settings;
     @Mock
-    private MediaCandidate candidate;
+    private Media candidate;
 
     @Before
     public void setUp() throws Exception {
@@ -41,7 +41,6 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
 
         subject.joinCluster();
         subject.setTask(candidate);
-        Thread.sleep(100);
         assertThat(subject.isQueuedInCluster(candidate)).isTrue();
     }
 

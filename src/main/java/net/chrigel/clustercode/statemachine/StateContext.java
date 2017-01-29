@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.statemachine;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 
 import java.nio.file.Path;
@@ -18,7 +18,7 @@ public interface StateContext {
      *
      * @return the (empty) map.
      */
-    Map<Path, List<MediaCandidate>> getCandidates();
+    Map<Path, List<Media>> getCandidates();
 
     /**
      * Sets the collection of media candidates. Each key has the potential media candidates, though the list itself
@@ -26,6 +26,6 @@ public interface StateContext {
      *
      * @param pathListMap the map of the directories. Empty map if no input directories present.
      */
-    void setCandidates(Map<Path, List<MediaCandidate>> pathListMap);
+    void setCandidates(Map<Path, List<Media>> pathListMap);
 
 }

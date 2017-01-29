@@ -3,7 +3,7 @@ package net.chrigel.clustercode.cluster.impl;
 import com.google.inject.Singleton;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterSettings;
-import net.chrigel.clustercode.util.AbstractPropertiesModule;
+import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 public class ClusterModule extends AbstractPropertiesModule {
 

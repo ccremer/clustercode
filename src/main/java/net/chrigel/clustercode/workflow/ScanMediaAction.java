@@ -3,7 +3,7 @@ package net.chrigel.clustercode.workflow;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.workflow.actions.AsyncAction;
 import net.chrigel.clustercode.workflow.states.WorkflowEventType;
 import net.chrigel.clustercode.workflow.states.WorkflowState;
@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @XSlf4j
-public class ScanMediaAction extends AsyncAction<List<MediaCandidate>> {
+public class ScanMediaAction extends AsyncAction<List<Media>> {
 
     private final MediaScanService scanService;
 
@@ -27,14 +27,14 @@ public class ScanMediaAction extends AsyncAction<List<MediaCandidate>> {
     }
 
     @Override
-    protected Optional<List<MediaCandidate>> doExecute(WorkflowState from, WorkflowState to,
-                                                       WorkflowEventType event,
-                                                       StateContext context) {
+    protected Optional<List<Media>> doExecute(WorkflowState from, WorkflowState to,
+                                              WorkflowEventType event,
+                                              StateContext context) {
 
         log.entry(from, to, event);
-        Map<Path, List<MediaCandidate>> results = scanService.retrieveFiles();
+        Map<Path, List<Media>> results = scanService.retrieveFiles();
         context.setCandidates(results);
-        List<MediaCandidate> resultList = results.values().stream().flatMap(List::stream).collect(Collectors.toList());
+        List<Media> resultList = results.values().stream().flatMap(List::stream).collect(Collectors.toList());
         if (resultList.isEmpty()) {
             return log.exit(Optional.empty());
         } else {

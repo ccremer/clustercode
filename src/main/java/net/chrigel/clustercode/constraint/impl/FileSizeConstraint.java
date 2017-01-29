@@ -2,7 +2,7 @@ package net.chrigel.clustercode.constraint.impl;
 
 import com.google.inject.name.Named;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -54,7 +54,7 @@ class FileSizeConstraint
     }
 
     @Override
-    public boolean acceptCandidate(MediaCandidate candidate) {
+    public boolean acceptCandidate(Media candidate) {
         Path file = scanSettings.getBaseInputDir().resolve(candidate.getSourcePath());
         try {
             long size = Files.size(file);

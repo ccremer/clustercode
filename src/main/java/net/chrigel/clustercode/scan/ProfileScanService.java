@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.scan;
 
-import net.chrigel.clustercode.task.MediaCandidate;
+import net.chrigel.clustercode.task.Media;
 
 import java.util.Optional;
 
@@ -62,6 +62,6 @@ public interface ProfileScanService {
      * @return an empty profile if it could not be parsed for some reason. Otherwise contains the most appropriate
      * profile for the internally configured transcoder.
      */
-    Optional<Profile> selectProfile(MediaCandidate candidate);
+    Optional<Profile> selectProfile(Media candidate);
 
 }
