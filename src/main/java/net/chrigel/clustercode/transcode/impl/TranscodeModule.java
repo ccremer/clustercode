@@ -1,13 +1,8 @@
 package net.chrigel.clustercode.transcode.impl;
 
-import net.chrigel.clustercode.transcode.Transcoder;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.transcode.TranscodingService;
-import net.chrigel.clustercode.util.ConfigurationHelper;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
-
-import java.io.IOException;
-import java.util.Properties;
 
 public class TranscodeModule extends AbstractPropertiesModule {
 
@@ -26,7 +21,6 @@ public class TranscodeModule extends AbstractPropertiesModule {
     @Override
     protected void configure() {
 
-        bind(Transcoder.class).to(TranscoderImpl.class);
         bind(TranscodingService.class).to(TranscodingServiceImpl.class);
         bind(TranscoderSettings.class).to(TranscoderSettingsImpl.class);
     }
