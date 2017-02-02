@@ -1,7 +1,7 @@
-package net.chrigel.clustercode.scan.impl.matcher;
+package net.chrigel.clustercode.scan.matcher;
 
-import net.chrigel.clustercode.scan.impl.ProfileMatcher;
-import net.chrigel.clustercode.scan.impl.ProfileMatcherStrategy;
+import net.chrigel.clustercode.scan.ProfileMatcher;
+import net.chrigel.clustercode.scan.ProfileMatcherStrategy;
 import net.chrigel.clustercode.scan.impl.ScanModule;
 import net.chrigel.clustercode.util.di.ModuleHelper;
 
@@ -16,13 +16,9 @@ public class ConfigurableMatcherStrategy implements ProfileMatcherStrategy {
     private final List<ProfileMatcher> matchers;
 
     @Inject
-    ConfigurableMatcherStrategy(@Named(ScanModule.PROFILE_STRATEGY_KEY) String strategiesString,
+    ConfigurableMatcherStrategy(@Named(ScanModule.PROFILE_STRATEGY_KEY) String strategies,
                                 Set<ProfileMatcher> matchers) {
-        this.matchers = ModuleHelper.sortImplementations(strategiesString, matchers, this::getImplementationClass);
-    }
-
-    private Class<? extends ProfileMatcher> getImplementationClass(String strategy) {
-        return Matchers.valueOf(strategy).getImplementingClass();
+        this.matchers = ModuleHelper.sortImplementations(strategies, matchers, Matchers::valueOf);
     }
 
     @Override

@@ -1,6 +1,6 @@
-package net.chrigel.clustercode.scan.impl.matcher;
+package net.chrigel.clustercode.scan.matcher;
 
-import net.chrigel.clustercode.scan.impl.ProfileMatcher;
+import net.chrigel.clustercode.scan.ProfileMatcher;
 import net.chrigel.clustercode.util.di.EnumeratedImplementation;
 
 public enum Matchers implements EnumeratedImplementation<ProfileMatcher> {

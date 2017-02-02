@@ -1,8 +1,11 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import lombok.ToString;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
+@ToString
 class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
 
     private final String clusterName;
@@ -11,7 +14,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
     private final String bindingAddress;
     private final int bindingPort;
     private final String hostname;
-    private final long taskTimoutHours;
+    private final long taskTimeoutHours;
 
     @Inject
     JgroupClusterSettingsImpl(@Named(ClusterModule.CLUSTER_NAME_KEY) String clusterName,
@@ -20,16 +23,16 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_ADDR_KEY) String bindingAddress,
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
                               @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
-                              @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimoutHours) {
+                              @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours) {
         checkPort(bindingPort);
-        checkTimeout(taskTimoutHours);
+        checkTimeout(taskTimeoutHours);
         this.clusterName = clusterName;
         this.jgroupsConfig = jgroupsConfig;
         this.preferIPv4 = preferIPv4;
         this.bindingAddress = bindingAddress;
         this.bindingPort = bindingPort;
         this.hostname = hostname;
-        this.taskTimoutHours = taskTimoutHours;
+        this.taskTimeoutHours = taskTimeoutHours;
         System.setProperty("java.net.preferIPv4Stack", String.valueOf(preferIPv4));
         System.setProperty("jgroups.bind_addr", bindingAddress);
         System.setProperty("jgroups.bind_port", String.valueOf(bindingPort));
@@ -37,7 +40,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
 
     private void checkTimeout(long taskTimoutHours) {
         if (taskTimoutHours < 1L) {
-            throw new IllegalArgumentException("Task timeout must be >= 1, was " + taskTimoutHours);
+            throw new IllegalArgumentException("ClusterItem timeout must be >= 1, was " + taskTimoutHours);
         }
     }
 
@@ -54,7 +57,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
 
     @Override
     public long getTaskTimeout() {
-        return taskTimoutHours;
+        return taskTimeoutHours;
     }
 
     @Override

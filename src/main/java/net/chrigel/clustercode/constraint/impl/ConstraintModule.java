@@ -4,9 +4,8 @@ import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import net.chrigel.clustercode.constraint.Constraint;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
-import net.chrigel.clustercode.util.ConfigurationHelper;
+import net.chrigel.clustercode.util.di.ModuleHelper;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.util.Properties;
 
@@ -25,7 +24,6 @@ public class ConstraintModule extends AbstractPropertiesModule {
      * Defines the key for the time constraint (begin time)
      */
     public static final String CONSTRAINT_TIME_BEGIN_KEY = "CC_CONSTRAINT_TIME_BEGIN";
-
     /**
      * Defines the key for the time constraint (stop time)
      */
@@ -36,24 +34,29 @@ public class ConstraintModule extends AbstractPropertiesModule {
      */
     public static final String CONSTRAINT_FILENAME_REGEX_KEY = "CC_CONSTRAINT_FILE_REGEX";
 
-    private String fileName;
+    /**
+     * Defines the key for the enabled constraints.
+     */
+    public static final String CONSTRAINT_STRATEGIES_KEY = "CC_CONSTRAINTS_ACTIVE";
 
-    public ConstraintModule(String fileName) {
-        this.fileName = fileName;
+    private Properties properties;
+
+    public ConstraintModule(Properties properties) {
+        this.properties = properties;
     }
 
     @Override
     protected void configure() {
         Multibinder<Constraint> constraintBinder = Multibinder.newSetBinder(binder(), Constraint.class);
-        constraintBinder.addBinding().to(FileSizeConstraint.class);
-        constraintBinder.addBinding().to(TimeConstraint.class);
-        constraintBinder.addBinding().to(FileNameConstraint.class);
-
-        try {
-            Properties properties = ConfigurationHelper.loadPropertiesFromFile(fileName);
-            bindEnvironmentVariablesWithDefaultsByObject(properties);
-        } catch (IOException e) {
-            addError(e);
+        String constraints = getProperty(properties, CONSTRAINT_STRATEGIES_KEY);
+        if ("ALL".equalsIgnoreCase(constraints.trim())) {
+            ModuleHelper.bindAll(constraintBinder, Constraints::values);
+        } else {
+            try {
+                ModuleHelper.bindStrategies(constraintBinder, constraints, Constraints::valueOf);
+            } catch (IllegalArgumentException ex) {
+                addError(ex);
+            }
         }
     }
 

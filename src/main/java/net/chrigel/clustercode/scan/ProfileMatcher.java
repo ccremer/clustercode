@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.scan.impl;
+package net.chrigel.clustercode.scan;
 
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.task.Media;

@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface ProfileScanService {
 
     /**
+     * This java doc is invalid currently, as {@link net.chrigel.clustercode.scan.matcher.Matchers} allow custom
+     * strategies.
      * Scans and parses the most matching profile for the given candidate. <p>A special algorithm comes to play when
      * selecting the profile. This is the order in which profiles get selected, where {@code /input} is considered the
      * base input directory, and {@code /profiles} the folder for templates.</p>

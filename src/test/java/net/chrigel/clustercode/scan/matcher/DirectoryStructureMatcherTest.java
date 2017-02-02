@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.scan.impl.matcher;
+package net.chrigel.clustercode.scan.matcher;
 
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;

@@ -5,6 +5,13 @@ import net.chrigel.clustercode.cluster.ClusterSettings;
 public interface JgroupsClusterSettings extends ClusterSettings {
 
     /**
+     * Gets the cluster name.
+     *
+     * @return the name of the cluster, not null.
+     */
+    String getClusterName();
+
+    /**
      * Gets the file name of the jgroups xml configuration file. Can be absolute, relative or a resource in the JAR
      * file.
      *

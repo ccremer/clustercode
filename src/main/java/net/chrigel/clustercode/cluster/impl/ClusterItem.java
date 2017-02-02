@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @Builder
 @Data
-public class Task implements Serializable {
+public class ClusterItem implements Serializable {
 
     /**
      * This is the relative path to {@link MediaScanSettings#getBaseInputDir()} which a node is currently converting.

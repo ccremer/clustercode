@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -14,8 +15,24 @@ import java.util.List;
 @NoArgsConstructor
 public class Profile {
 
+    /**
+     * The location of the profile file.
+     */
     private Path location;
 
+    /**
+     * The arguments that are parsed from the file.
+     */
     private List<String> arguments;
+
+    /**
+     * Any additional fields read during parsing.
+     */
+    private Map<String, String> fields;
+
+    /**
+     * The location of the temporary media file during transcoding.
+     */
+    private Path temporaryFile;
 
 }

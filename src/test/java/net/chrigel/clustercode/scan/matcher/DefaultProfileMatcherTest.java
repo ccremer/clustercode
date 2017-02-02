@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.scan.impl.matcher;
+package net.chrigel.clustercode.scan.matcher;
 
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
@@ -39,6 +39,7 @@ public class DefaultProfileMatcherTest implements FileBasedUnitTest {
         profileFolder = getPath("profiles");
         when(settings.getProfileFileNameExtension()).thenReturn(".ffmpeg");
         when(settings.getProfilesBaseDir()).thenReturn(profileFolder);
+        when(settings.getDefaultProfileFileName()).thenReturn("default");
         subject = new DefaultProfileMatcher(parser, settings);
     }
 

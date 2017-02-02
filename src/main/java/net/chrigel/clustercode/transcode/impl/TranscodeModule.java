@@ -1,8 +1,10 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.transcode.Transcoder;
-import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
+import net.chrigel.clustercode.transcode.TranscoderSettings;
+import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.util.ConfigurationHelper;
+import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -11,6 +13,10 @@ public class TranscodeModule extends AbstractPropertiesModule {
 
 
     public static final String TRANSCODE_CLI_KEY = "CC_TRANSCODE_CLI";
+    public static final String TRANSCODE_TEMPDIR_KEY = "CC_TRANSCODE_TEMP_DIR";
+    public static final String TRANSCODE_IO_REDIRECTED_KEY = "CC_TRANSCODE_IO_REDIRECTED";
+    public static final String TRANSCODE_DEFAULT_FORMAT_KEY = "CC_TRANSCODE_DEFAULT_FORMAT";
+
     private final String propertiesFilename;
 
     public TranscodeModule(String propertiesFilename) {
@@ -20,14 +26,9 @@ public class TranscodeModule extends AbstractPropertiesModule {
     @Override
     protected void configure() {
 
-        try {
-            Properties properties = ConfigurationHelper.loadPropertiesFromFile(propertiesFilename);
-            String transcoder = properties.getProperty(TRANSCODE_CLI_KEY, "FFMPEG");
-            bind(Transcoder.class).to(TranscoderImpl.class);
-        } catch (IOException | IllegalArgumentException e) {
-            addError(e);
-        }
-
+        bind(Transcoder.class).to(TranscoderImpl.class);
+        bind(TranscodingService.class).to(TranscodingServiceImpl.class);
+        bind(TranscoderSettings.class).to(TranscoderSettingsImpl.class);
     }
 
 }

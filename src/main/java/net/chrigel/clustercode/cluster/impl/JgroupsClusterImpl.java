@@ -26,7 +26,7 @@ class JgroupsClusterImpl implements ClusterService {
 
     private final JgroupsClusterSettings settings;
     private final Clock clock;
-    private Optional<ReplicatedHashMap<Address, Task>> map = Optional.empty();
+    private Optional<ReplicatedHashMap<Address, ClusterItem>> map = Optional.empty();
     private Optional<JChannel> channel = Optional.empty();
     private Optional<ScheduledExecutorService> executor = Optional.empty();
 
@@ -52,7 +52,7 @@ class JgroupsClusterImpl implements ClusterService {
                 JChannel ch = new JChannel(settings.getJgroupsConfigFile());
                 ch.setName(settings.getHostname());
                 ch.connect(settings.getClusterName());
-                ReplicatedHashMap<Address, Task> replicatedMap = new ReplicatedHashMap<>(ch);
+                ReplicatedHashMap<Address, ClusterItem> replicatedMap = new ReplicatedHashMap<>(ch);
                 executor.ifPresent(executor -> executor.shutdown());
                 executor = Optional.of(Executors.newSingleThreadScheduledExecutor());
                 executor.get().scheduleAtFixedRate(() ->
@@ -93,18 +93,18 @@ class JgroupsClusterImpl implements ClusterService {
         return ZonedDateTime.ofInstant(Instant.now(clock), ZoneOffset.UTC);
     }
 
-    Task createTaskFor(Media candidate) {
-        return Task.builder()
+    ClusterItem createTaskFor(Media candidate) {
+        return ClusterItem.builder()
                 .priority(candidate.getPriority())
                 .sourceName(candidate.getSourcePath().toFile().toString())
                 .dateAdded(getCurrentUtcTime())
                 .build();
     }
 
-    Media createCandidateFor(Task task) {
+    Media createCandidateFor(ClusterItem clusterItem) {
         return Media.builder()
-                .priority(task.getPriority())
-                .sourcePath(FilesystemProvider.getInstance().getPath(task.getSourceName()))
+                .priority(clusterItem.getPriority())
+                .sourcePath(FilesystemProvider.getInstance().getPath(clusterItem.getSourceName()))
                 .build();
     }
 
@@ -143,18 +143,18 @@ class JgroupsClusterImpl implements ClusterService {
     public void setTask(Media candidate) {
         if (map.isPresent() && channel.isPresent()) {
             Address address = channel.get().getAddress();
-            log.debug("Replacing task in map...");
-            Task task = createTaskFor(candidate);
+            log.debug("Replacing clusterItem in map...");
+            ClusterItem clusterItem = createTaskFor(candidate);
             if (map.get().containsKey(address)) {
-                map.get().replace(address, task);
+                map.get().replace(address, clusterItem);
             } else {
-                map.get().put(address, task);
+                map.get().put(address, clusterItem);
             }
-            log.debug("Waiting for task acceptance...");
-            // wait until the task is in the map.
-            while (!map.get().containsValue(task)) {
+            log.debug("Waiting for clusterItem acceptance...");
+            // wait until the clusterItem is in the map.
+            while (!map.get().containsValue(clusterItem)) {
             }
-            log.info("Task accepted in cluster.");
+            log.info("ClusterItem accepted in cluster.");
         }
     }
 
@@ -167,6 +167,6 @@ class JgroupsClusterImpl implements ClusterService {
     public boolean isQueuedInCluster(Media candidate) {
         return map.isPresent() &&
                 map.get().values().stream()
-                        .anyMatch(task -> isFileEquals(candidate.getSourcePath().toString(), task.getSourceName()));
+                        .anyMatch(clusterItem -> isFileEquals(candidate.getSourcePath().toString(), clusterItem.getSourceName()));
     }
 }

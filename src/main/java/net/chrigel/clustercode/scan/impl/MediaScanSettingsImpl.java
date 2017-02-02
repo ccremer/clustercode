@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.scan.impl;
 
+import lombok.ToString;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.FilesystemProvider;
 
@@ -10,7 +11,8 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MediaScanSettingsImpl implements MediaScanSettings {
+@ToString
+class MediaScanSettingsImpl implements MediaScanSettings {
 
     private final String skip;
     private final Path baseInputDir;

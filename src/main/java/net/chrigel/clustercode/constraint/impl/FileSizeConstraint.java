@@ -3,6 +3,7 @@ package net.chrigel.clustercode.constraint.impl;
 import com.google.inject.name.Named;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -37,24 +38,29 @@ class FileSizeConstraint
                                  double maxSize,
                                  long factor,
                                  MediaScanSettings scanSettings) {
+        checkConfiguration(minSize, maxSize);
         this.scanSettings = scanSettings;
-        setEnabled(minSize > 0 || maxSize > 0);
-        checkSizes(minSize, maxSize);
         this.minSize = minSize * factor;
         this.maxSize = maxSize * factor;
     }
 
-    private void checkSizes(double minSize, double maxSize) {
-        if (isEnabled() && Math.min(minSize, maxSize) > 0 && minSize >= maxSize) {
-            throw new IllegalArgumentException("minSize cannot be >= maxSize.");
+    private void checkConfiguration(double minSize, double maxSize) {
+        if (Math.min(minSize, maxSize) > 0 && minSize > maxSize) {
+            throw new InvalidConfigurationException("minSize cannot be greater than maxSize. Min: {}, Max: {}",
+                    minSize, maxSize);
         }
         if (Math.min(minSize, maxSize) < 0) {
-            throw new IllegalArgumentException("File size constraint configured incorrectly.");
+            throw new InvalidConfigurationException("File sizes cannot contain negative values. Min: {}, Max: {}",
+                    minSize, maxSize);
+        }
+        if (minSize == maxSize) {
+            throw new InvalidConfigurationException("File sizes cannot be equal. Min: {}, Max: {}",
+                    minSize, maxSize);
         }
     }
 
     @Override
-    public boolean acceptCandidate(Media candidate) {
+    public boolean accept(Media candidate) {
         Path file = scanSettings.getBaseInputDir().resolve(candidate.getSourcePath());
         try {
             long size = Files.size(file);

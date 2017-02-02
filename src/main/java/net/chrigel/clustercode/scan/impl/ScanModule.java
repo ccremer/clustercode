@@ -2,12 +2,12 @@ package net.chrigel.clustercode.scan.impl;
 
 import com.google.inject.multibindings.Multibinder;
 import net.chrigel.clustercode.scan.*;
-import net.chrigel.clustercode.scan.impl.matcher.Matchers;
-import net.chrigel.clustercode.scan.impl.matcher.ConfigurableMatcherStrategy;
+import net.chrigel.clustercode.scan.matcher.ConfigurableMatcherStrategy;
+import net.chrigel.clustercode.scan.matcher.Matchers;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
+import net.chrigel.clustercode.util.di.ModuleHelper;
 
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.Properties;
 
 /**
  * Provides a guice module for configuring the scanning features.
@@ -23,6 +23,12 @@ public class ScanModule extends AbstractPropertiesModule {
     public static final String MEDIA_EXTENSIONS_KEY = "CC_MEDIA_EXTENSIONS";
     public static final String MEDIA_SKIP_NAME_KEY = "CC_MEDIA_SKIP_NAME";
 
+    private final Properties properties;
+
+    public ScanModule(Properties properties) {
+        this.properties = properties;
+    }
+
     @Override
     protected void configure() {
         bind(FileScanner.class).to(FileScannerImpl.class);
@@ -33,19 +39,13 @@ public class ScanModule extends AbstractPropertiesModule {
         bind(ProfileParser.class).to(ProfileParserImpl.class);
         bind(ProfileScanSettings.class).to(ProfileScanSettingsImpl.class);
 
-        loadPropertiesFromFile("").ifPresent(properties -> {
-            String strategies = getProperty(properties, PROFILE_STRATEGY_KEY);
-            String[] arr = strategies.trim().split(" ");
-            Multibinder<ProfileMatcher> matcherBinder = Multibinder.newSetBinder(binder(), ProfileMatcher.class);
-            Arrays.asList(arr).forEach(strategy -> {
-                try {
-                    matcherBinder.addBinding().to(Matchers.valueOf(
-                            strategy.toUpperCase(Locale.ENGLISH)).getImplementingClass());
-                } catch (IllegalArgumentException ex) {
-                    addError(ex);
-                }
-            });
-        });
+        String strategies = getProperty(properties, PROFILE_STRATEGY_KEY);
+        Multibinder<ProfileMatcher> matcherBinder = Multibinder.newSetBinder(binder(), ProfileMatcher.class);
+        try {
+            ModuleHelper.bindStrategies(matcherBinder, strategies, Matchers::valueOf);
+        } catch (IllegalArgumentException ex) {
+            addError(ex);
+        }
 
         bind(ProfileMatcherStrategy.class).to(ConfigurableMatcherStrategy.class);
     }

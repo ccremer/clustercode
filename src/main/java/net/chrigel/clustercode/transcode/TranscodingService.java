@@ -10,20 +10,19 @@ public interface TranscodingService {
     /**
      * Performs the transcoding. This method blocks until the process finished or failed.
      *
-     * @param candidate
-     * @param profile
-     * @return
+     * @param candidate the task, not null.
+     * @param profile   the profile, not null. The {@link Profile#getTemporaryFile()} field will return the file
+     *                  written during transcoding. The file will NOT be moved to a different location.
+     * @return true if transcoding was successful.
      */
     boolean transcode(Media candidate, Profile profile);
 
     /**
-     * Starts the transcoding process in the background and notifies the provided listener upon completion (or
-     * failure). A boolean will be passed to the listener, indicating whether transcoding was successful. Only one task
-     * may be active at the same time, therefore calling this method twice has no effect.
+     * Runs {@link #transcode(Media, Profile)} in background.
      *
-     * @param candidate the candidate, not null.
+     * @param candidate the task, not null.
      * @param profile   the profile, not null.
-     * @param listener  the listener instance.
+     * @param listener  the listener instance for retrieving the result.
      */
     void transcode(Media candidate, Profile profile, Consumer<Boolean> listener);
 

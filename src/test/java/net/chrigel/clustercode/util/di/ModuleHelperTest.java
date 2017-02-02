@@ -15,8 +15,7 @@ public class ModuleHelperTest {
     public void sortImplementations_ShouldReturnEmptyList_IfSetIsEmpty() throws Exception {
 
         String key = "CLASS_A CLASS_B";
-        List<TestInterface> result = ModuleHelper.sortImplementations(key, new HashSet<>(),
-                this::getImplementationClass);
+        List<TestInterface> result = ModuleHelper.sortImplementations(key, new HashSet<>(), Implementations::valueOf);
 
         assertThat(result).isEmpty();
     }
@@ -26,7 +25,7 @@ public class ModuleHelperTest {
         String key = "CLASS_A CLASS_B";
         Set<TestInterface> set = new HashSet<>();
         Collections.addAll(set, new TestClassA(), new TestClassB());
-        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, this::getImplementationClass);
+        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, Implementations::valueOf);
 
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).isInstanceOf(TestClassA.class);
@@ -38,7 +37,7 @@ public class ModuleHelperTest {
         String key = "CLASS_B CLASS_A CLASS_C";
         Set<TestInterface> set = new HashSet<>();
         Collections.addAll(set, new TestClassA(), new TestClassB(), new TestClassC());
-        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, this::getImplementationClass);
+        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, Implementations::valueOf);
 
         assertThat(result).hasSize(3);
         assertThat(result.get(1)).isInstanceOf(TestClassA.class);
@@ -51,25 +50,28 @@ public class ModuleHelperTest {
         String key = "CLASS_B";
         Set<TestInterface> set = new HashSet<>();
         Collections.addAll(set, new TestClassB());
-        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, this::getImplementationClass);
+        List<TestInterface> result = ModuleHelper.sortImplementations(key, set, Implementations::valueOf);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isInstanceOf(TestClassB.class);
     }
 
-    private Class<? extends TestInterface> getImplementationClass(String strategy) {
-        switch (strategy) {
-            case "CLASS_A":
-                return TestClassA.class;
-            case "CLASS_B":
-                return TestClassB.class;
-            case "CLASS_C":
-                return TestClassC.class;
-            default:
-                throw new IllegalArgumentException();
+    enum Implementations implements EnumeratedImplementation<TestInterface> {
+        CLASS_A(TestClassA.class),
+        CLASS_B(TestClassB.class),
+        CLASS_C(TestClassC.class);
+
+        private final Class<? extends TestInterface> impl;
+
+        Implementations(Class<? extends TestInterface> clazz) {
+            this.impl = clazz;
+        }
+
+        @Override
+        public Class<? extends TestInterface> getImplementingClass() {
+            return impl;
         }
     }
-
 
     interface TestInterface {
 

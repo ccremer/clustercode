@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,33 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     }
 
     @Test
+    public void parseFile_ShouldIgnoreFieldLines() throws Exception {
+        Path testFile = getPath("profile.ffmpeg");
+        String option1 = " %{FIELD=value}";
+        String option2 = "another line";
+        Files.write(testFile, Arrays.asList(option1, option2));
+
+        List<String> results = subject.parseFile(testFile).get().getArguments();
+
+        assertThat(results).containsExactly("another", "line");
+    }
+
+    @Test
+    public void parseFile_ShouldParseFieldLines() throws Exception {
+        Path testFile = getPath("profile.ffmpeg");
+        String option1 = "%{FIELD=value}";
+        String option2 = "%{key=other}";
+        Files.write(testFile, Arrays.asList(option1, option2));
+
+        Map<String, String> results = subject.parseFile(testFile).get().getFields();
+
+        assertThat(results)
+                .containsKeys("FIELD", "KEY")
+                .containsValues("value", "other")
+                .hasSize(2);
+    }
+
+    @Test
     public void parseFile_ShouldReturnEmptyProfile_OnError() throws Exception {
         Path testFile = getPath("profile.ffmpeg");
 
@@ -60,6 +88,54 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     public void isCommentLine_ShouldReturnFalse_IfLineIsValid() throws Exception {
         String testLine = "this is not a comment";
         assertThat(subject.isCommentLine(testLine)).isFalse();
+    }
+
+    @Test
+    public void extractKey_ShouldReturnKey_InUppercase() throws Exception {
+        String testLine = "%{key=value}";
+        assertThat(subject.extractKey(testLine)).isEqualTo("KEY");
+    }
+
+    @Test
+    public void isFieldLine_ShouldReturnTrue_IfLineIsFieldLine() throws Exception {
+        String testLine = "%{KEY=value}";
+        assertThat(subject.isFieldLine(testLine)).isTrue();
+    }
+
+    @Test
+    public void isFieldLine_ShouldReturnFalse_IfLineDoesNotBeginWithPercent() throws Exception {
+        String testLine = "{KEY=value}";
+        assertThat(subject.isFieldLine(testLine)).isFalse();
+    }
+
+    @Test
+    public void isFieldLine_ShouldReturnFalse_IfKeyIsInvalid() throws Exception {
+        String testLine = "%{=value}";
+        assertThat(subject.isFieldLine(testLine)).isFalse();
+    }
+
+    @Test
+    public void isFieldLine_ShouldReturnTrue_IfKeyIsValid_AndNoValuePresent() throws Exception {
+        String testLine = "%{key=}";
+        assertThat(subject.isFieldLine(testLine)).isTrue();
+    }
+
+    @Test
+    public void isFieldLine_ShouldReturnFalse_IfKeyIsValid_AndNoNoClosingBracket() throws Exception {
+        String testLine = "%{key=";
+        assertThat(subject.isFieldLine(testLine)).isFalse();
+    }
+
+    @Test
+    public void extractValue_ShouldReturnValue() throws Exception {
+        String testLine = "%{KEY=.value}";
+        assertThat(subject.extractValue(testLine)).isEqualTo(".value");
+    }
+
+    @Test
+    public void extractValue_ShouldReturnEmptyString_IfNoValuePresent() throws Exception {
+        String testLine = "%{KEY=}";
+        assertThat(subject.extractValue(testLine)).isEqualTo("");
     }
 
 }

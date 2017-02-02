@@ -48,9 +48,9 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
         when(candidate.getSourcePath()).thenReturn(media);
         when(media.toFile()).thenReturn(new File("0\\movies\\movie.mp4"));
 
-        Task task = subject.createTaskFor(candidate);
+        ClusterItem clusterItem = subject.createTaskFor(candidate);
 
-        assertThat(new File(task.getSourceName())).isEqualTo(media.toFile());
+        assertThat(new File(clusterItem.getSourceName())).isEqualTo(media.toFile());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.constraint.impl;
 
 import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,13 +24,6 @@ public class TimeConstraintTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-    }
-
-    @Test
-    public void accept_ShouldReturnTrue_IfConstraintDisabled() throws Exception {
-        subject = new TimeConstraint("-1", "-1", Clock.systemDefaultZone());
-
-        assertThat(subject.accept(candidate)).isTrue();
     }
 
     @Test
@@ -74,9 +68,15 @@ public class TimeConstraintTest {
 
     @Test
     public void ctor_ShouldThrowException_IfBeginAndStopAreSame() throws Exception {
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() ->
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() ->
                 subject = new TimeConstraint("12:00", "12:00",
                         Clock.fixed(Instant.parse("2017-01-01T12:30:00Z"), ZoneOffset.UTC)));
+    }
+
+    @Test
+    public void ctor_ShouldThrowException_IfConstraintConfiguredIncorrectly() throws Exception {
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() ->
+                subject = new TimeConstraint("-1", "-1", Clock.systemDefaultZone()));
     }
 
 }

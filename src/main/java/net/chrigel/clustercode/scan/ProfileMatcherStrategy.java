@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.scan.impl;
+package net.chrigel.clustercode.scan;
 
 import java.util.Iterator;
 

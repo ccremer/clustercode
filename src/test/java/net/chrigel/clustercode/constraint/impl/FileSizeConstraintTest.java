@@ -3,6 +3,7 @@ package net.chrigel.clustercode.constraint.impl;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -127,26 +128,24 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
     }
 
     @Test
-    public void accept_ShouldReturnTrue_IfFileSizeConstraintIsDisabled() throws Exception {
+    public void ctor_ShouldThrowException_IfFileSizesEqual() throws Exception {
         long minSize = 0;
         long maxSize = 0;
-        initSubject(minSize, maxSize);
-
-        assertThat(subject.accept(media)).isTrue();
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
     }
 
     @Test
     public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesSwapped() throws Exception {
         long minSize = 12;
         long maxSize = 1;
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
     }
 
     @Test
     public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesNegative() throws Exception {
         long minSize = -1;
         long maxSize = 1;
-        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
     }
 
 }

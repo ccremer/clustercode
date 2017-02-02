@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.scan.impl;
 
+import lombok.ToString;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
 import net.chrigel.clustercode.util.FilesystemProvider;
 
@@ -7,6 +8,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import java.nio.file.Path;
 
+@ToString
 class ProfileScanSettingsImpl implements ProfileScanSettings {
 
     private final String profileFileNameExtension;

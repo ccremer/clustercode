@@ -23,12 +23,6 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
     }
 
     @Test
-    public void accept_ShouldReturnTrue_IfConstraintIsDisabled() throws Exception {
-        subject = new FileNameConstraint(":");
-        assertThat(subject.accept(candidate)).isTrue();
-    }
-
-    @Test
     public void accept_ShouldReturnFalse_IfRegexOnlyMatchesPartially() throws Exception {
         when(candidate.getSourcePath()).thenReturn(getPath("input", "movie.mp4"));
 

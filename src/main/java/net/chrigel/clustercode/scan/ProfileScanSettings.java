@@ -26,5 +26,12 @@ public interface ProfileScanSettings {
      */
     Path getProfilesBaseDir();
 
+    /**
+     * Gets the base name of the default profile file without extension. This method could be combined with {@link
+     * #getProfileFileNameExtension()}.
+     *
+     * @return the file name (e.g. "default"), not null.
+     */
     String getDefaultProfileFileName();
+
 }
