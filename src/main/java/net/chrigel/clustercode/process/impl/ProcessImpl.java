@@ -45,7 +45,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
 
     @Override
     public ExternalProcess withArguments(List<String> arguments) {
-        this.arguments = Optional.of(new LinkedList<>(arguments));
+        this.arguments = Optional.of(arguments);
         return this;
     }
 

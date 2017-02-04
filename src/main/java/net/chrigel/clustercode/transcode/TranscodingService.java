@@ -1,8 +1,5 @@
 package net.chrigel.clustercode.transcode;
 
-import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.task.Media;
-
 import java.util.function.Consumer;
 
 public interface TranscodingService {
@@ -10,20 +7,17 @@ public interface TranscodingService {
     /**
      * Performs the transcoding. This method blocks until the process finished or failed.
      *
-     * @param candidate the task, not null.
-     * @param profile   the profile, not null. The {@link Profile#getTemporaryFile()} field will return the file
-     *                  written during transcoding. The file will NOT be moved to a different location.
-     * @return true if transcoding was successful.
+     * @param task the task, not null.
+     * @return the transcoding result
      */
-    boolean transcode(Media candidate, Profile profile);
+    TranscodeResult transcode(TranscodeTask task);
 
     /**
-     * Runs {@link #transcode(Media, Profile)} in background.
+     * Runs {@link #transcode(TranscodeTask)} in background.
      *
-     * @param candidate the task, not null.
-     * @param profile   the profile, not null.
-     * @param listener  the listener instance for retrieving the result.
+     * @param task     the task, not null.
+     * @param listener the listener instance for retrieving the result.
      */
-    void transcode(Media candidate, Profile profile, Consumer<Boolean> listener);
+    void transcode(TranscodeTask task, Consumer<TranscodeResult> listener);
 
 }

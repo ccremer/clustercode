@@ -30,9 +30,4 @@ public class Profile {
      */
     private Map<String, String> fields;
 
-    /**
-     * The location of the temporary media file during transcoding.
-     */
-    private Path temporaryFile;
-
 }

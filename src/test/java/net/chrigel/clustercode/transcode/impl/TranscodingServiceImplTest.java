@@ -4,6 +4,8 @@ import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.task.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
+import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +36,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     private Media media;
     @Spy
     private Profile profile;
+    @Spy
+    private TranscodeTask task;
 
     private TranscodingServiceImpl subject;
 
@@ -49,6 +53,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(profile.getFields()).thenReturn(Collections.singletonMap("FORMAT", ".mp4"));
         when(settings.getTemporaryDir()).thenReturn(getPath("tmp"));
         when(profile.getArguments()).thenReturn(Collections.emptyList());
+
+        task.setMedia(media);
+        task.setProfile(profile);
 
         subject = new TranscodingServiceImpl(() -> process, settings);
     }
@@ -83,9 +90,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     public void transcode_ShouldReturnTrue_IfTranscodingSuccessful() throws Exception {
         when(process.start()).thenReturn(Optional.of(0));
 
-        boolean result = subject.transcode(media, profile);
-        assertThat(profile.getTemporaryFile()).isEqualTo(getPath("tmp", "video.mp4"));
-        assertThat(result).isTrue();
+        TranscodeResult result = subject.transcode(task);
+        assertThat(result.getTemporaryPath()).isEqualTo(getPath("tmp", "video.mp4"));
+        assertThat(result.isSuccessful()).isTrue();
     }
 
     @Test(timeout = 1000)
@@ -93,8 +100,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(process.start()).thenReturn(Optional.of(0));
 
         Semaphore blocker = new Semaphore(0);
-        subject.transcode(media, profile, success -> {
-            assertThat(success).isTrue();
+        subject.transcode(task, result -> {
+            assertThat(result.isSuccessful()).isTrue();
             blocker.release();
         });
 
@@ -105,42 +112,16 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     public void transcode_ShouldReturnFalse_IfTranscodingFailed() throws Exception {
         when(process.start()).thenReturn(Optional.of(1));
 
-        boolean result = subject.transcode(media, profile);
-        assertThat(result).isFalse();
+        TranscodeResult result = subject.transcode(task);
+        assertThat(result.isSuccessful()).isFalse();
     }
 
     @Test
     public void transcode_ShouldReturnFalse_IfTranscodingUndetermined() throws Exception {
         when(process.start()).thenReturn(Optional.empty());
 
-        boolean result = subject.transcode(media, profile);
-        assertThat(result).isFalse();
+        TranscodeResult result = subject.transcode(task);
+        assertThat(result.isSuccessful()).isFalse();
     }
 
-    @Test
-    public void getFileNameWithoutExtension_ShouldReturnFileName() throws Exception {
-
-        Path path = getPath("0", "file.ext");
-        String result = subject.getFileNameWithoutExtension(path);
-
-        assertThat(result).isEqualTo("file");
-    }
-
-    @Test
-    public void getFileNameWithoutExtension_ShouldReturnFileName_IfNoExtensionPresent() throws Exception {
-
-        Path path = getPath("0", "file");
-        String result = subject.getFileNameWithoutExtension(path);
-
-        assertThat(result).isEqualTo("file");
-    }
-
-    @Test
-    public void getFileNameWithoutExtension_ShouldReturnFileName_If() throws Exception {
-
-        Path path = getPath("0", "file");
-        String result = subject.getFileNameWithoutExtension(path);
-
-        assertThat(result).isEqualTo("file");
-    }
 }

@@ -3,9 +3,11 @@ package net.chrigel.clustercode.transcode.impl;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.transcode.TranscodingService;
+import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -43,29 +45,35 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     @Override
-    public boolean transcode(Media candidate, Profile profile) {
-        log.entry(candidate, profile);
+    public TranscodeResult transcode(TranscodeTask task) {
+        log.entry(task);
 
         Path tempFile = transcoderSettings.getTemporaryDir().resolve(
-                getFileNameWithoutExtension(candidate.getSourcePath()) +
-                        getPropertyOrDefault(profile, "FORMAT", transcoderSettings.getDefaultVideoExtension()));
+                FileUtil.getFileNameWithoutExtension(task.getMedia().getSourcePath()) +
+                        getPropertyOrDefault(task.getProfile(), "FORMAT",
+                                transcoderSettings.getDefaultVideoExtension()));
 
-        profile.setTemporaryFile(tempFile);
+        TranscodeResult result = TranscodeResult.builder()
+                .temporaryPath(tempFile)
+                .media(task.getMedia())
+                .profile(task.getProfile())
+                .build();
+
         log.info("Starting transcoding process...");
-        Optional<Integer> exitCode = doTranscode(candidate.getSourcePath(), tempFile, profile);
+        doTranscode(task.getMedia().getSourcePath(), tempFile, task.getProfile())
+                .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
 
-        if (exitCode.isPresent() && exitCode.get() == 0) {
+        if (result.isSuccessful()) {
             log.info("Transcoding finished");
-            return log.exit(true);
         } else {
             log.info("Transcoding failed.");
-            return log.exit(false);
         }
+        return log.exit(result);
     }
 
     @Override
-    public void transcode(Media candidate, Profile profile, Consumer<Boolean> listener) {
-        CompletableFuture.runAsync(() -> listener.accept(transcode(candidate, profile)));
+    public void transcode(TranscodeTask task, Consumer<TranscodeResult> listener) {
+        CompletableFuture.runAsync(() -> listener.accept(transcode(task)));
     }
 
     private String getPropertyOrDefault(Profile profile, String key, String defaultValue) {
@@ -80,13 +88,4 @@ class TranscodingServiceImpl implements TranscodingService {
         return s.replace(INPUT_PLACEHOLDER, path.toString());
     }
 
-    String getFileNameWithoutExtension(Path path) {
-        String name = path.getFileName().toString();
-        int index = name.lastIndexOf('.');
-        if (index <= 0) {
-            return name;
-        } else {
-            return name.substring(0, index);
-        }
-    }
 }

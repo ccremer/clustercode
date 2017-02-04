@@ -8,6 +8,7 @@ import java.nio.file.Path;
 @NoArgsConstructor
 @Data
 @Builder
+@ToString(exclude = "priority")
 public class Media {
 
     /**
