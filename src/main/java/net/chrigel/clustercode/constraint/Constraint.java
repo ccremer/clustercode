@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 /**
  * Represents a matcher with which a media candidate can be excluded or included for job scheduling. The implementing

@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan.impl;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileMatcher;
 import net.chrigel.clustercode.scan.ProfileMatcherStrategy;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

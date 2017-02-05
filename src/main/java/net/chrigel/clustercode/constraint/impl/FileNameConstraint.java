@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 import javax.inject.Inject;
 import javax.inject.Named;

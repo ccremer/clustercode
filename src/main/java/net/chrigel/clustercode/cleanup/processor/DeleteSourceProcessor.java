@@ -1,9 +1,9 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.CleanupContext;
-import net.chrigel.clustercode.task.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupContext;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
 
 import javax.inject.Inject;
 import java.io.IOException;

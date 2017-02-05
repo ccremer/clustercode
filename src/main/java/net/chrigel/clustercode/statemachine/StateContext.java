@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.statemachine;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 
 import java.nio.file.Path;

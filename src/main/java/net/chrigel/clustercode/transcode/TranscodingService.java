@@ -7,7 +7,7 @@ public interface TranscodingService {
     /**
      * Performs the transcoding. This method blocks until the process finished or failed.
      *
-     * @param task the task, not null.
+     * @param task the cleanup, not null.
      * @return the transcoding result
      */
     TranscodeResult transcode(TranscodeTask task);
@@ -15,7 +15,7 @@ public interface TranscodingService {
     /**
      * Runs {@link #transcode(TranscodeTask)} in background.
      *
-     * @param task     the task, not null.
+     * @param task     the cleanup, not null.
      * @param listener the listener instance for retrieving the result.
      */
     void transcode(TranscodeTask task, Consumer<TranscodeResult> listener);

@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.task;
+package net.chrigel.clustercode.cleanup;
 
 public interface CleanupProcessor {
 

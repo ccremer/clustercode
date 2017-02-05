@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan.impl;
 import com.google.inject.multibindings.Multibinder;
 import net.chrigel.clustercode.scan.*;
 import net.chrigel.clustercode.scan.matcher.ConfigurableMatcherStrategy;
-import net.chrigel.clustercode.scan.matcher.Matchers;
+import net.chrigel.clustercode.scan.matcher.ProfileMatchers;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 import net.chrigel.clustercode.util.di.ModuleHelper;
 
@@ -35,14 +35,22 @@ public class ScanModule extends AbstractPropertiesModule {
         bind(MediaScanSettings.class).to(MediaScanSettingsImpl.class);
         bind(MediaScanService.class).to(MediaScanServiceImpl.class);
 
+        bind(SelectionService.class).to(SelectionServiceImpl.class);
+
         bind(ProfileScanService.class).to(ProfileScanServiceImpl.class);
         bind(ProfileParser.class).to(ProfileParserImpl.class);
         bind(ProfileScanSettings.class).to(ProfileScanSettingsImpl.class);
 
         String strategies = getProperty(properties, PROFILE_STRATEGY_KEY);
+
+        ModuleHelper.checkStrategiesForOrder(strategies, PROFILE_STRATEGY_KEY,
+                ProfileMatchers.COMPANION.name(), ProfileMatchers.DEFAULT.name());
+        ModuleHelper.checkStrategiesForOrder(strategies, PROFILE_STRATEGY_KEY,
+                ProfileMatchers.DIRECTORY_STRUCTURE.name(), ProfileMatchers.DEFAULT.name());
+
         Multibinder<ProfileMatcher> matcherBinder = Multibinder.newSetBinder(binder(), ProfileMatcher.class);
         try {
-            ModuleHelper.bindStrategies(matcherBinder, strategies, Matchers::valueOf);
+            ModuleHelper.bindStrategies(matcherBinder, strategies, ProfileMatchers::valueOf);
         } catch (IllegalArgumentException ex) {
             addError(ex);
         }

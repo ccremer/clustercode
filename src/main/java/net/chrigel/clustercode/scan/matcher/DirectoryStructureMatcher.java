@@ -5,7 +5,7 @@ import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
 import net.chrigel.clustercode.scan.ProfileMatcher;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 import javax.inject.Inject;
 import java.nio.file.Files;

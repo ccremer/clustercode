@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;

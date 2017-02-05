@@ -1,8 +1,8 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.task.CleanupContext;
-import net.chrigel.clustercode.task.CleanupProcessor;
-import net.chrigel.clustercode.task.CleanupSettings;
+import net.chrigel.clustercode.cleanup.CleanupContext;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.util.FileUtil;
 

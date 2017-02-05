@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.task;
+package net.chrigel.clustercode.cleanup;
 
 import java.nio.file.Path;
 

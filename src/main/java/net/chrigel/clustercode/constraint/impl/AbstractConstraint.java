@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.constraint.impl;
 
 import net.chrigel.clustercode.constraint.Constraint;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 

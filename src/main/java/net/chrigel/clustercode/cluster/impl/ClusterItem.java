@@ -26,7 +26,7 @@ public class ClusterItem implements Serializable {
     private int priority;
 
     /**
-     * The absolute time when this task was created for scheduling.
+     * The absolute time when this cleanup was created for scheduling.
      */
     private ZonedDateTime dateAdded;
 

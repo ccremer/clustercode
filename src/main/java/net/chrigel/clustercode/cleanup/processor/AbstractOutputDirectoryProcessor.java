@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
 import net.chrigel.clustercode.util.FileUtil;
 import org.slf4j.ext.XLogger;

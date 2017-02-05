@@ -3,7 +3,7 @@ package net.chrigel.clustercode.cluster.impl;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.util.FilesystemProvider;
 import org.jgroups.Address;
 import org.jgroups.JChannel;

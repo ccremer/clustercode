@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.task;
+package net.chrigel.clustercode.scan;
 
 import java.util.List;
 import java.util.Optional;

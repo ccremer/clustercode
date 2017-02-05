@@ -3,7 +3,6 @@ package net.chrigel.clustercode.scan.impl;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
-import net.chrigel.clustercode.task.Media;
 import org.slf4j.ext.XLogger;
 
 import java.io.IOException;

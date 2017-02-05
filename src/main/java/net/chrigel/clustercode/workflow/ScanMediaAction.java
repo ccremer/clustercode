@@ -3,7 +3,7 @@ package net.chrigel.clustercode.workflow;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.workflow.actions.AsyncAction;
 import net.chrigel.clustercode.workflow.states.WorkflowEventType;
 import net.chrigel.clustercode.workflow.states.WorkflowState;

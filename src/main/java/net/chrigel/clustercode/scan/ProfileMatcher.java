@@ -1,7 +1,5 @@
 package net.chrigel.clustercode.scan;
 
-import net.chrigel.clustercode.task.Media;
-
 import java.util.Optional;
 import java.util.function.Function;
 

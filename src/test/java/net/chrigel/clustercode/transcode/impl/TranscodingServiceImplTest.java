@@ -2,7 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.transcode.TranscodeTask;

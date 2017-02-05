@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.workflow;
 
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 import java.nio.file.Path;
 import java.util.List;

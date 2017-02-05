@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 class NoConstraint extends AbstractConstraint {
 

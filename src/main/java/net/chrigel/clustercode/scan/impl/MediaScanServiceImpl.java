@@ -2,9 +2,9 @@ package net.chrigel.clustercode.scan.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.FileScanner;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.Media;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;

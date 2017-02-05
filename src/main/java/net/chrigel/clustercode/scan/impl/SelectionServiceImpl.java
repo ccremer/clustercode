@@ -1,10 +1,10 @@
-package net.chrigel.clustercode.task.impl;
+package net.chrigel.clustercode.scan.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.constraint.Constraint;
-import net.chrigel.clustercode.task.Media;
-import net.chrigel.clustercode.task.SelectionService;
+import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.SelectionService;
 
 import javax.inject.Inject;
 import java.util.Comparator;

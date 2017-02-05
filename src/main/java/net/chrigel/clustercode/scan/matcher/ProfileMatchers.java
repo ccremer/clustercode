@@ -3,7 +3,7 @@ package net.chrigel.clustercode.scan.matcher;
 import net.chrigel.clustercode.scan.ProfileMatcher;
 import net.chrigel.clustercode.util.di.EnumeratedImplementation;
 
-public enum Matchers implements EnumeratedImplementation<ProfileMatcher> {
+public enum ProfileMatchers implements EnumeratedImplementation<ProfileMatcher> {
 
     COMPANION(CompanionProfileMatcher.class),
     DEFAULT(DefaultProfileMatcher.class),
@@ -11,7 +11,7 @@ public enum Matchers implements EnumeratedImplementation<ProfileMatcher> {
 
     private final Class<? extends ProfileMatcher> implementingClass;
 
-    Matchers(Class<? extends ProfileMatcher> clazz) {
+    ProfileMatchers(Class<? extends ProfileMatcher> clazz) {
         this.implementingClass = clazz;
     }
 

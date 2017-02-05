@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.cluster;
 
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.scan.Media;
 
 import java.util.Optional;
 
@@ -18,25 +18,25 @@ public interface ClusterService {
     void leaveCluster();
 
     /**
-     * Removes the currently active task from the cluster, if there was one set.
+     * Removes the currently active cleanup from the cluster, if there was one set.
      */
     void removeTask();
 
     /**
-     * Gets the task that is or was scheduled for this node. This method is useful after an application crash where the
-     * cluster knows which task was scheduled for this specific node. So this method returns the candidate previously
+     * Gets the cleanup that is or was scheduled for this node. This method is useful after an application crash where the
+     * cluster knows which cleanup was scheduled for this specific node. So this method returns the candidate previously
      * scheduled for this node, otherwise empty.
      *
-     * @return an optional describing the task.
+     * @return an optional describing the cleanup.
      */
     Optional<Media> getTask();
 
     /**
-     * Sets the task which is being executed by this Java process. Replaces the old task if present, only one task can
+     * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one cleanup can
      * be active. Tasks which are long in the cluster than {@link ClusterSettings#getTaskTimeout()} are being removed.
      * This method does nothing if not connected to the cluster.
      *
-     * @param candidate the task, not null.
+     * @param candidate the cleanup, not null.
      */
     void setTask(Media candidate);
 

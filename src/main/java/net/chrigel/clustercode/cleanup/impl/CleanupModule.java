@@ -1,9 +1,12 @@
-package net.chrigel.clustercode.task.impl;
+package net.chrigel.clustercode.cleanup.impl;
 
 import com.google.inject.multibindings.Multibinder;
-import net.chrigel.clustercode.task.*;
-import net.chrigel.clustercode.task.processor.CleanupProcessors;
-import net.chrigel.clustercode.task.processor.ConfigurableCleanupStrategy;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupService;
+import net.chrigel.clustercode.cleanup.CleanupSettings;
+import net.chrigel.clustercode.cleanup.CleanupStrategy;
+import net.chrigel.clustercode.cleanup.processor.CleanupProcessors;
+import net.chrigel.clustercode.cleanup.processor.ConfigurableCleanupStrategy;
 import net.chrigel.clustercode.util.InvalidConfigurationException;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 import net.chrigel.clustercode.util.di.ModuleHelper;
@@ -11,7 +14,7 @@ import net.chrigel.clustercode.util.di.ModuleHelper;
 import java.util.Locale;
 import java.util.Properties;
 
-public class TaskModule extends AbstractPropertiesModule {
+public class CleanupModule extends AbstractPropertiesModule {
 
     public static final String CLEANUP_STRATEGY_KEY = "CC_CLEANUP_STRATEGY";
     public static final String CLEANUP_OUTPUT_DIR_KEY = "CC_MEDIA_OUTPUT_DIR";
@@ -19,13 +22,12 @@ public class TaskModule extends AbstractPropertiesModule {
 
     private final Properties properties;
 
-    public TaskModule(Properties properties) {
+    public CleanupModule(Properties properties) {
         this.properties = properties;
     }
 
     @Override
     protected void configure() {
-        bind(SelectionService.class).to(SelectionServiceImpl.class);
 
         bind(CleanupService.class).to(CleanupServiceImpl.class);
         bind(CleanupStrategy.class).to(ConfigurableCleanupStrategy.class);

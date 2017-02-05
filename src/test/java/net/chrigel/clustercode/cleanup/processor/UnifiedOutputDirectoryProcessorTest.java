@@ -1,8 +1,8 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.task.CleanupContext;
-import net.chrigel.clustercode.task.CleanupSettings;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.cleanup.CleanupContext;
+import net.chrigel.clustercode.cleanup.CleanupSettings;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.ClockBasedUnitTest;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;

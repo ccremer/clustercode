@@ -1,10 +1,10 @@
-package net.chrigel.clustercode.task.impl;
+package net.chrigel.clustercode.cleanup.impl;
 
 import lombok.extern.slf4j.XSlf4j;
-import net.chrigel.clustercode.task.CleanupContext;
-import net.chrigel.clustercode.task.CleanupProcessor;
-import net.chrigel.clustercode.task.CleanupService;
-import net.chrigel.clustercode.task.CleanupStrategy;
+import net.chrigel.clustercode.cleanup.CleanupContext;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupService;
+import net.chrigel.clustercode.cleanup.CleanupStrategy;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 
 import javax.inject.Inject;

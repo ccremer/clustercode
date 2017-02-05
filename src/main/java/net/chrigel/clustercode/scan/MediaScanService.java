@@ -1,7 +1,5 @@
 package net.chrigel.clustercode.scan;
 
-import net.chrigel.clustercode.task.Media;
-
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;

@@ -1,8 +1,8 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.task.CleanupContext;
-import net.chrigel.clustercode.task.Media;
+import net.chrigel.clustercode.cleanup.CleanupContext;
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import org.junit.Before;
@@ -16,9 +16,9 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class MarkSourceProcessorTest implements FileBasedUnitTest {
+public class DeleteSourceProcessorTest implements FileBasedUnitTest {
 
-    private MarkSourceProcessor subject;
+    private DeleteSourceProcessor subject;
     private Path inputDir;
 
     @Mock
@@ -36,35 +36,30 @@ public class MarkSourceProcessorTest implements FileBasedUnitTest {
         setupFileSystem();
 
         inputDir = getPath("input");
-        context.setTranscodeResult(transcodeResult);
-        transcodeResult.setMedia(media);
-        when(mediaScanSettings.getSkipExtension()).thenReturn(".done");
         when(mediaScanSettings.getBaseInputDir()).thenReturn(inputDir);
-
-        subject = new MarkSourceProcessor(mediaScanSettings);
+        transcodeResult.setMedia(media);
+        context.setTranscodeResult(transcodeResult);
+        subject = new DeleteSourceProcessor(mediaScanSettings);
     }
 
     @Test
-    public void processStep_ShouldCreateFile_IfSourceDoesExist() throws Exception {
+    public void processStep_ShouldDeleteSourceFile_IfFileExists() throws Exception {
+
         Path source = createFile(getPath("0", "video.ext"));
-        Path expected = inputDir.resolve("0").resolve("video.ext.done");
-
-        createFile(inputDir.resolve(source));
         media.setSourcePath(source);
+
         subject.processStep(context);
 
-        assertThat(expected).exists();
+        assertThat(inputDir.resolve(source)).doesNotExist();
     }
 
     @Test
-    public void processStep_ShouldNotCreateFile_IfSourceDoesNotExist() throws Exception {
+    public void processStep_ShouldDoNothing_IfFileNotExists() throws Exception {
         Path source = getPath("0", "video.ext");
-        Path expected = getPath("0", "video.ext.done");
-
         media.setSourcePath(source);
+
         subject.processStep(context);
 
-        assertThat(expected).doesNotExist();
+        assertThat(source).doesNotExist();
     }
-
 }

@@ -1,7 +1,7 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.task.CleanupProcessor;
-import net.chrigel.clustercode.task.CleanupStrategy;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupStrategy;
 import net.chrigel.clustercode.util.di.ModuleHelper;
 
 import javax.inject.Inject;

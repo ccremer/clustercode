@@ -18,7 +18,7 @@ public class ConfigurableMatcherStrategy implements ProfileMatcherStrategy {
     @Inject
     ConfigurableMatcherStrategy(@Named(ScanModule.PROFILE_STRATEGY_KEY) String strategies,
                                 Set<ProfileMatcher> matchers) {
-        this.matchers = ModuleHelper.sortImplementations(strategies, matchers, Matchers::valueOf);
+        this.matchers = ModuleHelper.sortImplementations(strategies, matchers, ProfileMatchers::valueOf);
     }
 
     @Override

@@ -1,6 +1,6 @@
-package net.chrigel.clustercode.task.processor;
+package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.task.CleanupProcessor;
+import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.util.di.EnumeratedImplementation;
 
 public enum CleanupProcessors implements EnumeratedImplementation<CleanupProcessor> {
