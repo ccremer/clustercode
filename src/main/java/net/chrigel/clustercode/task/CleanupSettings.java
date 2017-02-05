@@ -11,5 +11,8 @@ public interface CleanupSettings {
      */
     Path getOutputBaseDirectory();
 
+    /**
+     * Returns true if existing files are allowed to be overwritten.
+     */
     boolean overwriteFiles();
 }

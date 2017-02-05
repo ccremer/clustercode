@@ -46,19 +46,17 @@ public class SelectionServiceImpl implements SelectionService {
 
     /**
      * Negates {@link #isInCluster(Media)}.
-     *
-     * @param candidate
-     * @return
      */
     boolean isNotInCluster(Media candidate) {
         return !isInCluster(candidate);
     }
 
     /**
-     * Checks whether the given media candidate fulfills all constraints.
+     * Checks whether the given media candidate fulfills all constraints. May not evaluate all constraints if one
+     * declines the given media.
      *
-     * @param media
-     * @return
+     * @param media the media. Not null.
+     * @return true if all constraints are accepted, false if one declines.
      */
     boolean checkConstraints(Media media) {
         return constraints.stream().allMatch(filter -> filter.accept(media));

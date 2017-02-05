@@ -17,7 +17,8 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class StructuredOutputDirectoryProcessorTest implements FileBasedUnitTest, ClockBasedUnitTest {
+public class StructuredOutputDirectoryProcessorTest
+        implements FileBasedUnitTest, ClockBasedUnitTest {
 
     private StructuredOutputDirectoryProcessor subject;
 
@@ -80,8 +81,8 @@ public class StructuredOutputDirectoryProcessorTest implements FileBasedUnitTest
 
     @Test
     public void createOutputDirectoryTree_ShouldRecreateDirectoryTree_WithSubdirectories() throws Exception {
-        Path source = getPath("0", "subdir", "file.ext");
-        Path expected = outputDir.resolve("subdir").resolve("file.ext");
+        Path source = getPath("0", "subdir1", "subdir2", "file.ext");
+        Path expected = outputDir.resolve("subdir1").resolve("subdir2").resolve("file.ext");
 
         Path result = subject.createOutputDirectoryTree(source);
 

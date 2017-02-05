@@ -4,6 +4,7 @@ import net.chrigel.clustercode.task.CleanupContext;
 import net.chrigel.clustercode.task.CleanupProcessor;
 import net.chrigel.clustercode.task.CleanupSettings;
 import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
@@ -23,18 +24,19 @@ public class UnifiedOutputDirectoryProcessor
                                     Clock clock) {
         super(clock);
         this.cleanupSettings = cleanupSettings;
-        createDirectoriesFor(cleanupSettings.getOutputBaseDirectory());
+        FileUtil.createDirectoriesFor(cleanupSettings.getOutputBaseDirectory());
     }
 
     @Override
     public CleanupContext processStep(CleanupContext context) {
+        log.entry(context);
         TranscodeResult result = context.getTranscodeResult();
 
         Path source = result.getTemporaryPath();
         Path target = cleanupSettings.getOutputBaseDirectory().resolve(source.getFileName());
 
         context.setOutputPath(moveAndReplaceExisting(source, target, cleanupSettings.overwriteFiles()));
-        return context;
+        return log.exit(context);
     }
 
 }

@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.util.di;
 
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class ModuleHelperTest {
 
@@ -54,6 +56,49 @@ public class ModuleHelperTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).isInstanceOf(TestClassB.class);
+    }
+
+    @Test
+    public void checkStrategiesForIncompatibilities_ShouldThrowException_IfStrategiesAreIncompatible() throws
+            Exception {
+        String key = "CC_STRATEGY";
+        String value1 = Implementations.CLASS_A.name();
+        String value2 = Implementations.CLASS_B.name();
+        String strategies = value1.concat(" ").concat(value2);
+
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() ->
+                ModuleHelper.checkStrategiesForIncompatibilities(strategies, key, value1, value2));
+    }
+
+    @Test
+    public void checkStrategiesForIncompatibilities_ShouldDoNothing_IfStrategiesAreCompatible() throws Exception {
+        String key = "CC_STRATEGY";
+        String value1 = Implementations.CLASS_A.name();
+        String value2 = Implementations.CLASS_B.name();
+        String strategies = value1.concat(" ").concat(Implementations.CLASS_C.name());
+
+        ModuleHelper.checkStrategiesForIncompatibilities(strategies, key, value1, value2);
+    }
+
+    @Test
+    public void checkStrategiesForOrder_ShouldThrowException_IfOrderIsInvalid() throws Exception {
+        String key = "CC_STRATEGY";
+        String value1 = Implementations.CLASS_A.name();
+        String value2 = Implementations.CLASS_B.name();
+        String strategies = value2.concat(" ").concat(value1);
+
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() ->
+                ModuleHelper.checkStrategiesForOrder(strategies, key, value1, value2));
+    }
+
+    @Test
+    public void checkStrategiesForOrder_ShouldDoNothing_IfOrderIsValid() throws Exception {
+        String key = "CC_STRATEGY";
+        String value1 = Implementations.CLASS_A.name();
+        String value2 = Implementations.CLASS_B.name();
+        String strategies = value1.concat(" ").concat(value2);
+
+        ModuleHelper.checkStrategiesForOrder(strategies, key, value1, value2);
     }
 
     enum Implementations implements EnumeratedImplementation<TestInterface> {

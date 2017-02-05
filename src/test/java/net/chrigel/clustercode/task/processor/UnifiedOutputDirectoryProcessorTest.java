@@ -17,7 +17,8 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class UnifiedOutputDirectoryProcessorTest implements FileBasedUnitTest, ClockBasedUnitTest {
+public class UnifiedOutputDirectoryProcessorTest
+        implements FileBasedUnitTest, ClockBasedUnitTest {
 
     private UnifiedOutputDirectoryProcessor subject;
 

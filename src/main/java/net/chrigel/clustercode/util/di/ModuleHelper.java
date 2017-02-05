@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.util.di;
 
 import com.google.inject.multibindings.Multibinder;
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -39,6 +40,47 @@ public class ModuleHelper {
         List<T> sortedList = new LinkedList<>(implementations);
         sortedList.sort(new ClassComparator<>(strategies));
         return sortedList;
+    }
+
+    /**
+     * Checks if value1 AND value2 are in the given {@code strategies} string. If they are, an {@link
+     * InvalidConfigurationException} is being thrown.
+     *
+     * @param strategies the user-configured value.
+     * @param key        the configuration key.
+     * @param value1     the first value.
+     * @param value2     the second value.
+     */
+    public static void checkStrategiesForIncompatibilities(String strategies, String key,
+                                                           String value1, String value2) {
+        if (strategies.contains(value1) && strategies.contains(value2)) {
+            throw new InvalidConfigurationException(
+                    "{} cannot contain {} and {} at the same time as they are incompatible. You configured: {}",
+                    key, value1, value2, strategies);
+        }
+    }
+
+    /**
+     * Checks if value1 is before value2 in the given {@code strategies} string. If it is, an {@link
+     * InvalidConfigurationException} is being thrown. Only checks if both values are present. It is assumed that the
+     * provided values are distinguishable (and not e.g. substring of each other).
+     *
+     * @param strategies the user-configured value.
+     * @param key        the configuration key.
+     * @param value1     the first value, which should be before value2.
+     * @param value2     the second value.
+     */
+    public static void checkStrategiesForOrder(String strategies, String key,
+                                               String value1, String value2) {
+        if (strategies.contains(value1) && strategies.contains(value2)) {
+            int index1 = strategies.indexOf(value1);
+            int index2 = strategies.indexOf(value2);
+            if (index1 >= index2) {
+                throw new InvalidConfigurationException(
+                        "{} cannot be specified before {} in {}. You configured: {}",
+                        value2, value1, key, strategies);
+            }
+        }
     }
 
     /**
@@ -167,5 +209,4 @@ public class ModuleHelper {
             return Integer.compare(index1, index2);
         }
     }
-
 }

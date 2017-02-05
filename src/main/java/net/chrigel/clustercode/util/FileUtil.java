@@ -1,9 +1,15 @@
 package net.chrigel.clustercode.util;
 
+import lombok.extern.slf4j.XSlf4j;
+
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 
+@XSlf4j
 public class FileUtil {
 
     /**
@@ -73,4 +79,33 @@ public class FileUtil {
         return baseFile.resolveSibling(getFileNameWithoutExtension(baseFile)
                 .concat(timestamp).concat(ext));
     }
+
+    /**
+     * Creates the parent directories for the given path.
+     *
+     * @param target the target path. Must not be a root path.
+     * @throws RuntimeException if the dirs could not be created.
+     * @see Path#getParent()
+     */
+    public static void createParentDirectoriesFor(Path target) {
+        createDirectoriesFor(target.getParent());
+    }
+
+    /**
+     * Creates the parent directories for the given path.
+     *
+     * @param target the target path.
+     * @throws RuntimeException if the dirs could not be created.
+     * @see Files#createDirectories(Path, FileAttribute[])
+     */
+    public static void createDirectoriesFor(Path target) {
+        try {
+            log.debug("Creating directories for {}", target);
+            Files.createDirectories(target);
+        } catch (IOException e) {
+            log.error("Could not create directories for {}: {}", target, e);
+            throw new RuntimeException(e);
+        }
+    }
+
 }

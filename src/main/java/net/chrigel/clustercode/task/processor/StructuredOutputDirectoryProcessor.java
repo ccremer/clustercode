@@ -1,9 +1,11 @@
 package net.chrigel.clustercode.task.processor;
 
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.task.CleanupContext;
 import net.chrigel.clustercode.task.CleanupProcessor;
 import net.chrigel.clustercode.task.CleanupSettings;
 import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
@@ -24,20 +26,20 @@ public class StructuredOutputDirectoryProcessor
                                        Clock clock) {
         super(clock);
         this.cleanupSettings = cleanupSettings;
-        createDirectoriesFor(cleanupSettings.getOutputBaseDirectory());
+        FileUtil.createDirectoriesFor(cleanupSettings.getOutputBaseDirectory());
     }
 
     @Override
     public CleanupContext processStep(CleanupContext context) {
-
+        log.entry(context);
         TranscodeResult result = context.getTranscodeResult();
 
         Path source = result.getTemporaryPath();
         Path media = result.getMedia().getSourcePath();
         Path target = createOutputDirectoryTree(media);
-        createParentDirectoriesFor(target);
+        FileUtil.createParentDirectoriesFor(target);
         context.setOutputPath(moveAndReplaceExisting(source, target, cleanupSettings.overwriteFiles()));
-        return context;
+        return log.exit(context);
     }
 
     /**
@@ -57,7 +59,7 @@ public class StructuredOutputDirectoryProcessor
 
         Path relativeParent = mediaSource.subpath(1, mediaSource.getNameCount());
         Path target = cleanupSettings.getOutputBaseDirectory().resolve(relativeParent);
-        createParentDirectoriesFor(target);
+        FileUtil.createParentDirectoriesFor(target);
         return target;
     }
 }

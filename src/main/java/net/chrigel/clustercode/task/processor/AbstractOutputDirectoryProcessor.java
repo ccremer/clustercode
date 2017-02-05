@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,43 +35,18 @@ public abstract class AbstractOutputDirectoryProcessor {
      * @throws RuntimeException if the file could not be moved.
      */
     protected Path moveAndReplaceExisting(Path source, Path target, boolean overwrite) {
+        log.entry(source, target, "overwrite=".concat(Boolean.toString(overwrite)));
         if (Files.exists(target) && !overwrite) {
+            log.debug("Target file {} exists already.", target);
             target = FileUtil.getTimestampedPath(target, ZonedDateTime.now(clock), FORMATTER);
         }
 
         try {
+            log.debug("Moving file from {} to {}", source, target);
             Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
             return target;
         } catch (IOException e) {
             log.error("Could not move {} to {}: {}", source, target, e.toString());
-            log.info("Aborting cleanup. Please do it manually.");
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Creates the parent directories for the given path.
-     *
-     * @param target the target path. Must not be a root path.
-     * @throws RuntimeException if the dirs could not be created.
-     * @see Path#getParent()
-     */
-    protected void createParentDirectoriesFor(Path target) {
-        createDirectoriesFor(target.getParent());
-    }
-
-    /**
-     * Creates the parent directories for the given path.
-     *
-     * @param target the target path.
-     * @throws RuntimeException if the dirs could not be created.
-     * @see Files#createDirectories(Path, FileAttribute[])
-     */
-    protected void createDirectoriesFor(Path target) {
-        try {
-            Files.createDirectories(target);
-        } catch (IOException e) {
-            log.error("Could not create parent directories for {}: {}", target, e);
             throw new RuntimeException(e);
         }
     }
