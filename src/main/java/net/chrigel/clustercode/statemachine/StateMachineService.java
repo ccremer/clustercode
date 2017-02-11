@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.workflow;
+package net.chrigel.clustercode.statemachine;
 
 public interface StateMachineService {
 

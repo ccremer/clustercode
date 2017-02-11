@@ -124,6 +124,7 @@ class JgroupsClusterImpl implements ClusterService {
     @Override
     public void removeTask() {
         if (map.isPresent() && channel.isPresent()) {
+            log.debug("Removing existing task.");
             map.get().remove(channel.get().getAddress());
         }
     }
@@ -143,18 +144,18 @@ class JgroupsClusterImpl implements ClusterService {
     public void setTask(Media candidate) {
         if (map.isPresent() && channel.isPresent()) {
             Address address = channel.get().getAddress();
-            log.debug("Replacing clusterItem in map...");
+            log.debug("Replacing media in map...");
             ClusterItem clusterItem = createTaskFor(candidate);
             if (map.get().containsKey(address)) {
                 map.get().replace(address, clusterItem);
             } else {
                 map.get().put(address, clusterItem);
             }
-            log.debug("Waiting for clusterItem acceptance...");
+            log.debug("Waiting for media acceptance...");
             // wait until the clusterItem is in the map.
             while (!map.get().containsValue(clusterItem)) {
             }
-            log.info("ClusterItem accepted in cluster.");
+            log.info("Media accepted in cluster.");
         }
     }
 

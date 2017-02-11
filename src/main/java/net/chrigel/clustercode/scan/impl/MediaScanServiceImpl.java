@@ -29,6 +29,7 @@ class MediaScanServiceImpl implements MediaScanService {
 
     @Override
     public Map<Path, List<Media>> retrieveFiles() {
+        log.info("Scanning for directories in {}", scanSettings.getBaseInputDir());
         return scannerProvider.get()
                 .searchIn(scanSettings.getBaseInputDir())
                 .withRecursion(false)
@@ -47,6 +48,7 @@ class MediaScanServiceImpl implements MediaScanService {
      * @return a list of candidates which may empty on error or none found.
      */
     List<Media> getListOfMediaFiles(Path path) {
+        log.info("Scanning for media files in {}", path);
         return scannerProvider.get()
                 .searchIn(path)
                 .withRecursion(true)

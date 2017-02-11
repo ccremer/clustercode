@@ -1,8 +1,10 @@
 package net.chrigel.clustercode.test;
 
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import net.chrigel.clustercode.util.FileUtil;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Comparator;
 
 public class TestUtility {
 
@@ -22,4 +24,18 @@ public class TestUtility {
         return fs.getPath("src", "test", "resources");
     }
 
+    public static void createFile(Path path) {
+        try {
+            Files.createFile(path);
+        } catch (FileAlreadyExistsException e) {
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void deleteFolderAndItsContent(final Path folder) throws IOException {
+        Files.walk(folder)
+                .sorted(Comparator.reverseOrder())
+                .forEach(FileUtil::deleteFile);
+    }
 }

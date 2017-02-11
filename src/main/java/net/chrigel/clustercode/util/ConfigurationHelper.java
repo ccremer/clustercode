@@ -1,5 +1,7 @@
 package net.chrigel.clustercode.util;
 
+import lombok.extern.slf4j.XSlf4j;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -10,6 +12,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@XSlf4j
 public class ConfigurationHelper {
 
     private ConfigurationHelper() {
@@ -68,10 +71,12 @@ public class ConfigurationHelper {
         try {
             InputStream stream = ClassLoader.getSystemResourceAsStream(fileName);
             if (stream == null) {
+                log.debug("Reading config file {} from file system.", fileName);
                 Reader reader = Files.newBufferedReader(FilesystemProvider.getInstance().getPath(fileName));
                 properties.load(reader);
                 reader.close();
             } else {
+                log.debug("Reading config file {} from classpath.", fileName);
                 properties.load(stream);
                 stream.close();
             }

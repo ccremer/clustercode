@@ -37,12 +37,12 @@ public abstract class AbstractOutputDirectoryProcessor {
     protected Path moveAndReplaceExisting(Path source, Path target, boolean overwrite) {
         log.entry(source, target, "overwrite=".concat(Boolean.toString(overwrite)));
         if (Files.exists(target) && !overwrite) {
-            log.debug("Target file {} exists already.", target);
+            log.debug("Target file {} exists already. Applying timestamp to target.", target);
             target = FileUtil.getTimestampedPath(target, ZonedDateTime.now(clock), FORMATTER);
         }
 
         try {
-            log.debug("Moving file from {} to {}", source, target);
+            log.info("Moving file from {} to {}...", source, target);
             Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
             return target;
         } catch (IOException e) {

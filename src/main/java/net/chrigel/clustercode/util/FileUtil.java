@@ -108,4 +108,16 @@ public class FileUtil {
         }
     }
 
+    /**
+     * Deletes the given file. If an IOException occurs, a warning will be logged.
+     *
+     * @param file
+     */
+    public static void deleteFile(Path file) {
+        try {
+            Files.delete(file);
+        } catch (IOException e) {
+            log.warn("Could not delete file:", e);
+        }
+    }
 }

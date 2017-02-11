@@ -2,13 +2,23 @@
 <Configuration name="net.chrigel.clustercode">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%style{%d{yyyy-MM-dd HH:mm:ss.SSS}}{White} %highlight{%-5level} - %logger{36} - [%t] - %msg%n" />
+            <PatternLayout
+                    pattern="%style{%d{yyyy-MM-dd HH:mm:ss.SSS}}{White} %highlight{%-5level} - %logger{36} - [%t] - %msg%n"/>
             <MarkerFilter marker="StateMachine" onMatch="DENY" onMismatch="NEUTRAL"/>
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="trace">
-            <AppenderRef ref="Console" />
+        <Logger name="org.jgroups" level="info">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.jgroups.protocols" level="info">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.squirrelframework.foundation.util" level="debug">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Root level="trace" additivity="false">
+            <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
 </Configuration>

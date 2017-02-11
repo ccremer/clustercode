@@ -69,7 +69,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
 
     @Override
     public Optional<Integer> start() {
-
+        log.entry();
         ProcessBuilder builder = new ProcessBuilder(buildArguments());
         if (redirectIO) {
             builder.inheritIO();
@@ -86,14 +86,14 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         }
         try {
             this.subprocess = Optional.of(builder.start());
-            return Optional.of(subprocess.get().waitFor());
+            return log.exit(Optional.of(subprocess.get().waitFor()));
         } catch (IOException e) {
             log.catching(e);
             this.subprocess = Optional.empty();
-            return Optional.empty();
+            return log.exit(Optional.empty());
         } catch (InterruptedException e) {
             log.catching(XLogger.Level.WARN, e);
-            return Optional.empty();
+            return log.exit(Optional.empty());
         }
     }
 

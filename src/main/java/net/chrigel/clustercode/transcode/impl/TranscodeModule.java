@@ -12,12 +12,6 @@ public class TranscodeModule extends AbstractPropertiesModule {
     public static final String TRANSCODE_IO_REDIRECTED_KEY = "CC_TRANSCODE_IO_REDIRECTED";
     public static final String TRANSCODE_DEFAULT_FORMAT_KEY = "CC_TRANSCODE_DEFAULT_FORMAT";
 
-    private final String propertiesFilename;
-
-    public TranscodeModule(String propertiesFilename) {
-        this.propertiesFilename = propertiesFilename;
-    }
-
     @Override
     protected void configure() {
 
