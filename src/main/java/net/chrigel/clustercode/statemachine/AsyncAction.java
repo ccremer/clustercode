@@ -5,7 +5,7 @@ import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import java.util.concurrent.CompletableFuture;
 
-public abstract class AsyncAction extends AbstractAction {
+public abstract class AsyncAction extends Action {
 
     @Override
     public final void execute(State from, State to, StateEvent event, StateContext context,

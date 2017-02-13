@@ -3,14 +3,14 @@ package net.chrigel.clustercode.statemachine.actions;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.SelectionService;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.statemachine.AbstractAction;
+import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import javax.inject.Inject;
 import java.util.Optional;
 
-public class SelectMediaAction extends AbstractAction {
+public class SelectMediaAction extends Action {
 
     private final SelectionService selectionService;
 

@@ -2,14 +2,14 @@ package net.chrigel.clustercode.statemachine.actions;
 
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.statemachine.AbstractAction;
+import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateController;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import javax.inject.Inject;
 
-public class InitializeAction extends AbstractAction {
+public class InitializeAction extends Action {
 
     private final ClusterService clusterService;
 
@@ -21,7 +21,7 @@ public class InitializeAction extends AbstractAction {
     @Override
     public void execute(State from, State to, StateEvent event, StateContext context,
                         StateController stateMachine) {
-        fireStateEvent(doExecute(from, to, event, context), stateMachine, new StateContext());
+        fireStateEvent(doExecute(from, to, event, context), stateMachine, context);
     }
 
     @Override

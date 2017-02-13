@@ -25,17 +25,13 @@ public class ScanMediaAction extends AsyncAction {
 
         log.entry(from, to, event, context);
         log.info("Scanning for media files...");
-        List<Media> resultList = scanService
-                .retrieveFiles()
-                .values().stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        List<Media> resultList = scanService.retrieveFilesAsList();
         context.setCandidates(resultList);
         if (resultList.isEmpty()) {
             log.info("No media found.");
             return StateEvent.NO_RESULT;
         } else {
-            log.info("Found {} media entries.", resultList.size());
+            log.info("Found {} possible media entries.", resultList.size());
             return StateEvent.RESULT;
         }
     }

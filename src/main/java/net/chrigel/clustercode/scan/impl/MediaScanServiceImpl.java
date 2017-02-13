@@ -41,6 +41,14 @@ class MediaScanServiceImpl implements MediaScanService {
                         Function.identity(), this::getListOfMediaFiles));
     }
 
+    @Override
+    public List<Media> retrieveFilesAsList() {
+        return retrieveFiles()
+                .values().stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
     /**
      * Collects a list of possible media candidates that are recursively found under the given path.
      *

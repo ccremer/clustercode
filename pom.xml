@@ -11,6 +11,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.deployDir>${project.basedir}/release</project.deployDir>
+        <project.deploy.dockerLinuxDir>${project.deployDir}/docker-linux</project.deploy.dockerLinuxDir>
+        <project.deploy.windowsDir>${project.deployDir}/windows</project.deploy.windowsDir>
+        <project.assemblyDirectory>${project.basedir}/src/assembly</project.assemblyDirectory>
+        <project.deploy.finalName>clustercode</project.deploy.finalName>
     </properties>
 
     <dependencies>
@@ -38,7 +43,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.12</version>
+            <version>1.16.14</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
@@ -143,11 +148,11 @@
                 </plugins>
             </build>
         </profile>
-        <!-- The Configuration of the assembly profile -->
+        <!-- The Configuration of the common package profile -->
         <profile>
-            <id>assembly</id>
+            <id>package</id>
             <build>
-                <finalName>clustercode</finalName>
+                <finalName>${project.deploy.finalName}</finalName>
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
@@ -173,6 +178,78 @@
                                 </manifest>
                             </archive>
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- The Configuration of the docker linux package profile -->
+        <profile>
+            <id>package-docker-linux</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>copy-package-docker-linux</id>
+                                <configuration>
+                                    <target>
+                                        <!-- ========= Docker/Linux ========= -->
+                                        <!-- JAR file -->
+                                        <copy file="${project.build.directory}/clustercode-jar-with-dependencies.jar"
+                                              tofile="${project.deploy.dockerLinuxDir}/${project.deploy.finalName}.jar"/>
+                                        <!-- properties file -->
+                                        <copy file="${project.assemblyDirectory}/clustercode-linux.properties"
+                                              tofile="${project.deploy.dockerLinuxDir}/${project.artifactId}.properties"/>
+                                        <!-- all other resources -->
+                                        <copy toDir="${project.deploy.dockerLinuxDir}">
+                                            <fileset dir="${project.assemblyDirectory}/resources" includes="**/*"/>
+                                        </copy>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- The Configuration of the windows package profile -->
+        <profile>
+            <id>package-windows</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <id>copy-package-windows</id>
+                                <configuration>
+                                    <target>
+                                        <!-- ========= Windows ========= -->
+                                        <!-- JAR file -->
+                                        <copy file="${project.build.directory}/clustercode-jar-with-dependencies.jar"
+                                              tofile="${project.deploy.windowsDir}/${project.deploy.finalName}.jar"/>
+                                        <!-- properties file -->
+                                        <copy file="${project.assemblyDirectory}/clustercode-windows.properties"
+                                              tofile="${project.deploy.windowsDir}/${project.artifactId}.properties"/>
+                                        <!-- all other resources -->
+                                        <copy toDir="${project.deploy.windowsDir}">
+                                            <fileset dir="${project.assemblyDirectory}/resources" includes="**/*"/>
+                                        </copy>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>

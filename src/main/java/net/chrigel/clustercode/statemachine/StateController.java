@@ -3,43 +3,30 @@ package net.chrigel.clustercode.statemachine;
 import net.chrigel.clustercode.statemachine.actions.*;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
+import net.chrigel.clustercode.util.UnsafeCastUtil;
 import org.squirrelframework.foundation.fsm.StateMachineBuilder;
 import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
 import org.squirrelframework.foundation.fsm.impl.AbstractStateMachine;
 
 import javax.inject.Inject;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class StateController
         extends AbstractStateMachine<StateController, State, StateEvent, StateContext>
         implements StateMachineService {
 
-
-    private StateContext context;
-    private ScanMediaAction scanMediaAction;
-    private InitializeAction initializeAction;
-    private SelectMediaAction selectMediaAction;
-    private ParseProfileAction parseProfileAction;
-    private TranscodeAction transcodeAction;
-    private CleanupAction cleanupAction;
+    private Map<Class<? extends Action>, Action> actions;
 
     StateController() {
         // needed because of reflection (FSM framework).
     }
 
     @Inject
-    StateController(ScanMediaAction scanMediaAction,
-                    InitializeAction initializeAction,
-                    SelectMediaAction selectMediaAction,
-                    ParseProfileAction parseProfileAction,
-                    TranscodeAction transcodeAction,
-                    CleanupAction cleanupAction) {
-        this.scanMediaAction = scanMediaAction;
-        this.initializeAction = initializeAction;
-        this.selectMediaAction = selectMediaAction;
-        this.parseProfileAction = parseProfileAction;
-        this.transcodeAction = transcodeAction;
-        this.cleanupAction = cleanupAction;
+    StateController(Set<Action> actionSet) {
+        this.actions = actionSet.stream().collect(Collectors.toMap(action -> action.getClass(), Function.identity()));
     }
 
     @Override
@@ -49,84 +36,83 @@ public class StateController
                 StateMachineBuilderFactory.create(
                         getClass(), State.class, StateEvent.class, StateContext.class, StateContext.class);
 
-        this.context = new StateContext();
-        AtomicReference<StateController> stateMachine = new AtomicReference<>();
-
+        StateContext context = new StateContext();
 
         // initialize
-        builder.onEntry(State.INITIAL).perform(initializeAction);
+        builder.onEntry(State.INITIAL).perform(actionOf(InitializeAction.class));
+
+        // initial -------->> scanning
+        builder.onEntry(State.SCAN_MEDIA).perform(actionOf(ScanMediaAction.class));
         builder.externalTransition()
                 .from(State.INITIAL)
                 .to(State.SCAN_MEDIA)
                 .on(StateEvent.FINISHED);
 
-        // scan
-        builder.onEntry(State.SCAN_MEDIA).perform(scanMediaAction);
-
-        // select media if found...
+        // scanning ------->> select media
         builder.externalTransition()
                 .from(State.SCAN_MEDIA)
                 .to(State.SELECT_MEDIA)
                 .on(StateEvent.RESULT);
-        builder.onEntry(State.SELECT_MEDIA).perform(selectMediaAction);
+        builder.onEntry(State.SELECT_MEDIA).perform(actionOf(SelectMediaAction.class));
 
         // Fire event after some minutes on empty result.
         double minutes = 1d;
         builder.defineTimedState(State.WAIT, (long) (minutes * 60d * 1000d), 0, StateEvent.TIMEOUT, context)
-                .addEntryAction(new LoggedAction("Waiting {} minutes.", minutes).withName(getClass()));
+                .addEntryAction(actionOf(LoggedAction.class)
+                        .withStatement("Waiting {} minutes.", minutes)
+                        .withName(getClass()));
 
-        // wait if not
+        // scanning ------->> waiting
         builder.externalTransition()
                 .from(State.SCAN_MEDIA)
                 .to(State.WAIT)
                 .on(StateEvent.NO_RESULT);
 
-        // after waiting, back to scanning
+        // waiting ----->> scanning
         builder.externalTransition()
                 .from(State.WAIT)
                 .to(State.SCAN_MEDIA)
                 .on(StateEvent.TIMEOUT);
 
-        // when selected, parse the selectedProfile
+        // media selected ------>> select profile
         builder.externalTransition()
                 .from(State.SELECT_MEDIA)
-                .to(State.PARSE_PROFILE)
+                .to(State.SELECT_PROFILE)
                 .on(StateEvent.RESULT);
-        builder.onEntry(State.PARSE_PROFILE).perform(parseProfileAction);
+        builder.onEntry(State.SELECT_PROFILE).perform(actionOf(SelectProfileAction.class));
 
-        // if no selectedProfile selectable, go to waiting.
+        // select profile ------->> waiting.
         builder.externalTransition()
-                .from(State.PARSE_PROFILE)
+                .from(State.SELECT_PROFILE)
                 .to(State.WAIT)
                 .on(StateEvent.NO_RESULT);
 
-        // after selectedProfile parsing, go to transcoding
+        // select profile ------->> transcoding
         builder.externalTransition()
-                .from(State.PARSE_PROFILE)
+                .from(State.SELECT_PROFILE)
                 .to(State.TRANSCODE)
-                .on(StateEvent.RESULT);
-        builder.onEntry(State.TRANSCODE).perform(transcodeAction);
+                .on(StateEvent.RESULT)
+                .perform(actionOf(AddTaskInClusterAction.class));
+        builder.onEntry(State.TRANSCODE).perform(actionOf(TranscodeAction.class));
 
-        // transcoding -> Cleanup
+        // transcoding ------->> Cleanup
         builder.externalTransition()
                 .from(State.TRANSCODE)
                 .to(State.CLEANUP)
-                .on(StateEvent.FINISHED);
-        builder.onEntry(State.CLEANUP).perform(cleanupAction);
+                .on(StateEvent.FINISHED)
+                .perform(actionOf(RemoveTaskFromClusterAction.class));
+        builder.onEntry(State.CLEANUP).perform(actionOf(CleanupAction.class));
 
-        // cleanup -> scanning
+        // cleanup ------->> scanning
         builder.externalTransition()
                 .from(State.CLEANUP)
                 .to(State.SCAN_MEDIA)
                 .on(StateEvent.FINISHED);
 
-        stateMachine.set(builder.newStateMachine(State.INITIAL));
-
-        stateMachine.get().start();
+        builder.newStateMachine(State.INITIAL).start(context);
     }
 
-    public StateContext getStateContext() {
-        return context;
+    private <A extends Action> A actionOf(Class<A> clazz) {
+        return UnsafeCastUtil.cast(this.actions.get(clazz));
     }
-
 }

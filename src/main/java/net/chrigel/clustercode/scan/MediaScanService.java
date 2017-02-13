@@ -7,9 +7,12 @@ import java.util.Map;
 public interface MediaScanService {
 
     /**
-     * Gets a map of files under {@link MediaScanSettings#getBaseInputDir()}. Each key contains the sourcePath to a directory
-     * which contains a number as name. The number represents the priority of the queue. The sourcePath is relative to the
-     * base input directory. The value of the map is a list of files that were found in the sourcePath, with each sourcePath
+     * Gets a map of files under {@link MediaScanSettings#getBaseInputDir()}. Each key contains the sourcePath to a
+     * directory
+     * which contains a number as name. The number represents the priority of the queue. The sourcePath is relative to
+     * the
+     * base input directory. The value of the map is a list of files that were found in the sourcePath, with each
+     * sourcePath
      * being relative to the base input directory. The non-null list is empty if no candidates for queueing were
      * found. Completed jobs are excluded from the list, as well as files which do not match the whitelisted
      * extensions.
@@ -30,5 +33,17 @@ public interface MediaScanService {
      * @throws RuntimeException if {@link MediaScanSettings#getBaseInputDir()} is not readable.
      */
     Map<Path, List<Media>> retrieveFiles();
+
+    /**
+     * Gets a list of media files under {@link MediaScanSettings#getBaseInputDir()}. See {@link #retrieveFiles()}.
+     * The resulting list would contain only {@code /input/1/file_That_Is_Being_Included.mp4} in the given example.
+     * <p>
+     * This method is blocking until the file system has been recursively scanned.
+     * </p>
+     *
+     * @return the list as described. Empty list if no media files were found.
+     * @throws RuntimeException if {@link MediaScanSettings#getBaseInputDir()} is not readable.
+     */
+    List<Media> retrieveFilesAsList();
 
 }

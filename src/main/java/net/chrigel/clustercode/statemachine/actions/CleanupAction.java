@@ -2,13 +2,13 @@ package net.chrigel.clustercode.statemachine.actions;
 
 import net.chrigel.clustercode.cleanup.CleanupService;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.statemachine.AbstractAction;
+import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import javax.inject.Inject;
 
-public class CleanupAction extends AbstractAction {
+public class CleanupAction extends Action {
 
     private final CleanupService cleanupService;
 

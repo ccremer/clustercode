@@ -6,7 +6,7 @@ public enum State {
     SCAN_MEDIA,
     WAIT,
     SELECT_MEDIA,
-    PARSE_PROFILE,
+    SELECT_PROFILE,
     TRANSCODE,
     CLEANUP,;
 

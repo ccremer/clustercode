@@ -77,8 +77,8 @@ class JgroupsClusterImpl implements ClusterService {
     public void leaveCluster() {
         channel.ifPresent(ch -> {
                     try {
-                        log.debug("Leaving cluster...");
-                        ch.close();
+                        log.info("Leaving cluster...");
+                        ch.disconnect();
                         executor.ifPresent(executor -> executor.shutdown());
                         log.info("Left the cluster.");
                     } catch (Exception ex) {
@@ -115,7 +115,7 @@ class JgroupsClusterImpl implements ClusterService {
                     .removeIf(entry -> entry
                             .getValue()
                             .getDateAdded()
-                            .plusHours(24)
+                            .plusHours(settings.getTaskTimeout())
                             .isBefore(current));
         });
     }
@@ -168,6 +168,7 @@ class JgroupsClusterImpl implements ClusterService {
     public boolean isQueuedInCluster(Media candidate) {
         return map.isPresent() &&
                 map.get().values().stream()
-                        .anyMatch(clusterItem -> isFileEquals(candidate.getSourcePath().toString(), clusterItem.getSourceName()));
+                        .anyMatch(clusterItem -> isFileEquals(
+                                candidate.getSourcePath().toString(), clusterItem.getSourceName()));
     }
 }

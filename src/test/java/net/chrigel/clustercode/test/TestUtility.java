@@ -34,8 +34,10 @@ public class TestUtility {
     }
 
     public static void deleteFolderAndItsContent(final Path folder) throws IOException {
-        Files.walk(folder)
-                .sorted(Comparator.reverseOrder())
-                .forEach(FileUtil::deleteFile);
+        if (Files.exists(folder)) {
+            Files.walk(folder)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(FileUtil::deleteFile);
+        }
     }
 }
