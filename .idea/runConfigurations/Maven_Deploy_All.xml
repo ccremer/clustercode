@@ -2,21 +2,7 @@
   <configuration default="false" name="Maven Deploy All" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
-      <option name="myRunnerSettings">
-        <MavenRunnerSettings>
-          <option name="environmentProperties">
-            <map />
-          </option>
-          <option name="jreName" value="#USE_PROJECT_JDK" />
-          <option name="mavenProperties">
-            <map />
-          </option>
-          <option name="passParentEnv" value="true" />
-          <option name="runMavenInBackground" value="true" />
-          <option name="skipTests" value="true" />
-          <option name="vmOptions" value="" />
-        </MavenRunnerSettings>
-      </option>
+      <option name="myRunnerSettings" />
       <option name="myRunnerParameters">
         <MavenRunnerParameters>
           <option name="profiles">

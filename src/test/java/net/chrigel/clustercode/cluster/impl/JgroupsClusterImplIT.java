@@ -2,6 +2,7 @@ package net.chrigel.clustercode.cluster.impl;
 
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,6 +33,11 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
         when(settings.isIPv4Preferred()).thenReturn(true);
         when(settings.getBindingAddress()).thenReturn("");
         when(settings.getHostname()).thenReturn("");
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        subject.leaveCluster();
     }
 
     @Test

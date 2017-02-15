@@ -3,7 +3,6 @@ package net.chrigel.clustercode;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
-import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cleanup.impl.CleanupModule;
 import net.chrigel.clustercode.cluster.impl.ClusterModule;
 import net.chrigel.clustercode.constraint.impl.ConstraintModule;
@@ -19,15 +18,19 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+import java.util.jar.Manifest;
 
 /**
- *
+ * Provides the entry point of the application. The main method expects the path to the configuration file as the first
+ * argument.
  */
 public class Startup {
 
@@ -37,7 +40,7 @@ public class Startup {
 
         Path logFile = Paths.get("log4j2.xml");
         if (Files.exists(logFile)) {
-            System.setProperty("log4j.configurationFile", logFile.toString());
+            System.setProperty("log4j.configurationFile", logFile.toAbsolutePath().toString());
         }
         log = XLoggerFactory.getXLogger(Startup.class);
 
@@ -50,8 +53,8 @@ public class Startup {
         log.info("Working dir: {}", new File("").getAbsolutePath());
 
         if (args == null || args.length == 0) {
-            log.error("Configuration Error: ", new InvalidConfigurationException("Configuration file not provided in " +
-                    "arguments."));
+            log.error("Configuration Error: ", new InvalidConfigurationException(
+                    "Configuration file not provided in arguments."));
             System.exit(2);
         }
         String configFileName = args[0];
@@ -71,10 +74,20 @@ public class Startup {
         modules.add(new ActionModule());
         modules.add(new EnvironmentModule(config));
 
-        log.info("Booting application...");
+        log.info("Booting clustercode {}...", getApplicationVersion());
         Injector injector = Guice.createInjector(modules);
 
         injector.getInstance(StateController.class).initialize();
+    }
+
+    private static String getApplicationVersion() {
+        InputStream stream = ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF");
+        try {
+            return new Manifest(stream).getMainAttributes().getValue("Implementation-Version");
+        } catch (IOException | NullPointerException e) {
+            log.catching(e);
+        }
+        return "unknown-version";
     }
 
 }

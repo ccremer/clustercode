@@ -22,6 +22,7 @@ public class ScanModule extends AbstractPropertiesModule {
     public static final String MEDIA_INPUT_DIR_KEY = "CC_MEDIA_INPUT_DIR";
     public static final String MEDIA_EXTENSIONS_KEY = "CC_MEDIA_EXTENSIONS";
     public static final String MEDIA_SKIP_NAME_KEY = "CC_MEDIA_SKIP_NAME";
+    public static final String MEDIA_SCAN_INTERVAL_KEY = "CC_MEDIA_SCAN_INTERVAL";
 
     private final Properties properties;
 

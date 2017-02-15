@@ -27,4 +27,11 @@ public interface MediaScanSettings {
      */
     String getSkipExtension();
 
+    /**
+     * Gets the interval after which the file system is rescanned when no media has been found.
+     *
+     * @return the interval in minutes, >= 1.
+     */
+    long getMediaScanInterval();
+
 }

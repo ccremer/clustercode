@@ -17,9 +17,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @XSlf4j
 class JgroupsClusterImpl implements ClusterService {
@@ -35,9 +33,22 @@ class JgroupsClusterImpl implements ClusterService {
                        Clock clock) {
         this.settings = settings;
         this.clock = clock;
-        Runtime.getRuntime().addShutdownHook(new Thread(() ->
-                leaveCluster()
-        ));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread();
+                thread.setDaemon(true);
+                thread.setName("shutdown-hook-thread");
+                return thread;
+            });
+            Future<?> future = executor.submit(() -> leaveCluster());
+            try {
+                future.get(5, TimeUnit.SECONDS);
+            } catch (TimeoutException | ExecutionException | InterruptedException e) {
+                future.cancel(true);
+                log.catching(e);
+            }
+            executor.shutdownNow();
+        }));
     }
 
     @Synchronized

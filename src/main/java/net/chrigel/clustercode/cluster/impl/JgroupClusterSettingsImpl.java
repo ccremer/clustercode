@@ -15,6 +15,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
     private final int bindingPort;
     private final String hostname;
     private final long taskTimeoutHours;
+    private final boolean isArbiter;
 
     @Inject
     JgroupClusterSettingsImpl(@Named(ClusterModule.CLUSTER_NAME_KEY) String clusterName,
@@ -23,9 +24,11 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_ADDR_KEY) String bindingAddress,
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
                               @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
-                              @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours) {
+                              @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours,
+                              @Named(ClusterModule.CLUSTER_IS_ARBITER_NODE_KEY) boolean isArbiter) {
         checkPort(bindingPort);
         checkTimeout(taskTimeoutHours);
+        this.isArbiter = isArbiter;
         this.clusterName = clusterName;
         this.jgroupsConfig = jgroupsConfig;
         this.preferIPv4 = preferIPv4;
@@ -58,6 +61,11 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
     @Override
     public long getTaskTimeout() {
         return taskTimeoutHours;
+    }
+
+    @Override
+    public boolean isArbiter() {
+        return isArbiter;
     }
 
     @Override

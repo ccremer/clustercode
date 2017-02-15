@@ -6,15 +6,14 @@
 
     <groupId>net.chrigel</groupId>
     <artifactId>clustercode</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.deployDir>${project.basedir}/release</project.deployDir>
-        <project.deploy.dockerLinuxDir>${project.deployDir}/docker-linux</project.deploy.dockerLinuxDir>
-        <project.deploy.windowsDir>${project.deployDir}/windows</project.deploy.windowsDir>
-        <project.assemblyDirectory>${project.basedir}/src/assembly</project.assemblyDirectory>
+        <project.deploy.basedir>${project.basedir}/release</project.deploy.basedir>
+        <project.assembly.basedir>${project.basedir}/src/assembly</project.assembly.basedir>
+        <project.assembly.resourceDir>${project.assembly.basedir}/resources</project.assembly.resourceDir>
         <project.deploy.finalName>clustercode</project.deploy.finalName>
     </properties>
 
@@ -126,6 +125,8 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <compilerArgument>-Xlint:unchecked</compilerArgument>
+                    <compilerArgument>-Xlint:deprecation</compilerArgument>
                 </configuration>
             </plugin>
         </plugins>
@@ -153,6 +154,15 @@
             <id>package</id>
             <build>
                 <finalName>${project.deploy.finalName}</finalName>
+                <resources>
+                    <resource>
+                        <directory>${project.basedir}/src/main/resources</directory>
+                        <excludes>
+                            <exclude>log4j2.xml</exclude>
+                            <exclude>udp.xml</exclude>
+                        </excludes>
+                    </resource>
+                </resources>
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
@@ -185,6 +195,12 @@
         <!-- The Configuration of the docker linux package profile -->
         <profile>
             <id>package-docker-linux</id>
+            <properties>
+                <project.platform.linux>docker-linux</project.platform.linux>
+                <project.deploy.linux.dir>${project.deploy.basedir}/${project.platform.linux}</project.deploy.linux.dir>
+                <project.assembly.linux.dir>${project.assembly.basedir}/${project.platform.linux}
+                </project.assembly.linux.dir>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -196,16 +212,13 @@
                                 <id>copy-package-docker-linux</id>
                                 <configuration>
                                     <target>
-                                        <!-- ========= Docker/Linux ========= -->
                                         <!-- JAR file -->
                                         <copy file="${project.build.directory}/clustercode-jar-with-dependencies.jar"
-                                              tofile="${project.deploy.dockerLinuxDir}/${project.deploy.finalName}.jar"/>
-                                        <!-- properties file -->
-                                        <copy file="${project.assemblyDirectory}/clustercode-linux.properties"
-                                              tofile="${project.deploy.dockerLinuxDir}/${project.artifactId}.properties"/>
+                                              tofile="${project.deploy.linux.dir}/${project.deploy.finalName}.jar"/>
                                         <!-- all other resources -->
-                                        <copy toDir="${project.deploy.dockerLinuxDir}">
-                                            <fileset dir="${project.assemblyDirectory}/resources" includes="**/*"/>
+                                        <copy toDir="${project.deploy.linux.dir}">
+                                            <fileset dir="${project.assembly.resourceDir}" includes="**/*"/>
+                                            <fileset dir="${project.assembly.linux.dir}" includes="**/*"/>
                                         </copy>
                                     </target>
                                 </configuration>
@@ -221,6 +234,12 @@
         <!-- The Configuration of the windows package profile -->
         <profile>
             <id>package-windows</id>
+            <properties>
+                <project.platform.win>windows</project.platform.win>
+                <project.deploy.windows.dir>${project.deploy.basedir}/${project.platform.win}</project.deploy.windows.dir>
+                <project.assembly.windows.dir>${project.assembly.basedir}/${project.platform.win}
+                </project.assembly.windows.dir>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -232,16 +251,13 @@
                                 <id>copy-package-windows</id>
                                 <configuration>
                                     <target>
-                                        <!-- ========= Windows ========= -->
                                         <!-- JAR file -->
                                         <copy file="${project.build.directory}/clustercode-jar-with-dependencies.jar"
-                                              tofile="${project.deploy.windowsDir}/${project.deploy.finalName}.jar"/>
-                                        <!-- properties file -->
-                                        <copy file="${project.assemblyDirectory}/clustercode-windows.properties"
-                                              tofile="${project.deploy.windowsDir}/${project.artifactId}.properties"/>
+                                              tofile="${project.deploy.windows.dir}/${project.deploy.finalName}.jar"/>
                                         <!-- all other resources -->
-                                        <copy toDir="${project.deploy.windowsDir}">
-                                            <fileset dir="${project.assemblyDirectory}/resources" includes="**/*"/>
+                                        <copy toDir="${project.deploy.windows.dir}">
+                                            <fileset dir="${project.assembly.resourceDir}" includes="**/*"/>
+                                            <fileset dir="${project.assembly.windows.dir}" includes="**/*"/>
                                         </copy>
                                     </target>
                                 </configuration>

@@ -96,6 +96,7 @@ public class DirectoryStructureMatcherTest implements FileBasedUnitTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void apply_ShouldReturnParentProfile_IfSiblingFileCouldNotBeRead() throws Exception {
         Path media = createFile(getPath("0", "movies", "subdir", "movie.mp4"));
         createFile(profileFolder.resolve("0/movies/subdir/profile.ffmpeg"));

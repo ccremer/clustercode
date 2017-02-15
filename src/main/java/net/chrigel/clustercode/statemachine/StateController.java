@@ -1,9 +1,11 @@
 package net.chrigel.clustercode.statemachine;
 
+import lombok.extern.slf4j.XSlf4j;
+import net.chrigel.clustercode.cluster.ClusterSettings;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.statemachine.actions.*;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
-import net.chrigel.clustercode.util.UnsafeCastUtil;
 import org.squirrelframework.foundation.fsm.StateMachineBuilder;
 import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
 import org.squirrelframework.foundation.fsm.impl.AbstractStateMachine;
@@ -14,19 +16,28 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@XSlf4j
 public class StateController
         extends AbstractStateMachine<StateController, State, StateEvent, StateContext>
         implements StateMachineService {
 
+    private long scanInterval;
+    private boolean isArbiter;
     private Map<Class<? extends Action>, Action> actions;
 
+    @SuppressWarnings("unused")
     StateController() {
         // needed because of reflection (FSM framework).
     }
 
+    @SuppressWarnings("unused")
     @Inject
-    StateController(Set<Action> actionSet) {
+    StateController(Set<Action> actionSet,
+                    MediaScanSettings scanSettings,
+                    ClusterSettings clusterSettings) {
         this.actions = actionSet.stream().collect(Collectors.toMap(action -> action.getClass(), Function.identity()));
+        this.isArbiter = clusterSettings.isArbiter();
+        this.scanInterval = scanSettings.getMediaScanInterval();
     }
 
     @Override
@@ -41,78 +52,82 @@ public class StateController
         // initialize
         builder.onEntry(State.INITIAL).perform(actionOf(InitializeAction.class));
 
-        // initial -------->> scanning
-        builder.onEntry(State.SCAN_MEDIA).perform(actionOf(ScanMediaAction.class));
-        builder.externalTransition()
-                .from(State.INITIAL)
-                .to(State.SCAN_MEDIA)
-                .on(StateEvent.FINISHED);
+        if (isArbiter) {
+            log.info("Configuring current node as arbiter cluster member.");
+        } else {
+            log.info("Configuring current node as active cluster member.");
 
-        // scanning ------->> select media
-        builder.externalTransition()
-                .from(State.SCAN_MEDIA)
-                .to(State.SELECT_MEDIA)
-                .on(StateEvent.RESULT);
-        builder.onEntry(State.SELECT_MEDIA).perform(actionOf(SelectMediaAction.class));
+            // initial -------->> scanning
+            builder.onEntry(State.SCAN_MEDIA).perform(actionOf(ScanMediaAction.class));
+            builder.externalTransition()
+                    .from(State.INITIAL)
+                    .to(State.SCAN_MEDIA)
+                    .on(StateEvent.FINISHED);
 
-        // Fire event after some minutes on empty result.
-        double minutes = 1d;
-        builder.defineTimedState(State.WAIT, (long) (minutes * 60d * 1000d), 0, StateEvent.TIMEOUT, context)
-                .addEntryAction(actionOf(LoggedAction.class)
-                        .withStatement("Waiting {} minutes.", minutes)
-                        .withName(getClass()));
+            // scanning ------->> select media
+            builder.externalTransition()
+                    .from(State.SCAN_MEDIA)
+                    .to(State.SELECT_MEDIA)
+                    .on(StateEvent.RESULT);
+            builder.onEntry(State.SELECT_MEDIA).perform(actionOf(SelectMediaAction.class));
 
-        // scanning ------->> waiting
-        builder.externalTransition()
-                .from(State.SCAN_MEDIA)
-                .to(State.WAIT)
-                .on(StateEvent.NO_RESULT);
+            // Fire event after some minutes on empty result.
+            builder.defineTimedState(State.WAIT, scanInterval * 60000, 0, StateEvent.TIMEOUT, context)
+                    .addEntryAction(actionOf(LoggedAction.class)
+                            .withStatement("Waiting {} minutes.", scanInterval)
+                            .withName(getClass()));
 
-        // waiting ----->> scanning
-        builder.externalTransition()
-                .from(State.WAIT)
-                .to(State.SCAN_MEDIA)
-                .on(StateEvent.TIMEOUT);
+            // scanning ------->> waiting
+            builder.externalTransition()
+                    .from(State.SCAN_MEDIA)
+                    .to(State.WAIT)
+                    .on(StateEvent.NO_RESULT);
 
-        // media selected ------>> select profile
-        builder.externalTransition()
-                .from(State.SELECT_MEDIA)
-                .to(State.SELECT_PROFILE)
-                .on(StateEvent.RESULT);
-        builder.onEntry(State.SELECT_PROFILE).perform(actionOf(SelectProfileAction.class));
+            // waiting ----->> scanning
+            builder.externalTransition()
+                    .from(State.WAIT)
+                    .to(State.SCAN_MEDIA)
+                    .on(StateEvent.TIMEOUT);
 
-        // select profile ------->> waiting.
-        builder.externalTransition()
-                .from(State.SELECT_PROFILE)
-                .to(State.WAIT)
-                .on(StateEvent.NO_RESULT);
+            // media selected ------>> select profile
+            builder.externalTransition()
+                    .from(State.SELECT_MEDIA)
+                    .to(State.SELECT_PROFILE)
+                    .on(StateEvent.RESULT);
+            builder.onEntry(State.SELECT_PROFILE).perform(actionOf(SelectProfileAction.class));
 
-        // select profile ------->> transcoding
-        builder.externalTransition()
-                .from(State.SELECT_PROFILE)
-                .to(State.TRANSCODE)
-                .on(StateEvent.RESULT)
-                .perform(actionOf(AddTaskInClusterAction.class));
-        builder.onEntry(State.TRANSCODE).perform(actionOf(TranscodeAction.class));
+            // select profile ------->> waiting.
+            builder.externalTransition()
+                    .from(State.SELECT_PROFILE)
+                    .to(State.WAIT)
+                    .on(StateEvent.NO_RESULT);
 
-        // transcoding ------->> Cleanup
-        builder.externalTransition()
-                .from(State.TRANSCODE)
-                .to(State.CLEANUP)
-                .on(StateEvent.FINISHED)
-                .perform(actionOf(RemoveTaskFromClusterAction.class));
-        builder.onEntry(State.CLEANUP).perform(actionOf(CleanupAction.class));
+            // select profile ------->> transcoding
+            builder.externalTransition()
+                    .from(State.SELECT_PROFILE)
+                    .to(State.TRANSCODE)
+                    .on(StateEvent.RESULT)
+                    .perform(actionOf(AddTaskInClusterAction.class));
+            builder.onEntry(State.TRANSCODE).perform(actionOf(TranscodeAction.class));
 
-        // cleanup ------->> scanning
-        builder.externalTransition()
-                .from(State.CLEANUP)
-                .to(State.SCAN_MEDIA)
-                .on(StateEvent.FINISHED);
+            // transcoding ------->> Cleanup
+            builder.externalTransition()
+                    .from(State.TRANSCODE)
+                    .to(State.CLEANUP)
+                    .on(StateEvent.FINISHED)
+                    .perform(actionOf(RemoveTaskFromClusterAction.class));
+            builder.onEntry(State.CLEANUP).perform(actionOf(CleanupAction.class));
 
+            // cleanup ------->> scanning
+            builder.externalTransition()
+                    .from(State.CLEANUP)
+                    .to(State.SCAN_MEDIA)
+                    .on(StateEvent.FINISHED);
+        }
         builder.newStateMachine(State.INITIAL).start(context);
     }
 
     private <A extends Action> A actionOf(Class<A> clazz) {
-        return UnsafeCastUtil.cast(this.actions.get(clazz));
+        return (A) this.actions.get(clazz);
     }
 }
