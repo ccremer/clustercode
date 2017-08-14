@@ -75,8 +75,8 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
             builder.inheritIO();
         } else {
             // This is necessary. Otherwise waitFor() will be deadlocked even if the process finished hours ago.
-            builder.redirectError(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
-            builder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
+            //builder.redirectError(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
+            //builder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
         }
         workingDir.ifPresent(workingDir -> builder.directory(workingDir.toFile()));
         if (logSuppressed) {
