@@ -14,7 +14,6 @@ target/
 .idea/libraries
 .idea/workspace.xml
 .idea/uiDesigner.xml
-*.iml
 *.iws
 .idea/dataSources.ids
 .idea/dataSources.xml
