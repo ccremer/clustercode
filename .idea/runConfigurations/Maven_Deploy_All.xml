@@ -17,7 +17,6 @@
           <option name="profilesMap">
             <map>
               <entry key="package" value="true" />
-              <entry key="package-docker-linux" value="true" />
               <entry key="package-windows" value="true" />
             </map>
           </option>
