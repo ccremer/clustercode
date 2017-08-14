@@ -23,14 +23,15 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.jar.Manifest;
 
 /**
- * Provides the entry point of the application. The main method expects the path to the configuration file as the first
- * argument.
+ * Provides the entry point of the application. The main method expects the path to the configuration file as an
+ * environment variable.
  */
 public class Startup {
 
@@ -38,10 +39,15 @@ public class Startup {
 
     public static void main(String[] args) throws Exception {
 
-        Path logFile = Paths.get("log4j2.xml");
-        if (Files.exists(logFile)) {
-            System.setProperty("log4j.configurationFile", logFile.toAbsolutePath().toString());
-        }
+        List<String> logFiles = Arrays.asList("log4j2.xml", System.getenv("CC_LOG_CONFIG_FILE"));
+
+        logFiles.forEach(name -> {
+            if (name == null) return;
+            Path logFile = Paths.get(name);
+            if (Files.exists(logFile)) {
+                System.setProperty("log4j.configurationFile", logFile.toAbsolutePath().toString());
+            }
+        });
         log = XLoggerFactory.getXLogger(Startup.class);
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -52,12 +58,8 @@ public class Startup {
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
 
-        if (args == null || args.length == 0) {
-            log.error("Configuration Error: ", new InvalidConfigurationException(
-                    "Configuration file not provided in arguments."));
-            System.exit(2);
-        }
-        String configFileName = args[0];
+        String configFileName = System.getenv("CC_CONFIG_FILE");
+        if (configFileName == null) configFileName = "config/clustercode.properties";
 
         log.info("Reading configuration file {}...", configFileName);
         Properties config = ConfigurationHelper.loadPropertiesFromFile(configFileName);

@@ -53,9 +53,9 @@ public class StateController
         builder.onEntry(State.INITIAL).perform(actionOf(InitializeAction.class));
 
         if (isArbiter) {
-            log.info("Configuring current node as arbiter cluster member.");
+            log.info("Configuring local node as arbiter cluster member.");
         } else {
-            log.info("Configuring current node as active cluster member.");
+            log.info("Configuring local node as active cluster member.");
 
             // initial -------->> scanning
             builder.onEntry(State.SCAN_MEDIA).perform(actionOf(ScanMediaAction.class));

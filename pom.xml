@@ -6,12 +6,12 @@
 
     <groupId>net.chrigel</groupId>
     <artifactId>clustercode</artifactId>
-    <version>0.1.0</version>
+    <version>1.0.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <project.deploy.basedir>${project.basedir}/release</project.deploy.basedir>
+        <project.deploy.basedir>${project.basedir}</project.deploy.basedir>
         <project.assembly.basedir>${project.basedir}/src/assembly</project.assembly.basedir>
         <project.assembly.resourceDir>${project.assembly.basedir}/resources</project.assembly.resourceDir>
         <project.deploy.finalName>clustercode</project.deploy.finalName>
@@ -160,12 +160,14 @@
                         <excludes>
                             <exclude>log4j2.xml</exclude>
                             <exclude>udp.xml</exclude>
+                            <exclude>tcp.xml</exclude>
                         </excludes>
                     </resource>
                 </resources>
                 <plugins>
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.0.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -188,45 +190,6 @@
                                 </manifest>
                             </archive>
                         </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <!-- The Configuration of the docker linux package profile -->
-        <profile>
-            <id>package-docker-linux</id>
-            <properties>
-                <project.platform.linux>docker-linux</project.platform.linux>
-                <project.deploy.linux.dir>${project.deploy.basedir}/${project.platform.linux}</project.deploy.linux.dir>
-                <project.assembly.linux.dir>${project.assembly.basedir}/${project.platform.linux}
-                </project.assembly.linux.dir>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>1.8</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <id>copy-package-docker-linux</id>
-                                <configuration>
-                                    <target>
-                                        <!-- JAR file -->
-                                        <copy file="${project.build.directory}/clustercode-jar-with-dependencies.jar"
-                                              tofile="${project.deploy.linux.dir}/${project.deploy.finalName}.jar"/>
-                                        <!-- all other resources -->
-                                        <copy toDir="${project.deploy.linux.dir}">
-                                            <fileset dir="${project.assembly.resourceDir}" includes="**/*"/>
-                                            <fileset dir="${project.assembly.linux.dir}" includes="**/*"/>
-                                        </copy>
-                                    </target>
-                                </configuration>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                            </execution>
-                        </executions>
                     </plugin>
                 </plugins>
             </build>

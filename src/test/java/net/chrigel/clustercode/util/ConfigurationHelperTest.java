@@ -39,7 +39,7 @@ public class ConfigurationHelperTest {
             return "USERNAME";
         }
         if (isLinux()) {
-            return "USER";
+            return "PATH";
         }
         return null;
     }
