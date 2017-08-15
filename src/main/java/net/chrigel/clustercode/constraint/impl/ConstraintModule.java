@@ -48,7 +48,7 @@ public class ConstraintModule extends AbstractPropertiesModule {
     @Override
     protected void configure() {
         Multibinder<Constraint> constraintBinder = Multibinder.newSetBinder(binder(), Constraint.class);
-        String constraints = getProperty(properties, CONSTRAINT_STRATEGIES_KEY);
+        String constraints = getEnvironmentVariableOrProperty(properties, CONSTRAINT_STRATEGIES_KEY);
         String none = "NONE";
         if ("ALL".equalsIgnoreCase(constraints.trim())) {
             ModuleHelper.bindAll(constraintBinder, Constraints::values);

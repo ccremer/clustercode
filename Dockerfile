@@ -13,8 +13,10 @@ VOLUME \
     /output \
     $CC_CONFIG_DIR
 
+# Port 5005 is used for java remote debug, do not publish this port in production.
 EXPOSE \
-    7600/tcp 7600/udp
+    7600/tcp 7600/udp \
+    5005
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
 

@@ -7,5 +7,5 @@ if [ ! "$(ls -A $CC_CONFIG_DIR)" ]; then
         cp -r "$CC_DEFAULT_DIR/." "$CC_CONFIG_DIR/"
 fi
 
-echo "Invoking java -jar clustercode.jar $JAVA_ARGS"
-exec java -jar clustercode.jar $JAVA_ARGS
+echo "Invoking java $JAVA_ARGS -jar clustercode.jar"
+exec java $JAVA_ARGS -jar clustercode.jar

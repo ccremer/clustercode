@@ -33,7 +33,7 @@ public class CleanupModule extends AbstractPropertiesModule {
         bind(CleanupStrategy.class).to(ConfigurableCleanupStrategy.class);
         bind(CleanupSettings.class).to(CleanupSettingsImpl.class);
 
-        String strategies = getProperty(properties, CLEANUP_STRATEGY_KEY).toUpperCase(Locale.ENGLISH);
+        String strategies = getEnvironmentVariableOrProperty(properties, CLEANUP_STRATEGY_KEY).toUpperCase(Locale.ENGLISH);
 
         Multibinder<CleanupProcessor> cleanupBinder = Multibinder.newSetBinder(binder(), CleanupProcessor.class);
         try {

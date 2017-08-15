@@ -42,7 +42,7 @@ public class ScanModule extends AbstractPropertiesModule {
         bind(ProfileParser.class).to(ProfileParserImpl.class);
         bind(ProfileScanSettings.class).to(ProfileScanSettingsImpl.class);
 
-        String strategies = getProperty(properties, PROFILE_STRATEGY_KEY);
+        String strategies = getEnvironmentVariableOrProperty(properties, PROFILE_STRATEGY_KEY);
 
         ModuleHelper.checkStrategiesForOrder(strategies, PROFILE_STRATEGY_KEY,
                 ProfileMatchers.COMPANION.name(), ProfileMatchers.DEFAULT.name());

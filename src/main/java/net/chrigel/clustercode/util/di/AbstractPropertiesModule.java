@@ -115,11 +115,25 @@ public abstract class AbstractPropertiesModule extends AbstractModule {
      */
     protected final String getProperty(Properties properties, String key) {
         String value = properties.getProperty(key);
-        if (value == null) {
-            addError("Property " + key + " is not set.");
-            return "";
-        } else {
-            return value;
-        }
+        if (value != null) return value;
+        addError("Property " + key + " is not set.");
+        return "";
+    }
+
+    /**
+     * Gets the environment variable of the given key. Reverts to the given properties if key is not specified. If the
+     * value could not be found (or is in fact null), an
+     * error will be added using {@link #addError(String, Object...)} and en empty string returned.
+     *
+     * @param defaults the properties object with default values.
+     * @param key      the property key.
+     * @return the string value of the environment variable. Empty string if error.
+     */
+    protected final String getEnvironmentVariableOrProperty(Properties defaults, String key) {
+        String var = System.getenv(key);
+        if (var == null) var = defaults.getProperty(key);
+        if (null != var) return var;
+        addError("Property " + key + " is not set.");
+        return "";
     }
 }
