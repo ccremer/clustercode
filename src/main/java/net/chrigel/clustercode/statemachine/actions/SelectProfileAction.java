@@ -24,7 +24,7 @@ public class SelectProfileAction extends Action {
         log.entry(from, to, event, context);
         Optional<Profile> result = profileScanService.selectProfile(context.getSelectedMedia());
         if (result.isPresent()) {
-            log.info("Selected selectedProfile {}", result.get());
+            log.info("Selected {}", result.get());
             context.setSelectedProfile(result.get());
             return StateEvent.RESULT;
         } else {

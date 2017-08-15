@@ -21,3 +21,6 @@ target/
 .idea/dynamic.xml
 .idea/dictionaries
 desktop.ini
+
+# project
+docker-compose.yml

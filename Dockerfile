@@ -26,6 +26,7 @@ RUN \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && \
     apk add --no-cache ffmpeg && \
     mv target/clustercode-jar-with-dependencies.jar clustercode.jar && \
+    mkdir -p /var/tmp/clustercode && \
     rm -r src && \
     rm -r target && \
     rm pom.xml

@@ -2,6 +2,8 @@ package net.chrigel.clustercode.transcode.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.scan.MediaScanService;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.transcode.TranscodeTask;
@@ -24,13 +26,16 @@ class TranscodingServiceImpl implements TranscodingService {
     public static final String INPUT_PLACEHOLDER = "${INPUT}";
 
     private final TranscoderSettings transcoderSettings;
+    private MediaScanSettings mediaScanSettings;
     private final Provider<ExternalProcess> externalProcessProvider;
 
     @Inject
     TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
-                           TranscoderSettings transcoderSettings) {
+                           TranscoderSettings transcoderSettings,
+                           MediaScanSettings mediaScanSettings) {
         this.externalProcessProvider = externalProcessProvider;
         this.transcoderSettings = transcoderSettings;
+        this.mediaScanSettings = mediaScanSettings;
     }
 
     Optional<Integer> doTranscode(Path source, Path tempFile, Profile profile) {
@@ -85,7 +90,7 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     String replaceInput(String s, Path path) {
-        return s.replace(INPUT_PLACEHOLDER, path.toString());
+        return s.replace(INPUT_PLACEHOLDER, mediaScanSettings.getBaseInputDir().resolve(path).toString());
     }
 
 }
