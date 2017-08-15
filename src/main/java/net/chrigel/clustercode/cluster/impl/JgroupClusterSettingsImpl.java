@@ -22,8 +22,10 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
                               @Named(ClusterModule.CLUSTER_JGROUPS_CONFIG_KEY) String jgroupsConfig,
                               @Named(ClusterModule.CLUSTER_PREFER_IPV4_KEY) boolean preferIPv4,
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_ADDR_KEY) String bindingAddress,
+                              @Named(ClusterModule.CLUSTER_JGROUPS_EXTERNAL_ADDR_KEY) String externalAddress,
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
                               @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
+                              @Named(ClusterModule.CC_CLUSTER_JGROUPS_TCP_INITAL_HOSTS) String initialHosts,
                               @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours,
                               @Named(ClusterModule.CLUSTER_IS_ARBITER_NODE_KEY) boolean isArbiter) {
         checkPort(bindingPort);
@@ -38,7 +40,9 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
         this.taskTimeoutHours = taskTimeoutHours;
         System.setProperty("java.net.preferIPv4Stack", String.valueOf(preferIPv4));
         System.setProperty("jgroups.bind_addr", bindingAddress);
+        System.setProperty("jgroups.tcpping.initial_hosts", initialHosts);
         System.setProperty("jgroups.bind_port", String.valueOf(bindingPort));
+        if (!"-".equals(externalAddress)) System.setProperty("ext-addr", externalAddress);
     }
 
     private void checkTimeout(long taskTimoutHours) {

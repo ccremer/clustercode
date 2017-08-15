@@ -13,6 +13,8 @@ public class ClusterModule extends AbstractPropertiesModule {
     public static final String CLUSTER_JGROUPS_BIND_PORT_KEY = "CC_CLUSTER_JGROUPS_BIND_PORT";
     public static final String CLUSTER_JGROUPS_BIND_ADDR_KEY = "CC_CLUSTER_JGROUPS_BIND_ADDR";
     public static final String CLUSTER_JGROUPS_HOSTNAME_KEY = "CC_CLUSTER_JGROUPS_HOSTNAME";
+    public static final String CC_CLUSTER_JGROUPS_TCP_INITAL_HOSTS = "CC_CLUSTER_JGROUPS_TCP_INITAL_HOSTS";
+    public static final String CLUSTER_JGROUPS_EXTERNAL_ADDR_KEY = "CC_CLUSTER_JGROUPS_EXT_ADDR";
     public static final String CLUSTER_TASK_TIMEOUT_KEY = "CC_CLUSTER_TASK_TIMEOUT";
     public static final String CLUSTER_IS_ARBITER_NODE_KEY = "CC_ARBITER_NODE";
 
