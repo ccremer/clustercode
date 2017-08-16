@@ -12,6 +12,7 @@ Automatically convert your movies and TV shows from one file format to another u
 * No designated master. Whoever is "first" in the network, becomes master
 * Supports arbiter nodes for providing a quorum. Quorums are needed to prevent a split-brain. Useful if you have a spare Raspberry Pi that is just poor at encoding.
 * Several and different cleanup strategies.
+* Supports Handbrake and ffmpeg
 
 ## Installation
 
