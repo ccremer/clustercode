@@ -40,6 +40,7 @@ services:
       - CC_CLUSTER_JGROUPS_TCP_INITAL_HOSTS=your.other.docker.node[7600],another.one[7600]
       - CC_CLUSTER_JGROUPS_EXT_ADDR=192.168.1.100
 ```
+The external IP address is needed so that other nodes will be available to contact the local node. Use the physical address of the docker host.
 
 ### Docker Compose, Swarm mode
 
