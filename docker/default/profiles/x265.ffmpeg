@@ -32,4 +32,4 @@
 
 ${OUTPUT}
 # Specify format (clustercode specific)
-%{FORMAT=.mp4}
+%{FORMAT=.mkv}

@@ -11,6 +11,7 @@ ENV \
 VOLUME \
     /input \
     /output \
+    /profiles \
     /var/tmp/clustercode \
     $CC_CONFIG_DIR
 
