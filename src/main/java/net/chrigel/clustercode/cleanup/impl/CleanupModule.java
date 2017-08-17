@@ -19,6 +19,8 @@ public class CleanupModule extends AbstractPropertiesModule {
     public static final String CLEANUP_STRATEGY_KEY = "CC_CLEANUP_STRATEGY";
     public static final String CLEANUP_OUTPUT_DIR_KEY = "CC_MEDIA_OUTPUT_DIR";
     public static final String CLEANUP_OUTPUT_OVERWRITE_KEY = "CC_CLEANUP_OVERWRITE";
+    public static final String CLEANUP_OWNER_GROUP_KEY = "CC_CLEANUP_CHOWN_GROUPID";
+    public static final String CLEANUP_OWNER_USER_KEY = "CC_CLEANUP_CHOWN_USERID";
 
     private final Properties properties;
 

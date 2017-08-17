@@ -15,4 +15,14 @@ public interface CleanupSettings {
      * Returns true if existing files are allowed to be overwritten.
      */
     boolean overwriteFiles();
+
+    /**
+     * Gets the group id of the new owner of the output file(s).
+     */
+    int getGroupId();
+
+    /**
+     * Gets the user id of the new owner of the output file(s).
+     */
+    int getUserId();
 }

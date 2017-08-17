@@ -8,7 +8,8 @@ public enum CleanupProcessors implements EnumeratedImplementation<CleanupProcess
     UNIFIED_OUTPUT(UnifiedOutputDirectoryProcessor.class),
     STRUCTURED_OUTPUT(StructuredOutputDirectoryProcessor.class),
     DELETE_SOURCE(DeleteSourceProcessor.class),
-    MARK_SOURCE(MarkSourceProcessor.class);
+    MARK_SOURCE(MarkSourceProcessor.class),
+    CHOWN(ChangeOwnerProcessor.class);
 
     private final Class<? extends CleanupProcessor> implementingClass;
 

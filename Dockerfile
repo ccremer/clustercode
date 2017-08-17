@@ -11,6 +11,7 @@ ENV \
 VOLUME \
     /input \
     /output \
+    /var/tmp/clustercode \
     $CC_CONFIG_DIR
 
 # Port 5005 is used for java remote debug, do not publish this port in production.
@@ -23,8 +24,7 @@ CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
 RUN \
     apk update && \
     apk upgrade && \
-    apk add --no-cache ffmpeg && \
-    mkdir -p /var/tmp/clustercode
+    apk add --no-cache ffmpeg
 
 COPY pom.xml docker ./
 COPY src src/

@@ -23,6 +23,10 @@ public interface ExternalProcess {
      */
     ExternalProcess withIORedirected(boolean redirectIO);
 
+    ExternalProcess withStdoutParser(Consumer<String> stdParser);
+
+    ExternalProcess withStderrParser(Consumer<String> errParser);
+
     /**
      * Appends additional arguments to the executable. Each entry will be string escaped if there is a whitespace in it.
      *

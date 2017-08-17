@@ -4,6 +4,7 @@ import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.util.LogUtil;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -31,18 +32,16 @@ public class MarkSourceProcessor implements CleanupProcessor {
                 context.getTranscodeResult().getMedia().getSourcePath());
         Path marked = source.resolveSibling(source.getFileName().toString() + mediaScanSettings.getSkipExtension());
 
-        if (Files.exists(source)) {
-            try {
-                log.debug("Creating file {}", marked);
-                Files.createFile(marked);
-            } catch (IOException e) {
-                log.error("Could not create file {}: {}", marked, e.getMessage());
-                log.warn("It may be possible that {} will be scheduled for transcoding again, as it could not be " +
-                        "marked " +
-                        "as done.", source);
-            }
-        } else {
-            log.warn("Not marking {} as done, since the file does not exist (anymore)", source);
+        if (!Files.exists(source)) return LogUtil.logWarnAndExit(context, log,
+                "Not marking {} as done, since the file does not exist (anymore).", source);
+
+        try {
+            log.debug("Creating file {}", marked);
+            Files.createFile(marked);
+        } catch (IOException e) {
+            log.error("Could not create file {}: {}", marked, e.getMessage());
+            log.warn("It may be possible that {} will be scheduled for transcoding again, as it could not be " +
+                    "marked as done.", source);
         }
         return log.exit(context);
     }

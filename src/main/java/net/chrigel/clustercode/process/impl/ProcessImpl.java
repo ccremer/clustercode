@@ -3,14 +3,15 @@ package net.chrigel.clustercode.process.impl;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.process.RunningExternalProcess;
+import net.chrigel.clustercode.util.Platform;
 import org.slf4j.ext.XLogger;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +30,8 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     private Optional<Process> subprocess;
     private Optional<Path> workingDir;
     private boolean logSuppressed;
+    private Consumer<String> stdParser;
+    private Consumer<String> errParser;
 
     ProcessImpl() {
         this.arguments = Optional.empty();
@@ -40,6 +43,20 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     @Override
     public ExternalProcess withIORedirected(boolean redirectIO) {
         this.redirectIO = redirectIO;
+        return this;
+    }
+
+    @Override
+    public ExternalProcess withStdoutParser(Consumer<String> stdParser) {
+        this.redirectIO = false;
+        this.stdParser = stdParser;
+        return this;
+    }
+
+    @Override
+    public ExternalProcess withStderrParser(Consumer<String> errParser) {
+        this.redirectIO = false;
+        this.errParser = errParser;
         return this;
     }
 
@@ -73,10 +90,10 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         ProcessBuilder builder = new ProcessBuilder(buildArguments());
         if (redirectIO) {
             builder.inheritIO();
-        } else {
+        } else if (Platform.getCurrentPlatform() == Platform.WINDOWS) {
             // This is necessary. Otherwise waitFor() will be deadlocked even if the process finished hours ago.
-            //builder.redirectError(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
-            //builder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
+            builder.redirectError(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
+            builder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
         }
         workingDir.ifPresent(workingDir -> builder.directory(workingDir.toFile()));
         if (logSuppressed) {
@@ -85,7 +102,10 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
             log.info("Invoking external program: {}", builder.command());
         }
         try {
-            this.subprocess = Optional.of(builder.start());
+            Process process = builder.start();
+            this.subprocess = Optional.of(process);
+            if (this.stdParser != null) captureStream(process.getInputStream(), this.stdParser);
+            if (this.errParser != null) captureStream(process.getErrorStream(), this.errParser);
             return log.exit(Optional.of(subprocess.get().waitFor()));
         } catch (IOException e) {
             log.catching(e);
@@ -97,12 +117,23 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         }
     }
 
+    private void captureStream(InputStream stream, Consumer<String> parser) {
+        CompletableFuture.runAsync(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+                String line;
+                while ((line = reader.readLine())!= null) {
+                    parser.accept(line);
+                }
+            } catch (IOException ex) {
+                log.catching(XLogger.Level.WARN, ex);
+            }
+        });
+    }
+
     private List<String> buildArguments() {
         List<String> args = new LinkedList<>();
         args.add(executable.toString());
-        if (arguments.isPresent()) {
-            args.addAll(arguments.get());
-        }
+        arguments.ifPresent(args::addAll);
         return args;
     }
 
