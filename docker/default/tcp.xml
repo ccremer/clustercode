@@ -2,7 +2,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups.xsd">
     <TCP_NIO2
-              external_addr="${ext-addr:localhost}"
+              external_addr="${ext-addr:SITE_LOCAL}"
               bind_addr="${jgroups.bind_addr:SITE_LOCAL}"
               bind_port="${jgroups.bind_port:7600}"
               recv_buf_size="${tcp.recv_buf_size:130k}"

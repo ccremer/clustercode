@@ -20,15 +20,18 @@ EXPOSE \
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
 
+RUN \
+    apk update && \
+    apk upgrade && \
+    apk add --no-cache ffmpeg && \
+    mkdir -p /var/tmp/clustercode
+
 COPY pom.xml docker ./
 COPY src src/
 
 RUN \
     mvn package -P package -e -B \
         -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && \
-    apk add --no-cache ffmpeg && \
     mv target/clustercode-jar-with-dependencies.jar clustercode.jar && \
-    mkdir -p /var/tmp/clustercode && \
     rm -r src && \
-    rm -r target && \
-    rm pom.xml
+    rm -r target

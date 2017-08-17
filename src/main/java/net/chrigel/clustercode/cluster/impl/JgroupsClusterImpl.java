@@ -5,9 +5,9 @@ import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.util.FilesystemProvider;
-import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ReplicatedHashMap;
+import org.jgroups.util.UUID;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
@@ -24,9 +24,9 @@ class JgroupsClusterImpl implements ClusterService {
 
     private final JgroupsClusterSettings settings;
     private final Clock clock;
-    private Optional<ReplicatedHashMap<Address, ClusterItem>> map = Optional.empty();
-    private Optional<JChannel> channel = Optional.empty();
-    private Optional<ScheduledExecutorService> executor = Optional.empty();
+    private ReplicatedHashMap<String, ClusterItem> map;
+    private JChannel channel;
+    private ScheduledExecutorService executor;
 
     @Inject
     JgroupsClusterImpl(JgroupsClusterSettings settings,
@@ -40,7 +40,7 @@ class JgroupsClusterImpl implements ClusterService {
                 thread.setName("shutdown-hook-thread");
                 return thread;
             });
-            Future<?> future = executor.submit(() -> leaveCluster());
+            Future<?> future = executor.submit(this::leaveCluster);
             try {
                 future.get(5, TimeUnit.SECONDS);
             } catch (TimeoutException | ExecutionException | InterruptedException e) {
@@ -54,50 +54,55 @@ class JgroupsClusterImpl implements ClusterService {
     @Synchronized
     @Override
     public void joinCluster() {
-
-        if (channel.isPresent() && channel.get().isConnected()) {
+        if (isConnected()) {
             log.info("Already joined the cluster {}.", settings.getClusterName());
-        } else {
-            try {
-                log.debug("Joining cluster {}...", settings.getClusterName());
-                JChannel ch = new JChannel(settings.getJgroupsConfigFile());
-                ch.setName(settings.getHostname());
-                ch.connect(settings.getClusterName());
-                ReplicatedHashMap<Address, ClusterItem> replicatedMap = new ReplicatedHashMap<>(ch);
-                executor.ifPresent(executor -> executor.shutdown());
-                executor = Optional.of(Executors.newSingleThreadScheduledExecutor());
-                executor.get().scheduleAtFixedRate(() ->
-                                removeOrphanTasks(),
-                        0, 1, TimeUnit.HOURS);
-                replicatedMap.start(5000L);
-                replicatedMap.remove(ch.getAddress());
-                this.map = Optional.of(replicatedMap);
-                this.channel = Optional.of(ch);
-                log.info("Joined cluster {} with {} member(s).",
-                        ch.getClusterName(), ch.getView().getMembers().size());
-                log.info("Cluster address: {}", ch.getAddress());
-            } catch (Exception e) {
-                log.catching(XLogger.Level.WARN, e);
-                log.info("Could not create or join cluster. Will work as single node.");
-            }
+            return;
         }
+        try {
+            log.debug("Joining cluster {}...", settings.getClusterName());
+            this.channel = new JChannel(settings.getJgroupsConfigFile());
+            channel.setName(settings.getHostname());
+            channel.connect(settings.getClusterName());
+            this.map = new ReplicatedHashMap<>(channel);
+            map.setBlockingUpdates(true);
+            if (executor != null) executor.shutdown();
+            executor = Executors.newSingleThreadScheduledExecutor();
+            executor.scheduleAtFixedRate(this::removeOrphanTasks, 0, 1, TimeUnit.HOURS);
+            map.start(5000L);
+            map.remove(getChannelAddress());
+            log.info("Joined cluster {} with {} member(s).",
+                    channel.getClusterName(), channel.getView().getMembers().size());
+            log.info("Cluster address: {}", channel.getAddress());
+        } catch (Exception e) {
+            channel = null;
+            map = null;
+            log.catching(XLogger.Level.WARN, e);
+            log.info("Could not create or join cluster. Will work as single node.");
+        }
+    }
+
+    private boolean isConnected() {
+        return channel != null && channel.isConnected() && map != null;
+    }
+
+    private String getChannelAddress() {
+        if (isConnected()) return ((UUID)channel.getAddress()).toStringLong();
+        return null;
     }
 
     @Synchronized
     @Override
     public void leaveCluster() {
-        channel.ifPresent(ch -> {
-                    try {
-                        log.info("Leaving cluster...");
-                        ch.disconnect();
-                        executor.ifPresent(executor -> executor.shutdown());
-                        log.info("Left the cluster.");
-                    } catch (Exception ex) {
-                        log.catching(XLogger.Level.WARN, ex);
-                    }
-                }
-        );
-        channel = Optional.empty();
+        if (channel == null) return;
+        try {
+            log.info("Leaving cluster...");
+            channel.disconnect();
+            if (executor != null) executor.shutdown();
+            log.info("Left the cluster.");
+        } catch (Exception ex) {
+            log.catching(XLogger.Level.WARN, ex);
+        }
+        channel = null;
     }
 
     ZonedDateTime getCurrentUtcTime() {
@@ -120,30 +125,30 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     private void removeOrphanTasks() {
-        map.ifPresent(map -> {
-            ZonedDateTime current = getCurrentUtcTime();
-            map.entrySet()
-                    .removeIf(entry -> entry
-                            .getValue()
-                            .getDateAdded()
-                            .plusHours(settings.getTaskTimeout())
-                            .isBefore(current));
-        });
+        if (!isConnected()) return;
+        ZonedDateTime current = getCurrentUtcTime();
+        log.debug("Removing orphan tasks.");
+        map.entrySet()
+                .removeIf(entry -> entry
+                        .getValue()
+                        .getDateAdded()
+                        .plusHours(settings.getTaskTimeout())
+                        .isBefore(current));
     }
 
     @Synchronized
     @Override
     public void removeTask() {
-        if (map.isPresent() && channel.isPresent()) {
-            log.debug("Removing existing task.");
-            map.get().remove(channel.get().getAddress());
-        }
+        if (!isConnected()) return;
+        log.debug("Removing current task.");
+        map.remove(getChannelAddress());
     }
 
     @Override
     public Optional<Media> getTask() {
-        if (map.isPresent() && map.get().containsKey(channel.get().getAddress())) {
-            return Optional.of(createCandidateFor(map.get().get(channel.get().getAddress())));
+        String address = getChannelAddress();
+        if (isConnected() && map.containsKey(address)) {
+            return Optional.of(createCandidateFor(map.get(address)));
         } else {
             return Optional.empty();
         }
@@ -153,33 +158,35 @@ class JgroupsClusterImpl implements ClusterService {
     @Synchronized
     @Override
     public void setTask(Media candidate) {
-        if (map.isPresent() && channel.isPresent()) {
-            Address address = channel.get().getAddress();
-            log.debug("Replacing media in map...");
-            ClusterItem clusterItem = createTaskFor(candidate);
-            if (map.get().containsKey(address)) {
-                map.get().replace(address, clusterItem);
-            } else {
-                map.get().put(address, clusterItem);
-            }
-            log.debug("Waiting for media acceptance...");
-            // wait until the clusterItem is in the map.
-            while (!map.get().containsValue(clusterItem)) {
-            }
-            log.info("Media accepted in cluster.");
+        if (!isConnected()) return;
+        String address = getChannelAddress();
+        log.debug("Replacing media in map...");
+        ClusterItem clusterItem = createTaskFor(candidate);
+        if (map.containsKey(address)) {
+            map.replace(address, clusterItem);
+        } else {
+            map.put(address, clusterItem);
         }
+        log.debug("Waiting for media acceptance...");
+        // wait until the clusterItem is in the map.
+        while (!map.containsValue(clusterItem)) {
+        }
+        log.info("{} accepted in cluster.", clusterItem);
     }
 
     boolean isFileEquals(String first, String other) {
-        log.debug("Comparing file paths: {} : {}", first, other);
         return new File(first).equals(new File(other));
     }
 
     @Override
     public boolean isQueuedInCluster(Media candidate) {
-        return map.isPresent() &&
-                map.get().values().stream()
-                        .anyMatch(clusterItem -> isFileEquals(
-                                candidate.getSourcePath().toString(), clusterItem.getSourceName()));
+        if (!isConnected()) return false;
+        log.debug("Testing whether {} is in cluster", candidate.getSourcePath().toString());
+
+        boolean found = map.values().stream()
+                .anyMatch(clusterItem -> isFileEquals(
+                        candidate.getSourcePath().toString(), clusterItem.getSourceName()));
+        if (found) log.debug("{} is already in cluster.", candidate);
+        return found;
     }
 }

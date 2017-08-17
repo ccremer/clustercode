@@ -29,7 +29,7 @@ public class SelectMediaAction extends Action {
             context.setSelectedMedia(result.get());
             return StateEvent.RESULT;
         } else {
-            log.info("No suitable media found.");
+            log.info("No suitable media found. Either all media are already converted or the last one is being transcoded by a cluster member.");
             return StateEvent.NO_RESULT;
         }
     }

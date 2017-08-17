@@ -18,25 +18,26 @@ public interface ClusterService {
     void leaveCluster();
 
     /**
-     * Removes the currently active cleanup from the cluster, if there was one set.
+     * Removes the currently active task from the cluster, if there was one set.
      */
     void removeTask();
 
     /**
-     * Gets the cleanup that is or was scheduled for this node. This method is useful after an application crash where the
-     * cluster knows which cleanup was scheduled for this specific node. So this method returns the candidate previously
-     * scheduled for this node, otherwise empty.
+     * Gets the task that is or was scheduled for this node. This method is useful after an application crash where
+     * the cluster knows which task was scheduled for this specific node. So this method returns the task
+     * previously scheduled for this node, otherwise empty.
      *
-     * @return an optional describing the cleanup.
+     * @return an optional describing the task.
      */
     Optional<Media> getTask();
 
     /**
-     * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one cleanup can
-     * be active. Tasks which are long in the cluster than {@link ClusterSettings#getTaskTimeout()} are being removed.
+     * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one task
+     * can be active. Tasks which are longer in the cluster than {@link ClusterSettings#getTaskTimeout()} are being
+     * removed.
      * This method does nothing if not connected to the cluster.
      *
-     * @param candidate the cleanup, not null.
+     * @param candidate the candidate, not null.
      */
     void setTask(Media candidate);
 

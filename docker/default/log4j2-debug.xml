@@ -8,6 +8,13 @@
         </Console>
     </Appenders>
     <Loggers>
+        <Logger name="org.squirrelframework.foundation.fsm.impl.AbstractExecutionService" level="info"
+                additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.jgroups.protocols.pbcast.GMS" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Root level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>

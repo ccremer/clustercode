@@ -89,6 +89,12 @@ public class StateController
                     .to(State.SCAN_MEDIA)
                     .on(StateEvent.TIMEOUT);
 
+            // fail when select media ------>> waiting
+            builder.externalTransition()
+                    .from(State.SELECT_MEDIA)
+                    .to(State.WAIT)
+                    .on(StateEvent.NO_RESULT);
+
             // media selected ------>> select profile
             builder.externalTransition()
                     .from(State.SELECT_MEDIA)
