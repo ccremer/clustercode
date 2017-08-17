@@ -24,7 +24,7 @@ desktop.ini
 
 # project
 docker-compose.yml
-config/
-tmp/
-input/
-output/
+/config/
+/tmp/
+/input/
+/output/
