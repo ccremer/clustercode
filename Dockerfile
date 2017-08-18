@@ -6,7 +6,7 @@ ENV \
     CC_DEFAULT_DIR="/usr/src/clustercode/default" \
     CC_CONFIG_FILE="/usr/src/clustercode/config/clustercode.properties" \
     CC_CONFIG_DIR="/usr/src/clustercode/config" \
-    CC_LOG_CONFIG_FILE="default/log4j2.xml"
+    CC_LOG_CONFIG_FILE="default/config/log4j2.xml"
 
 VOLUME \
     /input \

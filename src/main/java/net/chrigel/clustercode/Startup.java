@@ -72,7 +72,7 @@ public class Startup {
         modules.add(new ConstraintModule(config));
         modules.add(new ProcessModule());
         modules.add(new ScanModule(config));
-        modules.add(new TranscodeModule());
+        modules.add(new TranscodeModule(config));
         modules.add(new ActionModule());
         modules.add(new EnvironmentModule(config));
 

@@ -48,7 +48,7 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
         Path outputFile = context.getOutputPath();
         List<String> args = buildArguments(outputFile);
 
-        log.debug("Changing owner of {} to {}.", outputFile, args.get(0));
+        log.info("Changing owner of {} to {}.", outputFile, args.get(0));
         Optional<Integer> exitCode = externalProcessProvider.get()
                 .withExecutablePath(Paths.get("/bin", "chown"))
                 .withArguments(args)

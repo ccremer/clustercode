@@ -2,7 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
-import net.chrigel.clustercode.scan.MediaScanService;
+import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.transcode.TranscodeResult;
@@ -27,15 +27,18 @@ class TranscodingServiceImpl implements TranscodingService {
 
     private final TranscoderSettings transcoderSettings;
     private MediaScanSettings mediaScanSettings;
+    private final OutputParser parser;
     private final Provider<ExternalProcess> externalProcessProvider;
 
     @Inject
     TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
                            TranscoderSettings transcoderSettings,
-                           MediaScanSettings mediaScanSettings) {
+                           MediaScanSettings mediaScanSettings,
+                           OutputParser parser) {
         this.externalProcessProvider = externalProcessProvider;
         this.transcoderSettings = transcoderSettings;
         this.mediaScanSettings = mediaScanSettings;
+        this.parser = parser;
     }
 
     Optional<Integer> doTranscode(Path source, Path tempFile, Profile profile) {
@@ -46,6 +49,8 @@ class TranscodingServiceImpl implements TranscodingService {
                         .map(s -> replaceInput(s, source))
                         .map(s -> replaceOutput(s, tempFile))
                         .collect(Collectors.toList()))
+                .withStderrParser(createParser())
+                .withStdoutParser(createParser())
                 .start();
     }
 
@@ -64,10 +69,10 @@ class TranscodingServiceImpl implements TranscodingService {
                 .profile(task.getProfile())
                 .build();
 
-        log.info("Starting transcoding process...");
-        doTranscode(task.getMedia().getSourcePath(), tempFile, task.getProfile())
+        Path source = task.getMedia().getSourcePath();
+        log.info("Starting transcoding process: from {} to {}...", source, tempFile);
+        doTranscode(source, tempFile, task.getProfile())
                 .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
-
         if (result.isSuccessful()) {
             log.info("Transcoding finished");
         } else {
@@ -93,4 +98,8 @@ class TranscodingServiceImpl implements TranscodingService {
         return s.replace(INPUT_PLACEHOLDER, mediaScanSettings.getBaseInputDir().resolve(path).toString());
     }
 
+    private RedirectedParser createParser() {
+        if (transcoderSettings.isIoRedirected()) return null;
+        return new RedirectedParser(parser);
+    }
 }

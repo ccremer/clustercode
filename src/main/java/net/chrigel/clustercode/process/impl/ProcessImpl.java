@@ -3,6 +3,7 @@ package net.chrigel.clustercode.process.impl;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.process.RunningExternalProcess;
+import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.util.Platform;
 import org.slf4j.ext.XLogger;
 
@@ -30,8 +31,8 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     private Optional<Process> subprocess;
     private Optional<Path> workingDir;
     private boolean logSuppressed;
-    private Consumer<String> stdParser;
-    private Consumer<String> errParser;
+    private OutputParser stdParser;
+    private OutputParser errParser;
 
     ProcessImpl() {
         this.arguments = Optional.empty();
@@ -47,15 +48,13 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     }
 
     @Override
-    public ExternalProcess withStdoutParser(Consumer<String> stdParser) {
-        this.redirectIO = false;
+    public ExternalProcess withStdoutParser(OutputParser stdParser) {
         this.stdParser = stdParser;
         return this;
     }
 
     @Override
-    public ExternalProcess withStderrParser(Consumer<String> errParser) {
-        this.redirectIO = false;
+    public ExternalProcess withStderrParser(OutputParser errParser) {
         this.errParser = errParser;
         return this;
     }
@@ -99,7 +98,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         if (logSuppressed) {
             log.info("Invoking external program...");
         } else {
-            log.info("Invoking external program: {}", builder.command());
+            log.info("Invoking: {}", builder.command());
         }
         try {
             Process process = builder.start();
@@ -117,8 +116,9 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         }
     }
 
-    private void captureStream(InputStream stream, Consumer<String> parser) {
+    private void captureStream(InputStream stream, OutputParser parser) {
         CompletableFuture.runAsync(() -> {
+            parser.start();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
                 String line;
                 while ((line = reader.readLine())!= null) {
@@ -127,6 +127,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
             } catch (IOException ex) {
                 log.catching(XLogger.Level.WARN, ex);
             }
+            parser.stop();
         });
     }
 

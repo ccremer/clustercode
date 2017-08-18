@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.Media;
@@ -34,6 +35,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     private TranscoderSettings transcoderSettings;
     @Mock
     private MediaScanSettings mediaScanSettings;
+    @Mock
+    private OutputParser parser;
 
     @Spy
     private Media media;
@@ -52,6 +55,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(process.withExecutablePath(any())).thenReturn(process);
         when(process.withIORedirected(anyBoolean())).thenReturn(process);
         when(process.withArguments(any())).thenReturn(process);
+        when(process.withStderrParser(any())).thenReturn(process);
+        when(process.withStdoutParser(any())).thenReturn(process);
         when(media.getSourcePath()).thenReturn(getPath("0", "video.mkv"));
         when(profile.getFields()).thenReturn(Collections.singletonMap("FORMAT", ".mp4"));
         when(transcoderSettings.getTemporaryDir()).thenReturn(getPath("tmp"));
@@ -61,7 +66,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         task.setMedia(media);
         task.setProfile(profile);
 
-        subject = new TranscodingServiceImpl(() -> process, transcoderSettings, mediaScanSettings);
+        subject = new TranscodingServiceImpl(() -> process, transcoderSettings, mediaScanSettings, parser);
     }
 
     @Test
