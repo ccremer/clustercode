@@ -27,7 +27,7 @@ version: "2.2"
 services:
   clustercode:
     restart: always
-    image: braindoctor/clustercode:latest
+    image: braindoctor/clustercode:stable
     container_name: clustercode
     cpu_shares: 512
     ports:
@@ -49,7 +49,7 @@ This is untested, as I don't have a Swarm. Just make sure that limit the CPU res
 version: "3.2"
 services:
   clustercode:
-    image: braindoctor/clustercode:latest
+    image: braindoctor/clustercode:stable
     ports:
       - "7600:7600/tcp"
       - "7600:7600/udp"
@@ -83,3 +83,9 @@ Active Development as of August/September 2017.
 * Monitoring with a REST API.
 * [netdata](https://my-netdata.io/) plugin for monitoring.
 * Smooth-ier Windows deployment.
+
+## Docker Tags
+
+* latest: latest automated build of the master branch
+* stable: latest automated build of a tagged commit from a release
+* tagged: tags following the 1.x.x pattern are specific releases
