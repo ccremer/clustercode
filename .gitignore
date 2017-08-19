@@ -9,6 +9,9 @@ hs_err_pid*
 # maven
 target/
 
+# Microsoft opened files.
+~$$*.~*
+
 
 # intellij
 .idea/libraries
