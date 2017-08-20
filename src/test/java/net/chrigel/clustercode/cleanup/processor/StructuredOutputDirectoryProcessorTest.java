@@ -63,10 +63,26 @@ public class StructuredOutputDirectoryProcessorTest
     }
 
     @Test
+    public void processStep_ShouldMoveFileToNewDestination_WithOtherFileExtension() throws Exception {
+
+        Path source = createFile(getPath("0", "subdir", "file.mp4"));
+        Path temp = createFile(getPath("tmp", "file.mkv"));
+
+        transcodeResult.setTemporaryPath(temp);
+        media.setSourcePath(source);
+
+        CleanupContext result = subject.processStep(context);
+
+        Path expected = getPath("output", "subdir", "file.mkv");
+        assertThat(result.getOutputPath()).isEqualTo(expected);
+        assertThat(expected).exists();
+    }
+
+    @Test
     public void processStep_ShouldMoveFileWithTimestamp_IfFileExists() throws Exception {
 
         Path source = createFile(getPath("0", "subdir", "file.ext"));
-        Path existing = createFile(getPath("output", "subdir", "file.ext"));
+        createFile(getPath("output", "subdir", "file.ext"));
         Path temp = createFile(getPath("tmp", "file.ext"));
 
         transcodeResult.setTemporaryPath(temp);
@@ -98,8 +114,7 @@ public class StructuredOutputDirectoryProcessorTest
 
         Path result = subject.createOutputDirectoryTree(source);
 
-        assertThat(result)
-                .isEqualTo(expected);
+        assertThat(result).isEqualTo(expected);
     }
 
 }

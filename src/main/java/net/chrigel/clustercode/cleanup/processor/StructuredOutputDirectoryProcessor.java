@@ -34,10 +34,15 @@ public class StructuredOutputDirectoryProcessor
         TranscodeResult result = context.getTranscodeResult();
 
         Path source = result.getTemporaryPath();
+
         Path media = result.getMedia().getSourcePath();
+
         Path target = createOutputDirectoryTree(media);
-        FileUtil.createParentDirectoriesFor(target);
-        context.setOutputPath(moveAndReplaceExisting(source, target, cleanupSettings.overwriteFiles()));
+
+        Path tempFile = source.getFileName();
+        Path finalPath = target.getParent().resolve(tempFile);
+        FileUtil.createParentDirectoriesFor(finalPath);
+        context.setOutputPath(moveAndReplaceExisting(source, finalPath, cleanupSettings.overwriteFiles()));
         return log.exit(context);
     }
 

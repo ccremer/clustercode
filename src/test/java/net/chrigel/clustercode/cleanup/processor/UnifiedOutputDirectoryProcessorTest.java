@@ -80,7 +80,7 @@ public class UnifiedOutputDirectoryProcessorTest
     @Test
     public void processStep_ShouldMoveSubdirFileToOutputDir_AndAddTimestampToFile_IfFileExists() throws Exception {
         Path temp = createFile(getPath("0", "subdir", "video.ext"));
-        Path existing = createFile(outputDir.resolve("video.ext"));
+        createFile(outputDir.resolve("video.ext"));
 
         transcodeResult.setTemporaryPath(temp);
 
