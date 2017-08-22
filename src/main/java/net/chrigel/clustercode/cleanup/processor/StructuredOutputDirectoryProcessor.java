@@ -33,6 +33,8 @@ public class StructuredOutputDirectoryProcessor
         log.entry(context);
         TranscodeResult result = context.getTranscodeResult();
 
+        if (isFailed(result)) return log.exit(context);
+
         Path source = result.getTemporaryPath();
 
         Path media = result.getMedia().getSourcePath();

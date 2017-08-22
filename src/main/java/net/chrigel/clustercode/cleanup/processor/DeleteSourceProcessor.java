@@ -26,8 +26,14 @@ public class DeleteSourceProcessor implements CleanupProcessor {
     @Override
     public CleanupContext processStep(CleanupContext context) {
         log.entry(context);
+
         Path source = mediaScanSettings.getBaseInputDir().resolve(
                 context.getTranscodeResult().getMedia().getSourcePath());
+
+        if (!context.getTranscodeResult().isSuccessful()) {
+            log.warn("Not deleting {}, since transcoding failed.", source);
+            return log.exit(context);
+        }
 
         deleteFile(source);
 
@@ -36,7 +42,7 @@ public class DeleteSourceProcessor implements CleanupProcessor {
 
     void deleteFile(Path path) {
         try {
-            log.debug("Deleting {}", path);
+            log.info("Deleting {}.", path);
             Files.deleteIfExists(path);
         } catch (IOException e) {
             log.warn("Could not delete file {}: {}", path, e.getMessage());

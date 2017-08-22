@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.cleanup.processor;
 
+import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.util.FileUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -49,5 +50,13 @@ public abstract class AbstractOutputDirectoryProcessor {
             log.error("Could not move {} to {}: {}", source, target, e.toString());
             throw new RuntimeException(e);
         }
+    }
+
+    protected boolean isFailed(TranscodeResult result) {
+        if (!result.isSuccessful()) {
+            log.warn("Not moving file {}, since transcoding failed.", result.getTemporaryPath().toString());
+            return true;
+        }
+        return false;
     }
 }

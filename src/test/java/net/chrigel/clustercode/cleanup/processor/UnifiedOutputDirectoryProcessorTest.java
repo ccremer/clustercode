@@ -41,6 +41,7 @@ public class UnifiedOutputDirectoryProcessorTest
         context.setTranscodeResult(transcodeResult);
         transcodeResult.setMedia(media);
         when(settings.getOutputBaseDirectory()).thenReturn(outputDir);
+        when(transcodeResult.isSuccessful()).thenReturn(true);
 
         subject = new UnifiedOutputDirectoryProcessor(settings, getFixedClock(8, 20));
     }

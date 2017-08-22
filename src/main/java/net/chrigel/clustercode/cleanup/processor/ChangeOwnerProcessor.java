@@ -51,6 +51,7 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
         log.info("Changing owner of {} to {}.", outputFile, args.get(0));
         Optional<Integer> exitCode = externalProcessProvider.get()
                 .withExecutablePath(Paths.get("/bin", "chown"))
+                .withIORedirected(true)
                 .withArguments(args)
                 .start();
 

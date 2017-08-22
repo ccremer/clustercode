@@ -32,6 +32,11 @@ public class MarkSourceProcessor implements CleanupProcessor {
                 context.getTranscodeResult().getMedia().getSourcePath());
         Path marked = source.resolveSibling(source.getFileName().toString() + mediaScanSettings.getSkipExtension());
 
+        if (!context.getTranscodeResult().isSuccessful()) {
+            log.warn("Not marking {} as done, since transcoding failed.", source);
+            log.exit(context);
+        }
+
         if (!Files.exists(source)) return LogUtil.logWarnAndExit(context, log,
                 "Not marking {} as done, since the file does not exist (anymore).", source);
 

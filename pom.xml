@@ -6,7 +6,7 @@
 
     <groupId>net.chrigel</groupId>
     <artifactId>clustercode</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.9</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

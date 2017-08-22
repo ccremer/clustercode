@@ -42,6 +42,7 @@ public class StructuredOutputDirectoryProcessorTest
 
         outputDir = getPath("output");
         when(settings.getOutputBaseDirectory()).thenReturn(outputDir);
+        when(transcodeResult.isSuccessful()).thenReturn(true);
 
         subject = new StructuredOutputDirectoryProcessor(settings, getFixedClock(8, 20));
     }

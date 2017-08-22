@@ -66,6 +66,7 @@ class TranscodingServiceImpl implements TranscodingService {
         TranscodeResult result = TranscodeResult.builder()
                 .temporaryPath(tempFile)
                 .media(task.getMedia())
+                .successful(false)
                 .profile(task.getProfile())
                 .build();
 

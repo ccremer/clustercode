@@ -32,6 +32,8 @@ public class UnifiedOutputDirectoryProcessor
         log.entry(context);
         TranscodeResult result = context.getTranscodeResult();
 
+        if (isFailed(result)) return log.exit(context);
+
         Path source = result.getTemporaryPath();
         Path target = cleanupSettings.getOutputBaseDirectory().resolve(source.getFileName());
 
