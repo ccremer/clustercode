@@ -17,7 +17,7 @@ public class ApiModule extends AbstractPropertiesModule {
 
     private final Properties properties;
 
-    public ApiModule(Properties properties){
+    public ApiModule(Properties properties) {
         this.properties = properties;
     }
 
@@ -26,10 +26,12 @@ public class ApiModule extends AbstractPropertiesModule {
 
         bind(StateMachineMonitor.class).to(StateMachineMonitorImpl.class).in(Singleton.class);
 
-        String monitoringEnabled = getEnvironmentVariableOrProperty(properties, REST_ENABLED_KEY);
+        String restEnabled = getEnvironmentVariableOrProperty(properties, REST_ENABLED_KEY);
         String restPort = getEnvironmentVariableOrProperty(properties, REST_PORT_KEY);
-        if ("true".equalsIgnoreCase(monitoringEnabled)) {
+        if ("true".equalsIgnoreCase(restEnabled)) {
             installJersey(Integer.valueOf(restPort));
+        } else {
+            bind(RestApiServices.class).to(DisabledApiService.class);
         }
 
     }

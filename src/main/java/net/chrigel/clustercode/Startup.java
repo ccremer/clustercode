@@ -60,7 +60,7 @@ public class Startup {
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
 
-        Properties config = getProperties();
+        Properties config = getProperties(args.length >= 1 ? args[0] : null);
 
         log.debug("Creating guice modules...");
         List<Module> modules = new LinkedList<>();
@@ -93,8 +93,9 @@ public class Startup {
         return "unknown-version";
     }
 
-    private static Properties getProperties() throws IOException {
+    private static Properties getProperties(String arg) throws IOException {
         String configFileName = System.getenv("CC_CONFIG_FILE");
+        if (arg != null) configFileName = arg;
         if (configFileName == null) configFileName = "config/clustercode.properties";
         log.info("Reading configuration file {}...", configFileName);
         return ConfigurationHelper.loadPropertiesFromFile(configFileName);

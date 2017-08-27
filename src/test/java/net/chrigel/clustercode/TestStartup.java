@@ -26,7 +26,7 @@ public class TestStartup {
         Files.write(profileDir.resolve("profile.handbrake"), Arrays.asList("--input ${INPUT}", "--output ${OUTPUT}"));
 
         Thread.sleep(500);
-        Startup.main(new String[]{"TestStartup.properties"});
+        Startup.main(new String[]{});
     }
 
 }

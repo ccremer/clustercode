@@ -13,7 +13,6 @@ public class RestApiServicesImpl implements RestApiServices {
 
     @Inject
     RestApiServicesImpl(JerseyServer jerseyServer) {
-
         this.jerseyServer = jerseyServer;
     }
 

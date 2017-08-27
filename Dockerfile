@@ -38,4 +38,5 @@ RUN \
     mv build/libs/clustercode.jar clustercode.jar && \
     rm -r src && \
     rm -r build && \
-    rm -r *gradle
+    rm -r *gradle && \
+    rm -r /root/.gradle

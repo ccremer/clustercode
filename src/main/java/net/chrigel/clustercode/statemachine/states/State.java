@@ -8,7 +8,8 @@ public enum State {
     SELECT_MEDIA,
     SELECT_PROFILE,
     TRANSCODE,
-    CLEANUP,;
+    CLEANUP,
+    ARBITER;
 
     @Override
     public String toString() {
