@@ -114,7 +114,7 @@ class JgroupsClusterImpl implements ClusterService {
     ClusterTask createTaskFor(Media candidate) {
         return ClusterTask.builder()
                 .priority(candidate.getPriority())
-                .sourceName(toLinuxPath(candidate.getSourcePath().toFile().toString()))
+                .sourceName(toLinuxPath(candidate.getSourcePath().toString()))
                 .dateAdded(getCurrentUtcTime())
                 .build();
     }
@@ -166,7 +166,7 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     boolean isFileEquals(String first, String other) {
-        return new File(first).equals(new File(other));
+        return new File(toLinuxPath(first)).equals(new File(toLinuxPath(other)));
     }
 
     @Override

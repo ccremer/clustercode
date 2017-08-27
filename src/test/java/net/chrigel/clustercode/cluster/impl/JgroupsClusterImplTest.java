@@ -4,13 +4,11 @@ import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
@@ -48,11 +46,11 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
     public void createTaskFor_ShouldReturnTask_WithRelativePath_FromWindows() throws Exception {
         Path media = Mockito.mock(Path.class);
         when(candidate.getSourcePath()).thenReturn(media);
-        when(media.toFile()).thenReturn(new File("0\\movies\\movie.mp4"));
+        when(media.toString()).thenReturn("0\\movies\\movie.mp4");
 
         ClusterTask clusterTask = subject.createTaskFor(candidate);
 
-        assertThat(new File(clusterTask.getSourceName())).isEqualTo(media.toFile());
+        assertThat(clusterTask.getSourceName()).isEqualTo("0/movies/movie.mp4");
     }
 
     @Test
