@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.statemachine;
 
 import net.chrigel.clustercode.statemachine.states.State;
+import net.chrigel.clustercode.statemachine.states.StateController;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import java.util.concurrent.CompletableFuture;
@@ -19,6 +20,7 @@ public abstract class AsyncAction extends Action {
             }
             fireStateEvent(result, stateMachine, context);
         });
+        updateCurrentState(to);
     }
 
 }

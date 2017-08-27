@@ -2,14 +2,13 @@ package net.chrigel.clustercode.statemachine.actions;
 
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanService;
-import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.AsyncAction;
+import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 
 import javax.inject.Inject;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ScanMediaAction extends AsyncAction {
 

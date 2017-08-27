@@ -1,0 +1,129 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "com.benjaminsproule:swagger-gradle-plugin:+"
+    }
+}
+
+plugins {
+    id "org.unbroken-dome.test-sets" version "1.4.2"
+    id "java"
+    id "idea"
+}
+
+group "net.chrigel"
+version "1.1.0"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+testSets {
+    integrationTest { dirName = 'integration-test' }
+}
+
+ext {
+    guiceVersion = "4.1.0"
+    log4jVersion = "2.8.+"
+    jacksonVersion = "2.9.+"
+}
+
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+}
+
+dependencies {
+
+    // Core dependencies
+    compile("org.squirrelframework:squirrel-foundation:0.3.+") {
+        exclude group: "log4j"
+        exclude group: "org.slf4j"
+    }
+    compile "org.jgroups:jgroups:4.0.+"
+
+    // REST dependencies
+    compile "io.logz:guice-jersey:1.0.+"
+    compile "com.owlike:genson:1.+"
+
+    // compiler helpers
+    compileOnly "org.projectlombok:lombok:1.16.+"
+    compileOnly "io.swagger:swagger-annotations:1.5.+"
+    // DI frameworks
+    compile "javax.inject:javax.inject:1"
+    compile "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
+
+    // logging
+    compile "org.slf4j:slf4j-ext:1.7.+"
+    runtime "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+    runtime "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+    runtime "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+
+    // testing
+    testCompile "junit:junit:4.12"
+    testCompile "org.mockito:mockito-all:2.0.+"
+    testCompile "com.google.jimfs:jimfs:1.+"
+    testCompile "org.assertj:assertj-core:3.8.0"
+
+    integrationTestCompile sourceSets.test.output
+
+}
+
+apply plugin: "com.benjaminsproule.swagger"
+
+swagger {
+    apiSource {
+        locations = [ "net.chrigel.clustercode.api" ]
+        schemes = [ "http" ]
+        host = "your.clustercode.domain:7700"
+        basePath = "/api/v1"
+        info {
+            title = "Clustercode REST API"
+            version = "1.1.0"
+            description = "Convert your videos in a cluster!"
+        }
+
+        templatePath = "${project.rootDir}/src/swagger/strapdown.html.hbs"
+        outputPath = "${project.buildDir}/swagger/swagger.html"
+        swaggerDirectory = "${project.buildDir}/swagger"
+    }
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "net.chrigel.clustercode.Startup"
+    }
+}
+
+task fullBuild(type: Jar) {
+    manifest {
+        attributes "Main-Class": "net.chrigel.clustercode.Startup",
+                "Implementation-Version": version,
+                "Implementation-Title": project.name
+    }
+    archiveName = "clustercode.jar"
+    baseName = project.name
+    from { configurations.compile.collect {it.isDirectory() ? it : zipTree(it)}}
+    from { configurations.runtime.collect {it.isDirectory() ? it : zipTree(it)}}    
+    from "$buildDir/swagger"
+    with jar
+}
+
+fullBuild.dependsOn test
+fullBuild.dependsOn generateSwaggerDocumentation
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+
+
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}

@@ -1,6 +1,5 @@
 package net.chrigel.clustercode.statemachine.actions;
 
-import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
@@ -13,13 +12,10 @@ import javax.inject.Inject;
 public class TranscodeAction extends Action {
 
     private final TranscodingService transcodingService;
-    private ClusterService clusterService;
 
     @Inject
-    TranscodeAction(TranscodingService transcodingService,
-                    ClusterService clusterService) {
+    TranscodeAction(TranscodingService transcodingService) {
         this.transcodingService = transcodingService;
-        this.clusterService = clusterService;
     }
 
     @Override
@@ -29,7 +25,6 @@ public class TranscodeAction extends Action {
                 .media(context.getSelectedMedia())
                 .profile(context.getSelectedProfile())
                 .build()));
-        clusterService.removeTask();
         return StateEvent.FINISHED;
     }
 }

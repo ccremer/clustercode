@@ -1,9 +1,9 @@
 package net.chrigel.clustercode.scan.matcher;
 
+import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.ProfileParser;
 import net.chrigel.clustercode.scan.ProfileScanSettings;
-import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,9 +14,9 @@ import org.mockito.Spy;
 import java.nio.file.Path;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.*;
 
 public class CompanionProfileMatcherTest implements FileBasedUnitTest {
 

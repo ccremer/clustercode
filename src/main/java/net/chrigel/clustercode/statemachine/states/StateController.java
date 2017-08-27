@@ -1,11 +1,12 @@
-package net.chrigel.clustercode.statemachine;
+package net.chrigel.clustercode.statemachine.states;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterSettings;
 import net.chrigel.clustercode.scan.MediaScanSettings;
+import net.chrigel.clustercode.statemachine.Action;
+import net.chrigel.clustercode.statemachine.StateContext;
+import net.chrigel.clustercode.statemachine.StateMachineService;
 import net.chrigel.clustercode.statemachine.actions.*;
-import net.chrigel.clustercode.statemachine.states.State;
-import net.chrigel.clustercode.statemachine.states.StateEvent;
 import org.squirrelframework.foundation.fsm.StateMachineBuilder;
 import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
 import org.squirrelframework.foundation.fsm.impl.AbstractStateMachine;
@@ -35,7 +36,7 @@ public class StateController
     StateController(Set<Action> actionSet,
                     MediaScanSettings scanSettings,
                     ClusterSettings clusterSettings) {
-        this.actions = actionSet.stream().collect(Collectors.toMap(action -> action.getClass(), Function.identity()));
+        this.actions = actionSet.stream().collect(Collectors.toMap(Action::getClass, Function.identity()));
         this.isArbiter = clusterSettings.isArbiter();
         this.scanInterval = scanSettings.getMediaScanInterval();
     }
@@ -133,6 +134,7 @@ public class StateController
         builder.newStateMachine(State.INITIAL).start(context);
     }
 
+    @SuppressWarnings("unchecked")
     private <A extends Action> A actionOf(Class<A> clazz) {
         return (A) this.actions.get(clazz);
     }

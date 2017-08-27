@@ -14,7 +14,7 @@ public class ProcessModule extends AbstractModule {
     protected void configure() {
         bind(ExternalProcess.class).to(ProcessImpl.class);
 
-        switch (Platform.getCurrentPlatform()) {
+        switch (Platform.currentPlatform()) {
             case WINDOWS:
                 bind(ScriptInterpreter.class).to(AutoResolvableInterpreter.class);
                 break;

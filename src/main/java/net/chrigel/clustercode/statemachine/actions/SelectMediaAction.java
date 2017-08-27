@@ -2,8 +2,8 @@ package net.chrigel.clustercode.statemachine.actions;
 
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.SelectionService;
-import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.Action;
+import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 

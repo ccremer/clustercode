@@ -14,7 +14,7 @@ public enum Platform {
     private static Platform detectedOS;
 
     @Synchronized
-    public static Platform getCurrentPlatform() {
+    public static Platform currentPlatform() {
         if (detectedOS == null) {
             String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
             if ((OS.indexOf("mac") >= 0) || (OS.indexOf("darwin") >= 0)) {

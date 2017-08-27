@@ -2,7 +2,6 @@ package net.chrigel.clustercode.statemachine.actions;
 
 import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
-import net.chrigel.clustercode.statemachine.StateController;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 import org.slf4j.ext.XLogger;
@@ -48,11 +47,6 @@ public class LoggedAction extends Action {
         Objects.requireNonNull(level);
         this.level = Loggers.valueOf(level.name());
         return this;
-    }
-
-    @Override
-    public void execute(State from, State to, StateEvent event, StateContext context, StateController stateMachine) {
-        doExecute(from, to, event, context);
     }
 
     @Override

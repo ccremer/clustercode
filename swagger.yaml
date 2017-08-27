@@ -1,0 +1,128 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Clustercode
+  description: Convert your videos in a cluster!
+  version: "1.1.0"
+# the domain of the service
+host: clustercode.intern
+# array of all schemes that your API supports
+schemes:
+  - http
+# will be prefixed to all paths
+basePath: /api/v1
+produces:
+  - application/json
+consumes:
+  - application/json
+paths:
+  /status:
+    get:
+      summary: Status information
+      description: Provides operations to monitor the health of the application. Can be used for service monitoring.
+      tags:
+        - Health
+      responses:
+        200:
+          description: A StatusReport object which contains all relevant values.
+          schema:
+            $ref: '#/definitions/StatusReport'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /tasks:
+    get:
+      summary: Tasks information
+      description: Provides operations to get task information.
+      tags:
+        - Tasks
+      responses:
+        200:
+          description: An Array of Task object.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Task'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /progress:
+    get:
+      summary: Conversion progress
+      description: Returns a report of the current conversion progress of the local node.
+      tags:
+        - Progress
+      responses:
+        200:
+          description: A ProgressReport object which contains all relevant values.
+          schema:
+            $ref: '#/definitions/ProgressReport'
+        500:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  ProgressReport:
+    type: object
+    properties:
+      percentage:
+        type: number
+        format: double
+        description: The current percentage of the conversion progress. The returned value has a precision of 2 digits after the decimal delimiter. Returns -1 if there is no conversion or it could not be determined. After a conversion this value resets to -1.
+      bitrate:
+        type: number
+        format: double
+        description: The current bitrate of the conversion in kbit/s. Returns -1 if no conversion is active. Otherwise returns a value with a precision of 1 digit.
+      fps:
+        type: number
+        format: double
+        description: The amount of frames per second encoded in the current conversion. Returns -1 if no conversion active. Otherwise returns a value with a precision of 1 digit.
+      frame:
+        type: integer
+        format: int64
+        description: The amount of processed frames so far in the conversion process. Returns -1 if no conversion active.
+      max_frame:
+        type: integer
+        format: int64
+        description: The frame count of the current media. Returns 0 if not determined and -1 if no conversion active.
+      size:
+        type: number
+        format: double
+        description: The file size of the currently created output file. Returns -1 if no conversion active. Otherwise returns a value in MB.
+  StatusReport:
+    type: object
+    properties:
+      state:
+        type: string
+        description: "The state in which clustercode is currently in. It is either one of the following: INITIAL, SCAN_MEDIA, WAIT, SELECT_MEDIA, SELECT_PROFILE, TRANSCODE, CLEANUP"
+      cluster_size:
+        type: integer
+        format: int32
+        description: The current amount of cluster members. The size includes any arbiter nodes.
+  Task:
+    type: object
+    properties:
+      source:
+        type: string
+        description: The path under the root input directory. The subdirectory which represents the priority is stripped as well.
+      priority:
+        type: integer
+        format: int32
+        description: The priority of the source file.
+      added:
+        type: string
+        format: date-time
+        description: The UTC timestamp at which the task has been added.
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      fields:
+        type: string

@@ -3,7 +3,8 @@ package net.chrigel.clustercode;
 import net.chrigel.clustercode.test.TestUtility;
 import net.chrigel.clustercode.util.FileUtil;
 
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 public class TestStartup {

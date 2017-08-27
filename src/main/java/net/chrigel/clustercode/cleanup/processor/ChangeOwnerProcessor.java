@@ -39,10 +39,10 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
 
         if (context.getOutputPath() == null)
             return LogUtil.logWarnAndExit(context, log,
-                    "Output file has not been created set. Are you sure you have " +
+                    "Output file has not been created yet. Are you sure you have " +
                             "configured the cleanup strategies correctly?");
 
-        if (Platform.getCurrentPlatform() == Platform.WINDOWS)
+        if (Platform.currentPlatform() == Platform.WINDOWS)
             return LogUtil.logWarnAndExit(context, log, "Cowardly refusing to change the owner on Windows.");
 
         Path outputFile = context.getOutputPath();

@@ -1,4 +1,6 @@
-FROM maven:3-jdk-8-alpine
+FROM gradle:4.0-jdk8-alpine
+
+USER root
 
 WORKDIR /usr/src/clustercode
 
@@ -18,7 +20,8 @@ VOLUME \
 # Port 5005 is used for java remote debug, do not publish this port in production.
 EXPOSE \
     7600/tcp 7600/udp \
-    5005
+    5005 \
+    7700
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
 
@@ -27,12 +30,12 @@ RUN \
     apk upgrade && \
     apk add --no-cache ffmpeg
 
-COPY pom.xml docker ./
+COPY build.gradle settings.gradle docker ./
 COPY src src/
 
 RUN \
-    mvn package -P package -e -B \
-        -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn && \
-    mv target/clustercode-jar-with-dependencies.jar clustercode.jar && \
+    gradle -w fullBuild && \
+    mv build/libs/clustercode.jar clustercode.jar && \
     rm -r src && \
-    rm -r target
+    rm -r build && \
+    rm -r *gradle

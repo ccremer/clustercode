@@ -6,12 +6,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -57,7 +54,7 @@ public class ProcessImplIT {
     }
 
     private Path getArgumentsScript() {
-        switch (Platform.getCurrentPlatform()) {
+        switch (Platform.currentPlatform()) {
             case WINDOWS:
                 return TestUtility.getTestResourcesDir().resolve("Echo Arguments.cmd").toAbsolutePath();
             default:
@@ -66,7 +63,7 @@ public class ProcessImplIT {
     }
 
     private Path getSleepScript() {
-        switch (Platform.getCurrentPlatform()) {
+        switch (Platform.currentPlatform()) {
             case WINDOWS:
                 return TestUtility.getTestResourcesDir().resolve("Sleep.cmd").toAbsolutePath();
             default:

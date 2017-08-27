@@ -9,6 +9,11 @@ hs_err_pid*
 # maven
 target/
 
+# gradle
+build/
+.gradle/
+out/
+
 # Microsoft opened files.
 ~$$*.~*
 

@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.util.InvalidConfigurationException;
 import org.junit.Before;

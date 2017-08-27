@@ -2,7 +2,7 @@ package net.chrigel.clustercode.cluster;
 
 import net.chrigel.clustercode.scan.Media;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface ClusterService {
 
@@ -29,7 +29,7 @@ public interface ClusterService {
      *
      * @return an optional describing the task.
      */
-    Optional<Media> getTask();
+    List<ClusterTask> getTasks();
 
     /**
      * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one task
@@ -49,4 +49,11 @@ public interface ClusterService {
      * @return true if queued.
      */
     boolean isQueuedInCluster(Media candidate);
+
+    /**
+     * Gets the amount of current cluster members. Includes arbiter nodes.
+     *
+     * @return cluster size. 0 if not in a cluster, 1 if working as single node.
+     */
+    int getSize();
 }

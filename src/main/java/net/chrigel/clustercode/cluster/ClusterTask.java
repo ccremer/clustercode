@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.cluster.impl;
+package net.chrigel.clustercode.cluster;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @Builder
 @Data
-public class ClusterItem implements Serializable {
+public class ClusterTask implements Serializable {
 
     /**
      * This is the relative path to {@link MediaScanSettings#getBaseInputDir()} which a node is currently converting.

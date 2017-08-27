@@ -25,7 +25,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
                               @Named(ClusterModule.CLUSTER_JGROUPS_EXTERNAL_ADDR_KEY) String externalAddress,
                               @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
                               @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
-                              @Named(ClusterModule.CC_CLUSTER_JGROUPS_TCP_INITAL_HOSTS) String initialHosts,
+                              @Named(ClusterModule.CLUSTER_JGROUPS_TCP_INITAL_HOSTS) String initialHosts,
                               @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours,
                               @Named(ClusterModule.CLUSTER_IS_ARBITER_NODE_KEY) boolean isArbiter) {
         checkPort(bindingPort);
@@ -47,7 +47,7 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
 
     private void checkTimeout(long taskTimoutHours) {
         if (taskTimoutHours < 1L) {
-            throw new IllegalArgumentException("ClusterItem timeout must be >= 1, was " + taskTimoutHours);
+            throw new IllegalArgumentException("ClusterTask timeout must be >= 1, was " + taskTimoutHours);
         }
     }
 

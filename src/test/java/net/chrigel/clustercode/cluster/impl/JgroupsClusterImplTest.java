@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.Before;
@@ -49,9 +50,9 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
         when(candidate.getSourcePath()).thenReturn(media);
         when(media.toFile()).thenReturn(new File("0\\movies\\movie.mp4"));
 
-        ClusterItem clusterItem = subject.createTaskFor(candidate);
+        ClusterTask clusterTask = subject.createTaskFor(candidate);
 
-        assertThat(new File(clusterItem.getSourceName())).isEqualTo(media.toFile());
+        assertThat(new File(clusterTask.getSourceName())).isEqualTo(media.toFile());
     }
 
     @Ignore

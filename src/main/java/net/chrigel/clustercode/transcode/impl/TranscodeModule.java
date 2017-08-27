@@ -1,10 +1,12 @@
 package net.chrigel.clustercode.transcode.impl;
 
+import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
+import javax.inject.Singleton;
 import java.util.Properties;
 
 public class TranscodeModule extends AbstractPropertiesModule {
@@ -23,9 +25,15 @@ public class TranscodeModule extends AbstractPropertiesModule {
     @Override
     protected void configure() {
 
-        bind(TranscodingService.class).to(TranscodingServiceImpl.class);
+        bind(TranscodingService.class).to(TranscodingServiceImpl.class).in(Singleton.class);
         bind(TranscoderSettings.class).to(TranscoderSettingsImpl.class);
         bind(OutputParser.class).to(FfmpegConsoleParser.class);
+
+        bind(new TypeLiteral<OutputParser<FfmpegOutput>>() {
+        }).to(FfmpegOutputParser.class);
+
+        bind(new TypeLiteral<OutputParser<FfprobeOutput>>() {
+        }).to(FfprobeParser.class);
     }
 
 }

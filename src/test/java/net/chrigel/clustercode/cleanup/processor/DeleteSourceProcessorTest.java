@@ -1,8 +1,8 @@
 package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import org.junit.Before;

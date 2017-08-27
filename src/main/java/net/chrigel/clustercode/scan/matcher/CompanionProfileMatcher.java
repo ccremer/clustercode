@@ -1,11 +1,7 @@
 package net.chrigel.clustercode.scan.matcher;
 
 import lombok.extern.slf4j.XSlf4j;
-import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.scan.ProfileParser;
-import net.chrigel.clustercode.scan.ProfileScanSettings;
-import net.chrigel.clustercode.scan.ProfileMatcher;
-import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.*;
 
 import javax.inject.Inject;
 import java.nio.file.Files;

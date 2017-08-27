@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.transcode;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public interface TranscodingService {
@@ -19,5 +20,17 @@ public interface TranscodingService {
      * @param listener the listener instance for retrieving the result.
      */
     void transcode(TranscodeTask task, Consumer<TranscodeResult> listener);
+
+    /**
+     * Gets the current progress of the task.
+     *
+     * @return the progress, otherwise empty.
+     */
+    Optional<TranscodeProgress> getCurrentProgress();
+
+    /**
+     * Returns true if task is in active transcoding.
+     */
+    boolean isActive();
 
 }

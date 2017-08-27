@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.Profile;
 
 @Data
 @Builder

@@ -2,8 +2,8 @@ package net.chrigel.clustercode.process.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.process.ExternalProcess;
-import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.util.Platform;
 import org.slf4j.ext.XLogger;
 
@@ -31,8 +31,8 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     private Optional<Process> subprocess;
     private Optional<Path> workingDir;
     private boolean logSuppressed;
-    private OutputParser stdParser;
-    private OutputParser errParser;
+    private OutputParser<?> stdParser;
+    private OutputParser<?> errParser;
 
     ProcessImpl() {
         this.arguments = Optional.empty();
@@ -48,13 +48,13 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     }
 
     @Override
-    public ExternalProcess withStdoutParser(OutputParser stdParser) {
+    public ExternalProcess withStdoutParser(OutputParser<?> stdParser) {
         this.stdParser = stdParser;
         return this;
     }
 
     @Override
-    public ExternalProcess withStderrParser(OutputParser errParser) {
+    public ExternalProcess withStderrParser(OutputParser<?> errParser) {
         this.errParser = errParser;
         return this;
     }
@@ -85,20 +85,19 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
 
     @Override
     public Optional<Integer> start() {
-        log.entry();
         ProcessBuilder builder = new ProcessBuilder(buildArguments());
         if (redirectIO) {
             builder.inheritIO();
-        } else if (Platform.getCurrentPlatform() == Platform.WINDOWS) {
+        } else if (Platform.currentPlatform() == Platform.WINDOWS) {
             // This is necessary. Otherwise waitFor() will be deadlocked even if the process finished hours ago.
             builder.redirectError(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
             builder.redirectOutput(ProcessBuilder.Redirect.appendTo(new File("NUL:")));
         }
         workingDir.ifPresent(workingDir -> builder.directory(workingDir.toFile()));
         if (logSuppressed) {
-            log.info("Invoking external program...");
+            log.debug("Invoking external program...");
         } else {
-            log.info("Invoking: {}", builder.command());
+            log.debug("Invoking: {}", builder.command());
         }
         try {
             Process process = builder.start();
@@ -116,13 +115,13 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         }
     }
 
-    private void captureStream(InputStream stream, OutputParser parser) {
+    private void captureStream(InputStream stream, OutputParser<?> parser) {
         CompletableFuture.runAsync(() -> {
             parser.start();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
                 String line;
                 while ((line = reader.readLine())!= null) {
-                    parser.accept(line);
+                    parser.parse(line);
                 }
             } catch (IOException ex) {
                 log.catching(XLogger.Level.WARN, ex);

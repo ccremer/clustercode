@@ -3,8 +3,8 @@ package net.chrigel.clustercode.cluster.impl;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
+import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.util.FilesystemProvider;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ReplicatedHashMap;
 import org.jgroups.util.UUID;
@@ -16,7 +16,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.*;
 
 @XSlf4j
@@ -24,7 +26,7 @@ class JgroupsClusterImpl implements ClusterService {
 
     private final JgroupsClusterSettings settings;
     private final Clock clock;
-    private ReplicatedHashMap<String, ClusterItem> map;
+    private ReplicatedHashMap<String, ClusterTask> map;
     private JChannel channel;
     private ScheduledExecutorService executor;
 
@@ -109,18 +111,11 @@ class JgroupsClusterImpl implements ClusterService {
         return ZonedDateTime.ofInstant(Instant.now(clock), ZoneOffset.UTC);
     }
 
-    ClusterItem createTaskFor(Media candidate) {
-        return ClusterItem.builder()
+    ClusterTask createTaskFor(Media candidate) {
+        return ClusterTask.builder()
                 .priority(candidate.getPriority())
                 .sourceName(candidate.getSourcePath().toFile().toString())
                 .dateAdded(getCurrentUtcTime())
-                .build();
-    }
-
-    Media createCandidateFor(ClusterItem clusterItem) {
-        return Media.builder()
-                .priority(clusterItem.getPriority())
-                .sourcePath(FilesystemProvider.getInstance().getPath(clusterItem.getSourceName()))
                 .build();
     }
 
@@ -145,14 +140,10 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     @Override
-    public Optional<Media> getTask() {
-        String address = getChannelAddress();
-        if (isConnected() && map.containsKey(address)) {
-            return Optional.of(createCandidateFor(map.get(address)));
-        } else {
-            return Optional.empty();
-        }
+    public List<ClusterTask> getTasks() {
+        if (!isConnected()) return Collections.emptyList();
 
+        return new ArrayList<>(map.values());
     }
 
     @Synchronized
@@ -161,17 +152,13 @@ class JgroupsClusterImpl implements ClusterService {
         if (!isConnected()) return;
         String address = getChannelAddress();
         log.debug("Replacing media in map...");
-        ClusterItem clusterItem = createTaskFor(candidate);
+        ClusterTask clusterTask = createTaskFor(candidate);
         if (map.containsKey(address)) {
-            map.replace(address, clusterItem);
+            map.replace(address, clusterTask);
         } else {
-            map.put(address, clusterItem);
+            map.put(address, clusterTask);
         }
-        log.debug("Waiting for media acceptance...");
-        // wait until the clusterItem is in the map.
-        while (!map.containsValue(clusterItem)) {
-        }
-        log.info("{} accepted in cluster.", clusterItem);
+        log.info("{} accepted in cluster.", clusterTask);
     }
 
     boolean isFileEquals(String first, String other) {
@@ -184,9 +171,15 @@ class JgroupsClusterImpl implements ClusterService {
         log.debug("Testing whether {} is in cluster", candidate.getSourcePath().toString());
 
         boolean found = map.values().stream()
-                .anyMatch(clusterItem -> isFileEquals(
-                        candidate.getSourcePath().toString(), clusterItem.getSourceName()));
+                .anyMatch(clusterTask -> isFileEquals(
+                        candidate.getSourcePath().toString(), clusterTask.getSourceName()));
         if (found) log.debug("{} is already in cluster.", candidate);
         return found;
+    }
+
+    @Override
+    public int getSize() {
+        if (!isConnected()) return 0;
+        return channel.getView().size();
     }
 }

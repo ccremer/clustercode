@@ -44,7 +44,7 @@ The external IP address is needed so that other nodes will be available to conta
 
 ### Docker Compose, Swarm mode
 
-This is untested, as I don't have a Swarm. Just make sure that limit the CPU resources somehow, so that other containers still work reliably. I figure that encoding is a low-priority service that takes forever anyway.
+**This is untested**, as I don't have a Swarm. Just make sure that limit the CPU resources somehow, so that other containers still work reliably. I figure that encoding is a low-priority service that takes forever anyway.
 ```
 version: "3.2"
 services:
@@ -67,6 +67,11 @@ services:
         limits:
           cpus: "3"
 ```
+
+
+### Don't use 'Latest'
+
+The latest builds are to be considered experimental with the newest features and bugs. If you only want to run the latest stable, use the 'stable' tag.
 
 ## Configuration
 

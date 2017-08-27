@@ -1,9 +1,9 @@
 package net.chrigel.clustercode.cleanup.processor;
 
 import lombok.extern.slf4j.XSlf4j;
-import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
+import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.LogUtil;
 
 import javax.inject.Inject;
@@ -34,7 +34,7 @@ public class MarkSourceProcessor implements CleanupProcessor {
 
         if (!context.getTranscodeResult().isSuccessful()) {
             log.warn("Not marking {} as done, since transcoding failed.", source);
-            log.exit(context);
+            return log.exit(context);
         }
 
         if (!Files.exists(source)) return LogUtil.logWarnAndExit(context, log,
