@@ -97,12 +97,6 @@ swagger {
     }
 }
 
-jar {
-    manifest {
-        attributes "Main-Class": "net.chrigel.clustercode.Startup"
-    }
-}
-
 task fullBuild(type: Jar) {
     manifest {
         attributes "Main-Class": "net.chrigel.clustercode.Startup",
@@ -117,8 +111,16 @@ task fullBuild(type: Jar) {
     with jar
 }
 
+task windowsZip(type: Zip) {
+    from "${project.buildDir}/libs/${fullBuild.archiveName}"
+    from "src/assembly/resources"
+    from "src/assembly/windows"
+}
+
 fullBuild.dependsOn test
 fullBuild.dependsOn generateSwaggerDocumentation
+
+windowsZip.dependsOn fullBuild
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test

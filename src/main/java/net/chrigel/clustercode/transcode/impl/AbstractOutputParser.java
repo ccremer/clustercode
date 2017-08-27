@@ -4,6 +4,8 @@ import lombok.Synchronized;
 import lombok.val;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.util.AbstractPublisher;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Optional;
 
@@ -11,6 +13,7 @@ public abstract class AbstractOutputParser<T> extends AbstractPublisher<T> imple
 
     private boolean started = false;
     private T result;
+    private XLogger log = XLoggerFactory.getXLogger(getClass());
 
     @Synchronized
     @Override
@@ -36,11 +39,18 @@ public abstract class AbstractOutputParser<T> extends AbstractPublisher<T> imple
     @Synchronized
     @Override
     public final void parse(String line) {
-        if (line == null) return;
-        val result = doParse(line);
-        if (result == null) return;
-        this.result = result;
-        publishPayload(result);
+      //  if (!isStarted()) return;
+        if (line == null || "".equals(line)) return;
+        try {
+            val result = doParse(line);
+            if (result == null) return;
+            this.result = result;
+            publishPayload(result);
+        } catch (Exception ex) {
+            log.catching(ex);
+            log.warn("Shutting down parser.");
+            stop();
+        }
     }
 
     @Override
@@ -60,5 +70,22 @@ public abstract class AbstractOutputParser<T> extends AbstractPublisher<T> imple
 
     protected abstract void doStop();
 
+    protected final double getDoubleOrDefault(String value, double defaultValue) {
+        if (value == null) return defaultValue;
+        try {
+            return Double.valueOf(value);
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
+
+    protected final long getLongOrDefault(String value, long defaultValue) {
+        if (value == null) return defaultValue;
+        try {
+            return Long.valueOf(value);
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
 
 }

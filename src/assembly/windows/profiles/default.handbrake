@@ -1,4 +1,4 @@
-# This is a handbrake template file which encodes in x265 in High Quality.
+# This is a handbrake template file which encodes in x264 in High Quality.
 # Note: Lines starting with # are comments. Comments within a line are NOT supported.
 
 # See https://trac.handbrake.fr/wiki/CLIGuide for a list of options
@@ -7,13 +7,16 @@
 --input ${INPUT}
 --output ${OUTPUT}
 
---optimize
-# To force mkv videos uncomment this line:
---format av_mp4
+# To force mp4 videos uncomment this line:
+#--format av_mp4
+#--optimize
+
+# Use Mkv container
+--format av_mkv
 
 # Video Options------------------------------------------------------------
 
---encoder x265
+--encoder x264
 --quality 24
 # To use variable bitrate, comment "--quality" and uncomment following:
 #--vb 3000
@@ -39,4 +42,4 @@
 #--srt-file /input/0/movie.srt
 
 # Specify format (clustercode specific)
-%{FORMAT=.mp4}
+%{FORMAT=.mkv}

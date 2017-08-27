@@ -114,9 +114,13 @@ class JgroupsClusterImpl implements ClusterService {
     ClusterTask createTaskFor(Media candidate) {
         return ClusterTask.builder()
                 .priority(candidate.getPriority())
-                .sourceName(candidate.getSourcePath().toFile().toString())
+                .sourceName(toLinuxPath(candidate.getSourcePath().toFile().toString()))
                 .dateAdded(getCurrentUtcTime())
                 .build();
+    }
+
+    private String toLinuxPath(String path) {
+        return path.replace("\\", "/");
     }
 
     private void removeOrphanTasks() {

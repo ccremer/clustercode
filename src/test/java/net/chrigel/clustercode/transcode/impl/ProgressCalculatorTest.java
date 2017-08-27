@@ -1,7 +1,9 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegProgressCalculator;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -25,12 +27,9 @@ public class ProgressCalculatorTest {
         MockitoAnnotations.initMocks(this);
         when(externalProcessProvider.get()).thenReturn(externalProcess);
 
-        subject = new ProgressCalculator();
-
-
     }
 
-    @Test
+    @Ignore
     public void getProgress() throws Exception {
 
     }

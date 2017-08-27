@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.transcode.impl;
+package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

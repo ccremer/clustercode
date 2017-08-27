@@ -1,6 +1,7 @@
-package net.chrigel.clustercode.transcode.impl;
+package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import lombok.extern.slf4j.XSlf4j;
+import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
 @XSlf4j
 public class FfprobeParser

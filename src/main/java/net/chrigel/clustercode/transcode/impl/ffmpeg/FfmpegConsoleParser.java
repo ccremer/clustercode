@@ -1,6 +1,7 @@
-package net.chrigel.clustercode.transcode.impl;
+package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import lombok.val;
+import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
 import javax.inject.Inject;
 
@@ -36,7 +37,7 @@ public class FfmpegConsoleParser
         val builder = new StringBuilder("\r")
                 .append("frame: ").append(f.getFrame())
                 .append(", fps: ").append(f.getFps())
-                .append(", size: ").append(f.getSize())
+                .append(", size: ").append(f.getFileSize())
                 .append(", time: ").append(f.getTime())
                 .append(", bitrate: ").append(f.getBitrate())
                 .append(", speed: ").append(f.getSpeed());

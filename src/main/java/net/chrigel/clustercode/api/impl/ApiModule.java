@@ -1,13 +1,20 @@
 package net.chrigel.clustercode.api.impl;
 
+import com.google.inject.TypeLiteral;
 import com.owlike.genson.ext.jaxrs.GensonJsonConverter;
 import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
+import net.chrigel.clustercode.api.ProgressReportAdapter;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.StateMachineMonitor;
+import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
+import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
+import net.chrigel.clustercode.transcode.impl.TranscodeModule;
+import net.chrigel.clustercode.transcode.impl.Transcoders;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 import javax.inject.Singleton;
+import java.util.Locale;
 import java.util.Properties;
 
 public class ApiModule extends AbstractPropertiesModule {
@@ -34,6 +41,11 @@ public class ApiModule extends AbstractPropertiesModule {
             bind(RestApiServices.class).to(DisabledApiService.class);
         }
 
+        bind(new TypeLiteral<ProgressReportAdapter<FfmpegProgressReport>>() {
+        }).to(FfmpegProgressAdapter.class);
+
+        bind(new TypeLiteral<ProgressReportAdapter<HandbrakeProgressReport>>() {
+        }).to(HandbrakeProgressAdapter.class);
     }
 
     private void installJersey(int port) {

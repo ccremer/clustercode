@@ -1,7 +1,8 @@
-package net.chrigel.clustercode.transcode.impl;
+package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
+import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
 import java.util.regex.Pattern;
 
@@ -21,8 +22,8 @@ public class FfmpegOutputParser
     @Override
     public FfmpegOutput doParse(String line) {
         // sample: frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s speed=1.36x
-        //log.debug("Matching line: {}", line);
 
+        log.trace("Matching line: {}", line);
         val matcher = pattern.matcher(line);
         if (!matcher.find()) return null;
         val frame = matcher.group(1);
@@ -33,12 +34,12 @@ public class FfmpegOutputParser
         String speed = "0";
         if (matcher.groupCount() > 6) speed = matcher.group(6);
 
-        result.setBitrate(bitrate);
-        result.setFps(fps);
+        result.setBitrate(getDoubleOrDefault(bitrate, 0d));
+        result.setFps(getDoubleOrDefault(fps, 0d));
         result.setTime(time);
-        result.setSize(size);
-        result.setSpeed(speed);
-        result.setFrame(frame);
+        result.setFileSize(calculateFileSize(size));
+        result.setSpeed(getDoubleOrDefault(speed, 0d));
+        result.setFrame(getLongOrDefault(frame, 0L));
         return result;
     }
 
@@ -52,4 +53,9 @@ public class FfmpegOutputParser
         log.debug("Stopping parser.");
     }
 
+    private double calculateFileSize(String value) {
+        val raw = getDoubleOrDefault(value, 0d);
+        if (Math.abs(raw) < 0.00000001d || raw == 0d) return 0d;
+        return raw / 1024d;
+    }
 }

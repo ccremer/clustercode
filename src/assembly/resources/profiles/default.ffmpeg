@@ -1,8 +1,6 @@
 # This is a ffmpeg template file which encodes in x264 in High Quality.
 # Note: Lines starting with # are comments. Comments within a line are NOT supported.
 
-# This template is based on http://unix.stackexchange.com/questions/230800/re-encoding-video-library-in-x265-hevc-with-no-quality-loss
-
 -hide_banner
 # Force yes when overwriting files:
 -y
@@ -32,4 +30,4 @@
 
 ${OUTPUT}
 # Specify format (clustercode specific)
-%{FORMAT=.mp4}
+%{FORMAT=.mkv}

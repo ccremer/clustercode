@@ -9,6 +9,9 @@ import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegProgressCalculator;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfprobeOutput;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -36,11 +39,6 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     @Mock
     private MediaScanSettings mediaScanSettings;
     @Mock
-    private OutputParser<FfmpegOutput> ffmpegParser;
-    @Mock
-    private OutputParser<FfprobeOutput> ffprobeParser;
-
-    @Spy
     private ProgressCalculator progressCalculator;
 
     @Spy
@@ -65,9 +63,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(media.getSourcePath()).thenReturn(getPath("0", "video.mkv"));
         when(profile.getFields()).thenReturn(Collections.singletonMap("FORMAT", ".mp4"));
         when(transcoderSettings.getTemporaryDir()).thenReturn(getPath("tmp"));
-        when(mediaScanSettings.getBaseInputDir()).thenReturn(getPath("/root"));
+        when(mediaScanSettings.getBaseInputDir()).thenReturn(getPath("root"));
         when(profile.getArguments()).thenReturn(Collections.emptyList());
-        when(ffprobeParser.getResult()).thenReturn(Optional.empty());
 
         task.setMedia(media);
         task.setProfile(profile);
@@ -75,8 +72,6 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         subject = new TranscodingServiceImpl(() -> process,
                 transcoderSettings,
                 mediaScanSettings,
-                ffmpegParser,
-                ffprobeParser,
                 progressCalculator);
     }
 

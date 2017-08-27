@@ -1,5 +1,7 @@
 package net.chrigel.clustercode.transcode;
 
+import net.chrigel.clustercode.transcode.impl.Transcoders;
+
 import java.nio.file.Path;
 
 public interface TranscoderSettings {
@@ -31,5 +33,12 @@ public interface TranscoderSettings {
      * @return the default extension, not null.
      */
     String getDefaultVideoExtension();
+
+    /**
+     * Gets the type of transcoder.
+     *
+     * @return the enum.
+     */
+    Transcoders getTranscoderType();
 
 }

@@ -55,7 +55,7 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
         assertThat(new File(clusterTask.getSourceName())).isEqualTo(media.toFile());
     }
 
-    @Ignore
+    @Test
     public void isFileEquals_ShouldReturnTrue_WhenComparingPath_FromWindows_ToUnix() throws Exception {
         boolean result = subject.isFileEquals("0\\movies folder\\movie.mp4", "0/movies folder/movie.mp4");
 
@@ -69,7 +69,7 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
         assertThat(result).isTrue();
     }
 
-    @Ignore
+    @Test
     public void isFileEquals_ShouldReturnTrue_WhenComparingPath_FromUnix_ToWindows() throws Exception {
         boolean result = subject.isFileEquals("0/movies folder/movie.mp4", "0\\movies folder\\movie.mp4");
 

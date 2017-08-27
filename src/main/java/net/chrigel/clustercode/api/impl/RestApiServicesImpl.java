@@ -23,6 +23,7 @@ public class RestApiServicesImpl implements RestApiServices {
             jerseyServer.start();
         } catch (Exception e) {
             log.catching(e);
+            log.error("Disabled the REST API.");
         }
     }
 }
