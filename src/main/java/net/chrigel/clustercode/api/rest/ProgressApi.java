@@ -32,7 +32,7 @@ public class ProgressApi extends AbstractRestApi {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @JSONP
+    @JSONP(queryParam = "callback")
     @ApiOperation(
             value = "Conversion progress",
             notes = "Returns a report of the current conversion progress of the local node.",

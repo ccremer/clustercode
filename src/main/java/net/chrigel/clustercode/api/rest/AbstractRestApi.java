@@ -11,7 +11,7 @@ abstract class AbstractRestApi {
 
     private final XLogger log = XLoggerFactory.getXLogger(getClass());
 
-    protected final Response createResponse(Supplier entitySupplier) {
+    final Response createResponse(Supplier entitySupplier) {
         try {
             return Response.ok(entitySupplier.get())
                     .build();

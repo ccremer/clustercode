@@ -35,7 +35,7 @@ public class StatusApi extends AbstractRestApi {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @JSONP
+    @JSONP(queryParam = "callback")
     @ApiOperation(value = "Status information", notes = "Provides operations to monitor the health of the application" +
             ". Can be used for service monitoring.", response = StatusReport.class, tags = {"Health"})
     @ApiResponses(value = {

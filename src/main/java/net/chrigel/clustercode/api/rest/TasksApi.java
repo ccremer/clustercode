@@ -33,7 +33,7 @@ public class TasksApi extends AbstractRestApi {
 
     @GET
     @Produces({MediaType.APPLICATION_JSON})
-    @JSONP
+    @JSONP(queryParam = "callback")
     @ApiOperation(
             value = "Tasks information",
             notes = "Provides operations to get task information. Completed tasks do not appear in the list.",
