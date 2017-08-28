@@ -17,7 +17,8 @@ public class FfmpegProgressAdapter
                 .fps(out.getFps())
                 .percentage(out.getPercentage())
                 .frame(out.getFrame())
-                .maxFrame(out.getMaxFrame())
+                .duration(out.getDuration().toMillis())
+                .time(out.getTime().toMillis())
                 .size(out.getFileSize())
                 .build();
     }
@@ -29,7 +30,8 @@ public class FfmpegProgressAdapter
                 .fps(-1d)
                 .bitrate(-1d)
                 .frame(-1L)
-                .maxFrame(-1L)
+                .duration(-1L)
+                .time(-1L)
                 .size(-1d)
                 .build();
     }

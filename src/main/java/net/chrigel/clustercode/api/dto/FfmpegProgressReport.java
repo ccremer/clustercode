@@ -27,9 +27,15 @@ public class FfmpegProgressReport {
     private Long frame;
 
     @ApiModelProperty(
-            value = "The frame count of the current media. Returns 0 if not determined.",
-            example = "23545")
-    private Long maxFrame;
+            value = "The duration of the media in milliseconds.",
+            example = "1337545")
+    private Long duration;
+
+    @ApiModelProperty(
+            value = "The processed time of the media in milliseconds (cursor). Between 0 and $duration.",
+            example = "161960"
+    )
+    private Long time;
 
     @ApiModelProperty(
             value = "The file size of the currently created output file in MB.",
@@ -42,6 +48,6 @@ public class FfmpegProgressReport {
     private Double fps;
 
     @ApiModelProperty(value = "The current percentage of the conversion progress.",
-            example = "12.1087279")
+            example = "12.1087")
     private Double percentage;
 }

@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 
+import java.time.Duration;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -22,10 +24,10 @@ public class FfmpegOutput implements TranscodeProgress {
 
     private long frame;
 
-    private long maxFrame;
-
     private double speed;
 
-    private String time;
+    private Duration time;
+
+    private Duration duration;
 
 }

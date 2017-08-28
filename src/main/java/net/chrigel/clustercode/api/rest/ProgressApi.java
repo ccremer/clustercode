@@ -92,7 +92,7 @@ public class ProgressApi extends AbstractRestApi {
                     response = ApiError.class)})
     public Response getFfmpegProgress() {
         if (transcodingService.getTranscoder() != Transcoders.FFMPEG)
-            return failWithMessage("This transcoder is not available on the current node.");
+            return clientError("This transcoder is not available on the current node.");
         return createResponse(() -> transcodingService.getProgressCalculator()
                 .getProgress()
                 .map(ffmpegAdapter::apply)
@@ -124,7 +124,7 @@ public class ProgressApi extends AbstractRestApi {
                     response = ApiError.class)})
     public Response getHandbrakeProgress() {
         if (transcodingService.getTranscoder() != Transcoders.HANDBRAKE)
-            return failWithMessage("This transcoder is not available on the current node.");
+            return clientError("This transcoder is not available on the current node.");
         return createResponse(() -> transcodingService.getProgressCalculator()
                 .getProgress()
                 .map(handbrakeAdapter::apply)

@@ -24,7 +24,7 @@ abstract class AbstractRestApi {
         }
     }
 
-    final Response failWithMessage(String message) {
+    final Response clientError(String message) {
         return Response
                 .status(Response.Status.BAD_REQUEST)
                 .entity(ApiError.builder()

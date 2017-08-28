@@ -1,19 +1,13 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import com.google.inject.TypeLiteral;
-import com.google.inject.multibindings.Multibinder;
-import lombok.val;
-import net.chrigel.clustercode.cleanup.CleanupProcessor;
-import net.chrigel.clustercode.cleanup.processor.CleanupProcessors;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.transcode.impl.ffmpeg.*;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeParser;
-import net.chrigel.clustercode.util.InvalidConfigurationException;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
-import net.chrigel.clustercode.util.di.ModuleHelper;
 
 import javax.inject.Singleton;
 import java.util.Locale;
@@ -55,7 +49,7 @@ public class TranscodeModule extends AbstractPropertiesModule {
     private void installFfmpeg() {
 
         bind(new TypeLiteral<OutputParser<FfmpegOutput>>() {
-        }).to(FfmpegOutputParser.class);
+        }).to(FfmpegParser.class);
 
         bind(new TypeLiteral<OutputParser<FfprobeOutput>>() {
         }).to(FfprobeParser.class);

@@ -59,6 +59,7 @@
     <orderEntry type="library" name="Gradle: org.javassist:javassist:3.20.0-GA" level="project" />
     <orderEntry type="library" name="Gradle: aopalliance:aopalliance:1.0" level="project" />
     <orderEntry type="library" name="Gradle: com.google.guava:guava:19.0" level="project" />
+    <orderEntry type="library" name="Gradle: org.projectlombok:lombok:1.16.18" level="project" />
   </component>
   <component name="TestModuleProperties" production-module="clustercode_main" />
 </module>

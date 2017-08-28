@@ -8,10 +8,10 @@ import javax.inject.Inject;
 public class FfmpegConsoleParser
         extends AbstractOutputParser<String> {
 
-    private final FfmpegOutputParser outputParser;
+    private final FfmpegParser outputParser;
 
     @Inject
-    FfmpegConsoleParser(FfmpegOutputParser outputParser) {
+    FfmpegConsoleParser(FfmpegParser outputParser) {
         this.outputParser = outputParser;
     }
 
