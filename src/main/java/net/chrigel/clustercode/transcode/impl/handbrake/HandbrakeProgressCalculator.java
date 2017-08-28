@@ -37,7 +37,7 @@ public class HandbrakeProgressCalculator
 
     @Override
     public Optional<? extends TranscodeProgress> getProgress() {
-        if (!enabled.get() && !parser.getResult().isPresent()) return Optional.empty();
+        if (!enabled.get() || !parser.getResult().isPresent()) return Optional.empty();
         return parser.getResult();
     }
 

@@ -75,7 +75,7 @@ public class FfmpegProgressCalculator
     }
 
     public Optional<? extends TranscodeProgress> getProgress() {
-        if (!enabled.get() && !ffmpegParser.getResult().isPresent()) return Optional.empty();
+        if (!enabled.get() || !ffmpegParser.getResult().isPresent()) return Optional.empty();
 
         val out = ffmpegParser.getResult().get();
 

@@ -104,7 +104,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
             Process process = builder.start();
             this.subprocess = Optional.of(process);
             if (this.stdParser != null) captureStream(process.getInputStream(), this.stdParser);
-            if (this.errParser != null && Platform.currentPlatform() == Platform.WINDOWS)
+            if (this.errParser != null && Platform.currentPlatform() != Platform.WINDOWS)
                 captureStream(process.getErrorStream(), this.errParser);
             return log.exit(Optional.of(subprocess.get().waitFor()));
         } catch (IOException e) {

@@ -23,7 +23,7 @@
         <Logger name="org.eclipse.jetty" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Root level="trace" additivity="false">
+        <Root level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>
