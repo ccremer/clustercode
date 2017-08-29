@@ -97,7 +97,7 @@ Active Development as of August/September 2017.
 
 - [x] Monitoring with a REST API.
 - [ ] More control with REST
-- [ ] [netdata](https://my-netdata.io/) plugin for monitoring.
+- [x] [netdata](https://my-netdata.io/) plugin for progress monitoring.
 - [x] Smooth-ier Windows deployment.
 - [ ] Web-Admin (if I have spare time...)
 
@@ -106,3 +106,13 @@ Active Development as of August/September 2017.
 * experimental: latest automated build of the master branch
 * latest: stable build of a tagged commit from a release
 * tagged: tags following the 1.x.x pattern are specific releases
+
+## SSL
+
+The REST API is easy to support with SSL/https. Just put a reverse proxy in front of clustercode that handles https client
+connections and forwards the request via http to clustercode. Check out https://github.com/jwilder/nginx-proxy for an
+excellent docker nginx proxy with SSL support.
+
+The cluster communication is more difficult to set up. Even though the traffic is binary and hard enough to intercept,
+it is not encrypted by default. You need to change the JGroups configuration. Instructions can be found
+[in the manual](http://jgroups.org/manual4/index.html#Security).
