@@ -8,10 +8,13 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.jgroups" level="debug" additivity="false">
+        <Logger name="org.jgroups" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Logger name="org.jgroups.protocols" level="debug" additivity="false">
+        <Logger name="org.jgroups.protocols.pbcast.GMS" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.jgroups.protocols" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
         <Logger name="org.squirrelframework.foundation.util" level="debug" additivity="false">
@@ -23,7 +26,7 @@
         <Logger name="org.eclipse.jetty" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
-        <Root level="debug" additivity="false">
+        <Root level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

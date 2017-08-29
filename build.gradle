@@ -115,6 +115,7 @@ task windowsZip(type: Zip) {
     from "${project.buildDir}/libs/${fullBuild.archiveName}"
     from "src/assembly/resources"
     from "src/assembly/windows"
+    classifier "win"
 }
 
 fullBuild.dependsOn test

@@ -14,7 +14,7 @@ public abstract class AbstractConstraint implements Constraint {
     protected final XLogger log = XLoggerFactory.getXLogger(getClass());
 
     protected AbstractConstraint() {
-        log.info("Enabled {} constraint.", getClass().getSimpleName());
+        log.info("Enabled {}.", getClass().getSimpleName());
     }
 
     /**

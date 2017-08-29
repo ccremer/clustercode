@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
 import net.chrigel.clustercode.cluster.ClusterService;
@@ -19,8 +20,7 @@ import javax.ws.rs.core.Response;
 import java.sql.Date;
 import java.util.stream.Collectors;
 
-@Path("/tasks")
-
+@Path(RestApiServices.REST_API_CONTEXT_PATH + "/tasks")
 @Api(description = "the tasks API")
 public class TasksApi extends AbstractRestApi {
 

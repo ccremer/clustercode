@@ -79,8 +79,8 @@ public class Startup {
         log.info("Booting clustercode {}...", getApplicationVersion());
         Injector injector = Guice.createInjector(modules);
 
-        injector.getInstance(StateMachineService.class).initialize();
         injector.getInstance(RestApiServices.class).start();
+        injector.getInstance(StateMachineService.class).initialize();
     }
 
     private static String getApplicationVersion() {

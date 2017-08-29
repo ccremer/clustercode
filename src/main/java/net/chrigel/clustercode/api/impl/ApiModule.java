@@ -53,7 +53,6 @@ public class ApiModule extends AbstractPropertiesModule {
         JerseyConfiguration configuration = JerseyConfiguration.builder()
                 .addPackage("net.chrigel.clustercode.api")
                 .addPort(port)
-                .withContextPath("/api/v1")
                 .registerClasses(GensonJsonConverter.class)
                 .build();
 

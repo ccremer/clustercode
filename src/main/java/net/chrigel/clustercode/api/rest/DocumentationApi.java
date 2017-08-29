@@ -16,7 +16,6 @@ import java.io.InputStream;
 
 @Path("/docs")
 @Api(description = "the swagger documentation")
-@XSlf4j
 public class DocumentationApi {
 
     @Path("api.html")
@@ -25,7 +24,7 @@ public class DocumentationApi {
     @ApiOperation(value = "Swagger API definition", notes = "Retrieves a html file that describes this API.", response
             = File.class, tags = {"api"})
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "The API document", response = File.class),
+            @ApiResponse(code = 200, message = "OK", response = File.class),
             @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public InputStream getApiHtml() {
         return getClass().getResourceAsStream("/swagger.html");
@@ -37,7 +36,7 @@ public class DocumentationApi {
     @ApiOperation(value = "Swagger API definition", notes = "Retrieves a json file that describes this API.", response
             = File.class, tags = {"api"})
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "The API document", response = File.class),
+            @ApiResponse(code = 200, message = "OK", response = File.class),
             @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public InputStream getApiJson() {
         return getClass().getResourceAsStream("/swagger.json");

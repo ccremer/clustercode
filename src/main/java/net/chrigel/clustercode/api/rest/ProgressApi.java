@@ -1,11 +1,8 @@
 package net.chrigel.clustercode.api.rest;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import lombok.extern.slf4j.XSlf4j;
+import io.swagger.annotations.*;
 import net.chrigel.clustercode.api.ProgressReportAdapter;
+import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
@@ -21,9 +18,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/progress")
+@Path(RestApiServices.REST_API_CONTEXT_PATH + "/progress")
 @Api(description = "The progress service API")
-@XSlf4j
 public class ProgressApi extends AbstractRestApi {
 
     private final TranscodingService transcodingService;
@@ -44,13 +40,13 @@ public class ProgressApi extends AbstractRestApi {
     @JSONP(queryParam = "callback")
     @ApiOperation(
             value = "Conversion progress",
-            notes = "Gets the percentage of the current encoding process.",
+            notes = "Gets the percentage of the current encoding process. Returns -1 if no conversion active.",
             response = Double.class,
             tags = {"Progress"})
     @ApiResponses(value = {
             @ApiResponse(
                     code = 200,
-                    message = "A percentage of the currently active task. Returns -1 if no conversion active.",
+                    message = "OK",
                     response = Double.class),
             @ApiResponse(
                     code = 500,

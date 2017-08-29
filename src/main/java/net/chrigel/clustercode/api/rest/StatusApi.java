@@ -4,7 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import lombok.extern.slf4j.XSlf4j;
+import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.StateMachineMonitor;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.StatusReport;
@@ -18,8 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@XSlf4j
-@Path("/status")
+@Path(RestApiServices.REST_API_CONTEXT_PATH + "/status")
 @Api(description = "the status API")
 public class StatusApi extends AbstractRestApi {
 
