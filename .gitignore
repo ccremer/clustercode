@@ -31,8 +31,11 @@ out/
 desktop.ini
 
 # project
-docker-compose.yml
 /config/
 /tmp/
 /input/
 /output/
+
+
+# NPM, Bower, Gulp
+node_modules/

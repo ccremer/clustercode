@@ -11,6 +11,8 @@ plugins {
     id "org.unbroken-dome.test-sets" version "1.4.2"
     id "java"
     id "idea"
+    id "com.moowork.node" version "1.2.0"
+    id "com.moowork.gulp" version "1.2.0"
 }
 
 group "net.chrigel"
@@ -130,3 +132,7 @@ integrationTest.mustRunAfter test
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
+
+
+gulp_default.dependsOn npmInstall
+gulp_default.dependsOn installGulp

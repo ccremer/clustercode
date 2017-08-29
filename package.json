@@ -1,0 +1,35 @@
+{
+  "name": "clustercode",
+  "version": "1.1.0",
+  "description": "Clustercode WebAdmin",
+  "main": "index.html",
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrainDoctor/clustercode.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BrainDoctor/clustercode/issues"
+  },
+  "homepage": "https://github.com/BrainDoctor/clustercode#readme",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "datatables": "^1.10.13",
+    "font-awesome": "^4.7.0",
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.7.0",
+    "gulp-header": "^1.8.9",
+    "gulp-html-replace": "^1.6.2",
+    "gulp-less": "^3.3.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^3.0.0",
+    "holderjs": "^2.9.4",
+    "knockout": "^3.4.2",
+    "metismenu": "^2.7.0",
+    "startbootstrap-sb-admin-2": "BlackrockDigital/startbootstrap-sb-admin-2"
+  }
+}
