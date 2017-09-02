@@ -108,8 +108,7 @@ task fullBuild(type: Jar) {
     archiveName = "clustercode.jar"
     baseName = project.name
     from { configurations.compile.collect {it.isDirectory() ? it : zipTree(it)}}
-    from { configurations.runtime.collect {it.isDirectory() ? it : zipTree(it)}}    
-    from "$buildDir/swagger"
+    from { configurations.runtime.collect {it.isDirectory() ? it : zipTree(it)}}
     with jar
 }
 
@@ -121,7 +120,7 @@ task windowsZip(type: Zip) {
 }
 
 fullBuild.dependsOn test
-fullBuild.dependsOn generateSwaggerDocumentation
+// fullBuild.dependsOn generateSwaggerDocumentation
 
 windowsZip.dependsOn fullBuild
 

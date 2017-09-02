@@ -37,5 +37,6 @@ desktop.ini
 /output/
 
 
-# NPM, Bower, Gulp
+# NPM, Webpack
 node_modules/
+dist/
