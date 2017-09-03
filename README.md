@@ -31,11 +31,12 @@ version: "2.2"
 services:
   clustercode:
     restart: always
-    image: braindoctor/clustercode:stable
+    image: braindoctor/clustercode:latest
     container_name: clustercode
     cpu_shares: 512
     ports:
       - "7600:7600/tcp"
+      - "8080"
     volumes:
       - "/path/to/input:/input"
       - "/path/to/output:/output"
@@ -109,10 +110,14 @@ Active Development as of August/September 2017.
 
 ## SSL
 
-The REST API is easy to support with SSL/https. Just put a reverse proxy in front of clustercode that handles https client
-connections and forwards the request via http to clustercode. Check out https://github.com/jwilder/nginx-proxy for an
-excellent docker nginx proxy with SSL support.
+The REST API is easy to support with SSL/https. Just put a reverse proxy in front of clustercode
+that handles https client connections and forwards the request via http to clustercode.
+Check out https://github.com/jwilder/nginx-proxy for an excellent docker nginx proxy with SSL support.
 
-The cluster communication is more difficult to set up. Even though the traffic is binary and hard enough to intercept,
-it is not encrypted by default. You need to change the JGroups configuration. Instructions can be found
+The cluster communication is more difficult to set up with encryption. Even though the
+traffic is binary and hard enough to intercept, it is not encrypted by default. You need
+to change the JGroups configuration. Instructions can be found
 [in the manual](http://jgroups.org/manual4/index.html#Security).
+
+Generally this image and software is built with flexibility and simplicity in mind, not security.
+Use it at your own risk.

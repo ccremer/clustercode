@@ -6,14 +6,12 @@ const LEVEL =  {
 };
 
 export default class Notification {
-    constructor(level, message, dismissable) {
+    constructor(level, message, dismissible) {
         this.message = message;
         this.level = level;
-        this.dismissable = dismissable !== undefined;
-    }
-
-    setDismissable() {
-        this.dismissable = true;
+        this.dismissable = dismissible !== undefined && dismissible;
+        this.key = null;
+        this.autotimeout = false;
     }
 }
 

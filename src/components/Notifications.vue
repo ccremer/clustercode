@@ -6,10 +6,8 @@
                 >
                     <button type="button"
                             v-if="notification.dismissable"
-                            class="close"
-                            data-dismiss="alert"
                             v-on:click="dismiss(notification)"
-                            aria-hidden="true">
+                            class="close">
                         ×
                     </button>
                     {{notification.message}}
@@ -30,7 +28,7 @@
         },
         computed: {
             notifications() {
-                return this.$store.state.notifications;
+                return this.$store.state.notifications.list;
             }
         },
         methods: {
@@ -43,6 +41,7 @@
                 }
             },
             dismiss(notification) {
+                console.log("dismissing");
                 this.$store.commit("removeNotification", notification);
             }
         }

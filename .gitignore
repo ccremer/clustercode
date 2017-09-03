@@ -35,7 +35,7 @@ desktop.ini
 /tmp/
 /input/
 /output/
-
+/nginx
 
 # NPM, Webpack
 node_modules/

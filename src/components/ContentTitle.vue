@@ -11,7 +11,7 @@
         name: 'contenttitle',
         computed: {
             header: function () {
-                return this.$store.state.pageTitle;
+                return this.$store.state.navigation.title;
             }
         }
     }

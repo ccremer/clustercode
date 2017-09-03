@@ -22,7 +22,7 @@
                 <ul class="nav" id="side-menu">
                     <li>
                         <router-link to="/">
-                            <i class="fa fa-dashboard fa-fw"></i> Tasks
+                            <i class="fa fa-edit fa-fw"></i> Tasks
                         </router-link>
                     </li>
                     <li>

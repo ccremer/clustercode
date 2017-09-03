@@ -12,11 +12,10 @@ plugins {
     id "java"
     id "idea"
     id "com.moowork.node" version "1.2.0"
-    id "com.moowork.gulp" version "1.2.0"
 }
 
 group "net.chrigel"
-version "1.1.0"
+version "1.2.0"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -83,13 +82,13 @@ apply plugin: "com.benjaminsproule.swagger"
 
 swagger {
     apiSource {
-        locations = [ "net.chrigel.clustercode.api" ]
-        schemes = [ "http" ]
+        locations = ["net.chrigel.clustercode.api"]
+        schemes = ["http"]
         host = "your.clustercode.domain:7700"
         basePath = "/api/v1"
         info {
             title = "Clustercode REST API"
-            version = "1.1.0"
+            version = "1.2.0"
             description = "Convert your videos in a cluster!"
         }
 
@@ -102,36 +101,42 @@ swagger {
 task fullBuild(type: Jar) {
     manifest {
         attributes "Main-Class": "net.chrigel.clustercode.Startup",
-                "Implementation-Version": version,
-                "Implementation-Title": project.name
+            "Implementation-Version": version,
+            "Implementation-Title": project.name
     }
     archiveName = "clustercode.jar"
     baseName = project.name
-    from { configurations.compile.collect {it.isDirectory() ? it : zipTree(it)}}
-    from { configurations.runtime.collect {it.isDirectory() ? it : zipTree(it)}}
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
 
 task windowsZip(type: Zip) {
-    from "${project.buildDir}/libs/${fullBuild.archiveName}"
-    from "src/assembly/resources"
-    from "src/assembly/windows"
+    from("${project.buildDir}/libs/${fullBuild.archiveName}") { into "clustercode" }
+    from("src/assembly/resources") { into "clustercode" }
+    from ("src/assembly/windows") { into "clustercode" }
     classifier "win"
 }
 
+task adminBuild(type: NpmTask) {
+    args = ["run", "build"]
+}
+
+task adminZip(type: Zip) {
+    from("dist") { into "clustercode-admin" }
+    baseName "clustercode-admin"
+}
+
 fullBuild.dependsOn test
-// fullBuild.dependsOn generateSwaggerDocumentation
 
 windowsZip.dependsOn fullBuild
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
+adminZip.dependsOn adminBuild
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
 }
 
-
-gulp_default.dependsOn npmInstall
-gulp_default.dependsOn installGulp
