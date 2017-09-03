@@ -1,17 +1,9 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath "com.benjaminsproule:swagger-gradle-plugin:+"
-    }
-}
-
 plugins {
     id "org.unbroken-dome.test-sets" version "1.4.2"
     id "java"
     id "idea"
     id "com.moowork.node" version "1.2.0"
+    id "com.benjaminsproule.swagger" version "0.1.2"
 }
 
 group "net.chrigel"
@@ -78,8 +70,6 @@ dependencies {
 
 }
 
-apply plugin: "com.benjaminsproule.swagger"
-
 swagger {
     apiSource {
         locations = ["net.chrigel.clustercode.api"]
@@ -109,6 +99,11 @@ task fullBuild(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     from { configurations.runtime.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+}
+
+task downloadDependencies(type: Exec) {
+    configurations.testRuntime.files
+    commandLine "echo", "Downloaded all dependencies"
 }
 
 task windowsZip(type: Zip) {

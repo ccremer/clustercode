@@ -29,6 +29,7 @@ out/
 .idea/dynamic.xml
 .idea/dictionaries
 desktop.ini
+.idea/modules/
 
 # project
 /config/

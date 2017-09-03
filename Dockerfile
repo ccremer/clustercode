@@ -45,13 +45,13 @@ RUN \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
     unzip -q gradle.zip && \
     rm gradle.zip && \
+    gradle-${GRADLE_VERSION}/bin/gradle downloadDependencies && \
     echo "Installing node packages" && \
     npm install --silent --no-optional
 
 COPY webpack webpack
 COPY webpackcfg webpackcfg
 COPY docker/default default
-COPY docker/default.nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY static static
 COPY src src/
