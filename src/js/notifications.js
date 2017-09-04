@@ -9,7 +9,7 @@ export default class Notification {
     constructor(level, message, dismissible) {
         this.message = message;
         this.level = level;
-        this.dismissable = dismissible !== undefined && dismissible;
+        this.dismissible = dismissible !== undefined && dismissible;
         this.key = null;
         this.autotimeout = false;
     }

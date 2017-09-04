@@ -42,6 +42,7 @@ class TranscodingServiceImpl implements TranscodingService {
 
     @Synchronized
     Optional<Integer> doTranscode(Path source, Path tempFile, Profile profile) {
+        log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
         return externalProcessProvider.get()
                 .withExecutablePath(transcoderSettings.getTranscoderExecutable())
                 .withIORedirected(transcoderSettings.isIoRedirected())
@@ -73,7 +74,6 @@ class TranscodingServiceImpl implements TranscodingService {
         progressCalculator.setTask(task);
         progressCalculator.setEnabled(true);
         val source = task.getMedia().getSourcePath();
-        log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
         doTranscode(source, tempFile, task.getProfile())
                 .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
         progressCalculator.setEnabled(false);

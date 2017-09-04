@@ -1,18 +1,20 @@
 <template>
     <div class="row" v-if="notifications.length">
-        <template v-for="notification in notifications">
+        <div class="col-lg-12">
+            <template v-for="notification in notifications">
                 <div class="alert"
                      v-bind:class="getClass(notification)"
                 >
                     <button type="button"
-                            v-if="notification.dismissable"
+                            v-if="notification.dismissible"
                             v-on:click="dismiss(notification)"
                             class="close">
                         ×
                     </button>
                     {{notification.message}}
                 </div>
-        </template>
+            </template>
+        </div>
     </div>
 </template>
 

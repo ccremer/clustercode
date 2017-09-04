@@ -18,6 +18,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Date;
+import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
 @Path(RestApiServices.REST_API_CONTEXT_PATH + "/tasks")
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class TasksApi extends AbstractRestApi {
 
     private final ClusterService clusterService;
+    private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
 
     @Inject
     TasksApi(ClusterService clusterService) {
@@ -35,25 +37,28 @@ public class TasksApi extends AbstractRestApi {
     @Produces({MediaType.APPLICATION_JSON})
     @JSONP(queryParam = "callback")
     @ApiOperation(
-            value = "Tasks information",
-            notes = "Provides operations to get task information. Completed tasks do not appear in the list.",
-            response = Task.class, responseContainer = "List", tags = {"Tasks"})
+        value = "Tasks information",
+        notes = "Provides operations to get task information. Completed tasks do not appear in the list.",
+        response = Task.class, responseContainer = "List", tags = {"Tasks"})
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "An Array of Task object.", response = Task.class, responseContainer =
-                    "List"),
-            @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
+        @ApiResponse(code = 200, message = "An Array of Task object.", response = Task.class, responseContainer =
+            "List"),
+        @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public Response getTasks() {
         return createResponse(() -> clusterService.getTasks().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList()));
+            .map(this::convertToDto)
+            .collect(Collectors.toList()));
     }
 
     private Task convertToDto(ClusterTask clusterTask) {
         return Task.builder()
-                .priority(clusterTask.getPriority())
-                .source(clusterTask.getSourceName())
-                .added(Date.from(clusterTask.getDateAdded().toInstant()))
-                .build();
+            .priority(clusterTask.getPriority())
+            .source(clusterTask.getSourceName())
+            .added(Date.from(clusterTask.getDateAdded().toInstant()))
+            .updated(Date.from(clusterTask.getLastUpdated().toInstant()))
+            .nodename(clusterTask.getMemberName())
+            .progress(Double.parseDouble(decimalFormat.format(clusterTask.getPercentage())))
+            .build();
     }
 }
 

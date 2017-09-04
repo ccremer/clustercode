@@ -1,46 +1,49 @@
 <template>
-    <div class="text-left row">
+    <div>
         <p class="text-left">
             This page displays the tasks that are currently being processed by the cluster members.
         </p>
-        <v-client-table :data="tableData" :columns="columns" :options="options">
-            <template slot="percentage" scope="props">
-                <div style="width: 100%;">
-                    <div class="progress progress-striped active" style="width: calc(100% - 35px); float: left">
+        <v-client-table name="tasks" :data="tableData" :columns="columns" :options="options">
+            <template slot="progress" scope="props">
+                <div>
+                    <div class="progress progress-striped active col-xs-7">
                         <div class="progress-bar progress-bar-success"
                              role="progressbar"
-                             :aria-valuenow="props.row.percentage"
-                             aria-valuemin="0"
-                             aria-valuemax="100"
-                             :style="{width: props.row.percentage + '%'}"
+                             :style="{width: props.row.progress + '%'}"
                         ></div>
                     </div>
-                    <div style="width: 30px; float: right">{{props.row.percentage}}%</div>
+                    <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
                 </div>
+            </template>
+            <template slot="h__nodename" scope="props">Host</template>
+            <template slot="h__percentage" scope="props">Progress</template>
+            <template slot="percentage" scope="props">
+                <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
             </template>
         </v-client-table>
     </div>
 </template>
 
 <script>
-    import {ServerTable, ClientTable, Event} from "vue-tables-2";
+    import {ClientTable} from "vue-tables-2";
     import Vue from "vue";
     import Axios from "axios/dist/axios.min";
     import Notification from "../js/notifications";
     import {TITLE_MUTATION} from "../store/module.navigation"
     import {ADD_NOTIFICATION, CLEAR_NOTIFICATION, containsNotificationKey} from "../store/module.notification"
 
-    Vue.use(ClientTable);
+    Vue.use(ClientTable, {}, true);
+
+    const TASK_FAIL_KEY = "TASK_FAIL";
+    const TASK_FETCH_KEY = "TASK_FETCH";
 
     export default {
         name: 'tasklist',
         data() {
             return {
-                tableData: [
-                    {percentage: 80, name: "Task 4"},
-                ],
+                tableData: [],
                 columns: [
-                    "source", "percentage"
+                    "source", "nodename", "progress", "percentage"
                 ],
                 options: {
                     filterable: false,
@@ -56,8 +59,13 @@
                         defaultOption: 'Select {column}' // default option for list filters
                     },
                     orderBy: {
-                        column: "percentage",
+                        column: "progress",
                         ascending: false
+                    },
+                    columnsDisplay: {
+                        "percentage": "mobile",
+                        "progress": "not_mobile",
+                        "nodename": "not_mobile"
                     }
                 },
                 destroyed: false
@@ -69,25 +77,38 @@
                 let self = this;
                 Axios.get(self.$store.state.settings.taskUrl)
                     .then(function (response) {
-                        self.tableData = response.data;
-                        if (containsNotificationKey("TASK_FETCH")) self.$store.commit(CLEAR_NOTIFICATION, "TASK_FETCH");
-                        setTimeout(self.loadTaskData, 10000);
+                        try {
+                            self.$store.state.tasks.data = response.data;
+                            self.removeFetchNotification();
+                            self.removeFailedNotification();
+                            setTimeout(self.loadTaskData, 10000);
+                        } catch (error) {
+                            console.error(error)
+                        }
                     })
                     .catch(function (error) {
-                        console.log(error.message);
-                        self.addNotification("Backend: " + error.message, Notification.LEVEL.ERROR, true)
+                        self.removeFetchNotification();
+                        self.addFailNotification("Backend: " + error.message);
+                        setTimeout(self.loadTaskData, 10000);
                     });
             },
-            addNotification: function (message, level, dismissible) {
-                let notification = new Notification(level, message, dismissible);
-                notification.key = "TASKS";
+            addFailNotification: function (message) {
+                if (containsNotificationKey(TASK_FAIL_KEY)) return;
+                let notification = new Notification(Notification.LEVEL.ERROR, message, true);
+                notification.key = TASK_FAIL_KEY;
                 this.$store.commit(ADD_NOTIFICATION, notification);
+            },
+            removeFetchNotification: function () {
+                if (containsNotificationKey(TASK_FETCH_KEY)) this.$store.commit(CLEAR_NOTIFICATION, TASK_FETCH_KEY);
+            },
+            removeFailedNotification: function () {
+                if (containsNotificationKey(TASK_FAIL_KEY)) this.$store.commit(CLEAR_NOTIFICATION, TASK_FAIL_KEY);
             }
         },
         mounted: function () {
             this.$store.commit(TITLE_MUTATION, "Tasks");
             let notification = new Notification(Notification.LEVEL.INFO, "Fetching data. Please wait...");
-            notification.key = "TASK_FETCH";
+            notification.key = TASK_FETCH_KEY;
             this.$store.commit(ADD_NOTIFICATION, notification);
             this.loadTaskData();
         },

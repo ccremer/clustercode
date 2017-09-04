@@ -2,6 +2,7 @@ package net.chrigel.clustercode.cluster.impl;
 
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
+import lombok.val;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.scan.Media;
@@ -19,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 @XSlf4j
@@ -73,7 +75,7 @@ class JgroupsClusterImpl implements ClusterService {
             map.start(5000L);
             map.remove(getChannelAddress());
             log.info("Joined cluster {} with {} member(s).",
-                    channel.getClusterName(), channel.getView().getMembers().size());
+                channel.getClusterName(), channel.getView().getMembers().size());
             log.info("Cluster address: {}", channel.getAddress());
         } catch (Exception e) {
             channel = null;
@@ -88,8 +90,8 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     private String getChannelAddress() {
-        if (isConnected()) return ((UUID)channel.getAddress()).toStringLong();
-        return null;
+        if (!isConnected()) return null;
+        return channel.getAddressAsUUID();
     }
 
     @Synchronized
@@ -112,11 +114,14 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     ClusterTask createTaskFor(Media candidate) {
+        val currentTime = getCurrentUtcTime();
         return ClusterTask.builder()
-                .priority(candidate.getPriority())
-                .sourceName(toLinuxPath(candidate.getSourcePath().toString()))
-                .dateAdded(getCurrentUtcTime())
-                .build();
+            .priority(candidate.getPriority())
+            .sourceName(toLinuxPath(candidate.getSourcePath().toString()))
+            .dateAdded(currentTime)
+            .lastUpdated(currentTime)
+            .memberName(getName().isPresent() ? getName().get() : "")
+            .build();
     }
 
     private String toLinuxPath(String path) {
@@ -128,11 +133,11 @@ class JgroupsClusterImpl implements ClusterService {
         ZonedDateTime current = getCurrentUtcTime();
         log.debug("Removing orphan tasks.");
         map.entrySet()
-                .removeIf(entry -> entry
-                        .getValue()
-                        .getDateAdded()
-                        .plusHours(settings.getTaskTimeout())
-                        .isBefore(current));
+            .removeIf(entry -> entry
+                .getValue()
+                .getDateAdded()
+                .plusHours(settings.getTaskTimeout())
+                .isBefore(current));
     }
 
     @Synchronized
@@ -150,19 +155,38 @@ class JgroupsClusterImpl implements ClusterService {
         return new ArrayList<>(map.values());
     }
 
-    @Synchronized
     @Override
     public void setTask(Media candidate) {
         if (!isConnected()) return;
-        String address = getChannelAddress();
-        log.debug("Replacing media in map...");
         ClusterTask clusterTask = createTaskFor(candidate);
+        updateTask(clusterTask);
+    }
+
+    @Override
+    public void setProgress(double percentage) {
+        if (!isConnected()) return;
+        val task = getCurrentTask();
+        if (task == null) return;
+        task.setPercentage(percentage);
+        updateTask(task);
+    }
+
+    @Synchronized
+    private void updateTask(ClusterTask clusterTask) {
+        String address = getChannelAddress();
         if (map.containsKey(address)) {
+            log.debug("Replacing media in map...");
+            clusterTask.setLastUpdated(getCurrentUtcTime());
             map.replace(address, clusterTask);
         } else {
             map.put(address, clusterTask);
+            log.info("{} accepted in cluster.", clusterTask);
         }
-        log.info("{} accepted in cluster.", clusterTask);
+    }
+
+    private ClusterTask getCurrentTask() {
+        if (!isConnected()) return null;
+        return map.get(getChannelAddress());
     }
 
     boolean isFileEquals(String first, String other) {
@@ -175,8 +199,8 @@ class JgroupsClusterImpl implements ClusterService {
         log.debug("Testing whether {} is in cluster", candidate.getSourcePath().toString());
 
         boolean found = map.values().stream()
-                .anyMatch(clusterTask -> isFileEquals(
-                        candidate.getSourcePath().toString(), clusterTask.getSourceName()));
+            .anyMatch(clusterTask -> isFileEquals(
+                candidate.getSourcePath().toString(), clusterTask.getSourceName()));
         if (found) log.debug("{} is already in cluster.", candidate);
         return found;
     }
@@ -185,5 +209,11 @@ class JgroupsClusterImpl implements ClusterService {
     public int getSize() {
         if (!isConnected()) return 0;
         return channel.getView().size();
+    }
+
+    @Override
+    public Optional<String> getName() {
+        if (!isConnected()) return Optional.empty();
+        return Optional.ofNullable(channel.getAddressAsString());
     }
 }

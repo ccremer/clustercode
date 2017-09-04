@@ -3,6 +3,7 @@ package net.chrigel.clustercode.cluster;
 import net.chrigel.clustercode.scan.Media;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClusterService {
 
@@ -42,6 +43,13 @@ public interface ClusterService {
     void setTask(Media candidate);
 
     /**
+     * Sets the progress of the current task. Does nothing if no task is defined.
+     *
+     * @param percentage the progress in percentage.
+     */
+    void setProgress(double percentage);
+
+    /**
      * Returns true if the candidate is known across the cluster. If this Java process is the only member or not at all
      * in the cluster, it returns false.
      *
@@ -56,4 +64,11 @@ public interface ClusterService {
      * @return cluster size. 0 if not in a cluster, 1 if working as single node.
      */
     int getSize();
+
+    /**
+     * Gets the name of the cluster node.
+     *
+     * @return the name, otherwise empty.
+     */
+    Optional<String> getName();
 }

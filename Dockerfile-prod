@@ -21,10 +21,8 @@ VOLUME \
     /var/tmp/clustercode \
     $CC_CONFIG_DIR
 
-# Port 5005 is used for java remote debug, do not publish this port in production.
 EXPOSE \
     7600/tcp 7600/udp \
-    5005 \
     8080
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
@@ -41,6 +39,7 @@ COPY \
     settings.gradle \
     package.json \
     .babelrc \
+    .postcssrc.js \
     docker/docker-entrypoint.sh docker/supervisord.conf ./
 COPY webpack webpack
 COPY webpackcfg webpackcfg

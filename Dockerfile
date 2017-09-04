@@ -23,6 +23,7 @@ VOLUME \
 
 EXPOSE \
     7600/tcp 7600/udp \
+    5005 \
     8080
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
@@ -38,6 +39,7 @@ COPY \
     settings.gradle \
     package.json \
     .babelrc \
+    .postcssrc.js \
     docker/docker-entrypoint.sh docker/supervisord.conf ./
 
 RUN \

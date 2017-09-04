@@ -1,19 +1,24 @@
 <template>
     <!-- NavigationBar -->
-    <nav class="navbar navbar-default navbar-static-top" style="margin-bottom: 0">
+    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
         <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
             <a class="navbar-brand" href="index.html">{{title}}</a>
         </div>
         <!-- /.navbar-header -->
 
         <ul class="nav navbar-top-links navbar-right">
-            <!-- /.dropdown -->
-            <li class="dropdown">
+
+           <!-- <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <i class="fa fa-tasks fa-fw"></i> <i class="fa fa-caret-down"></i>
                 </a>
-                <!-- /.dropdown-tasks -->
-            </li>
+            </li>-->
         </ul>
         <!-- /.navbar-top-links -->
 
@@ -25,11 +30,11 @@
                             <i class="fa fa-edit fa-fw"></i> Tasks
                         </router-link>
                     </li>
-                    <li>
+                    <!--<li>
                         <router-link to="/input">
                             <i class="fa fa-dashboard fa-fw"></i> Input
                         </router-link>
-                    </li>
+                    </li>-->
                 </ul>
             </div>
             <!-- /.sidebar-collapse -->

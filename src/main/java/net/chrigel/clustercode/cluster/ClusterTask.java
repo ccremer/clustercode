@@ -26,8 +26,23 @@ public class ClusterTask implements Serializable {
     private int priority;
 
     /**
-     * The absolute time when this cleanup was created for scheduling.
+     * The absolute time when this task was created for scheduling.
      */
     private ZonedDateTime dateAdded;
+
+    /**
+     * The absolute time when this task was last updated.
+     */
+    private ZonedDateTime lastUpdated;
+
+    /**
+     * The progress in percentage of the task.
+     */
+    private double percentage;
+
+    /**
+     * The name of the host that currently transcodes this task.
+     */
+    private String memberName;
 
 }

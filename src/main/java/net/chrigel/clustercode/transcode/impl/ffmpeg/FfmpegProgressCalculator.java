@@ -3,6 +3,7 @@ package net.chrigel.clustercode.transcode.impl.ffmpeg;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
+import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 import net.chrigel.clustercode.transcode.TranscodeTask;
@@ -16,16 +17,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FfmpegProgressCalculator
         implements ProgressCalculator {
 
-    private OutputParser<FfmpegOutput> ffmpegParser;
-    private AtomicBoolean enabled;
+    private final OutputParser<FfmpegOutput> ffmpegParser;
+    private final ClusterService clusterService;
+    private final AtomicBoolean enabled;
+    private TranscodeTask currentTask;
 
     @Inject
-    FfmpegProgressCalculator(OutputParser<FfmpegOutput> ffmpegParser) {
+    FfmpegProgressCalculator(OutputParser<FfmpegOutput> ffmpegParser,
+                             ClusterService clusterService) {
         this.ffmpegParser = ffmpegParser;
+        this.clusterService = clusterService;
         this.enabled = new AtomicBoolean();
 
     }
 
+    @Override
     public Optional<? extends TranscodeProgress> getProgress() {
         if (!enabled.get() || !ffmpegParser.getResult().isPresent()) return Optional.empty();
 
@@ -38,7 +44,7 @@ public class FfmpegProgressCalculator
     @Synchronized
     @Override
     public void setTask(TranscodeTask task) {
-
+        this.currentTask = task;
     }
 
     @Override
