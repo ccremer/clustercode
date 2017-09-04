@@ -3,13 +3,11 @@
         <div class="col-lg-12">
             <template v-for="notification in notifications">
                 <div class="alert"
-                     v-bind:class="getClass(notification)"
-                >
+                     v-bind:class="getClass(notification)">
                     <button type="button"
                             v-if="notification.dismissible"
                             v-on:click="dismiss(notification)"
-                            class="close">
-                        ×
+                            class="close">×
                     </button>
                     {{notification.message}}
                 </div>

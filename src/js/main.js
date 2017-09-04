@@ -10,10 +10,10 @@ require("metismenu/dist/metisMenu.min.css");
 require("startbootstrap-sb-admin-2/dist/js/sb-admin-2.min");
 require("startbootstrap-sb-admin-2/dist/css/sb-admin-2.min.css");
 require("../css/clustercode.css");
-require("../js/clustercode");
+require("./clustercode");
 
 import Vue from 'vue'
-import App from './App'
+import App from '../web/App'
 import router from '../router/index'
 import { store } from "../store/state"
 
