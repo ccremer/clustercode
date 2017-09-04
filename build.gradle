@@ -74,7 +74,7 @@ swagger {
     apiSource {
         locations = ["net.chrigel.clustercode.api"]
         schemes = ["http"]
-        host = "your.clustercode.domain:7700"
+        host = "your.clustercode.domain:8080"
         basePath = "/api/v1"
         info {
             title = "Clustercode REST API"
@@ -108,8 +108,12 @@ task downloadDependencies(type: Exec) {
 
 task windowsZip(type: Zip) {
     from("${project.buildDir}/libs/${fullBuild.archiveName}") { into "clustercode" }
-    from("src/assembly/resources") { into "clustercode" }
-    from ("src/assembly/windows") { into "clustercode" }
+    from("src/assembly/clustercode/resources") { into "clustercode" }
+    from("src/assembly/clustercode/windows") { into "clustercode" }
+    from("dist") { into "clustercode/clustercode-admin" }
+    from("src/assembly/clustercode-admin/windows") { into "clustercode" }
+    from("src/assembly/clustercode-admin/nginx") { into "clustercode/nginx/conf" }
+    from("build/swagger") { into "clustercode/clustercode-admin/static" }
     classifier "win"
 }
 
@@ -119,17 +123,26 @@ task adminBuild(type: NpmTask) {
 
 task adminZip(type: Zip) {
     from("dist") { into "clustercode-admin" }
+    from("build/swagger") { into "clustercode-admin/static" }
     baseName "clustercode-admin"
 }
+
+task githubRelease()
 
 fullBuild.dependsOn test
 
 windowsZip.dependsOn fullBuild
+windowsZip.dependsOn adminBuild
+windowsZip.dependsOn generateSwaggerDocumentation
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
 adminZip.dependsOn adminBuild
+adminZip.dependsOn generateSwaggerDocumentation
+
+githubRelease.dependsOn windowsZip
+githubRelease.dependsOn adminZip
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
