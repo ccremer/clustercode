@@ -66,7 +66,8 @@
                         "percentage": "mobile",
                         "progress": "not_mobile",
                         "nodename": "not_mobile"
-                    }
+                    },
+                    saveState: true
                 },
                 destroyed: false
             }

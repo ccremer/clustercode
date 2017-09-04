@@ -9,12 +9,9 @@ import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.StateMachineMonitor;
 import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
-import net.chrigel.clustercode.transcode.impl.TranscodeModule;
-import net.chrigel.clustercode.transcode.impl.Transcoders;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 import javax.inject.Singleton;
-import java.util.Locale;
 import java.util.Properties;
 
 public class ApiModule extends AbstractPropertiesModule {
@@ -51,10 +48,11 @@ public class ApiModule extends AbstractPropertiesModule {
     private void installJersey(int port) {
 
         JerseyConfiguration configuration = JerseyConfiguration.builder()
-                .addPackage("net.chrigel.clustercode.api")
-                .addPort(port)
-                .registerClasses(GensonJsonConverter.class)
-                .build();
+            .addPackage("net.chrigel.clustercode.api")
+            .addPort(port)
+            .withContextPath("/api/v1")
+            .registerClasses(GensonJsonConverter.class)
+            .build();
 
 
         install(new JerseyModule(configuration));
