@@ -66,6 +66,7 @@ RUN \
     apk add --no-cache nodejs-current-npm && \
     npm install --quiet --no-optional && \
     echo "Bulding clustercode-admin" && \
+    npm run unit && \
     npm run build && \
     echo "Cleaning up" && \
     apk del nodejs-current-npm && \

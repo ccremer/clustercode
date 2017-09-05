@@ -13,16 +13,6 @@ describe("Notification mutation", () => {
         expect(state.list[0]).to.equal(n);
     });
 
-    it("should skip new notification if key is existing", () => {
-        state.list = [
-            new Notification(Notification.LEVEL.INFO, "1", "KEY"),
-        ];
-        const n = new Notification(Notification.LEVEL.INFO, "testing", "KEY");
-        mutations.addNotification(state, n);
-
-        expect(state.list).to.have.lengthOf(1);
-    });
-
     it("should remove existing notification", () => {
         const n = new Notification(Notification.LEVEL.INFO, "testing", null);
         state.list = [
