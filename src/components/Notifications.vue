@@ -18,6 +18,7 @@
 
 <script>
     import Notification from "../js/notifications";
+    import {action_types} from "../store/module.notification"
 
     export default {
         name: 'notification',
@@ -28,7 +29,7 @@
         },
         computed: {
             notifications() {
-                return this.$store.state.notifications.list;
+                return this.$store.getters.getNotifications;
             }
         },
         methods: {
@@ -41,8 +42,7 @@
                 }
             },
             dismiss(notification) {
-                console.log("dismissing");
-                this.$store.commit("removeNotification", notification);
+                this.$store.dispatch(action_types.CLEAR, notification);
             }
         }
     }

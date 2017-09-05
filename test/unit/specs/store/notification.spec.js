@@ -1,4 +1,4 @@
-import {actions, mutations, getters, mutation_types} from "@/store/module.notification";
+import {actions, mutations, getters, mutation_types, util} from "@/store/module.notification";
 import Notification from "@/js/notifications"
 
 describe("Notification mutation", () => {
@@ -72,7 +72,10 @@ describe("Notification mutation", () => {
 
 describe("Notification action", () => {
 
-    let state = {list: []};
+    let state;
+    beforeEach("clean", () => {
+        state = {list: []}
+    });
 
     it("should mutate state by adding a notification", () => {
         const commit = (type, payload) => {
@@ -89,16 +92,73 @@ describe("Notification action", () => {
         state.list = [
             new Notification(Notification.LEVEL.INFO, "1", "KEY"),
         ];
-
         const n = new Notification(Notification.LEVEL.INFO, "testing", "KEY");
-
         const commit = (type, payload) => {
             fail(type, null, "This commit should not execute!");
         };
-
         actions.add({commit, state, getters}, n);
 
         expect(state.list).to.have.lengthOf(1);
+    });
+
+    it("should clear all notification if payload is undefined", () => {
+        let called = false;
+        const commit = (type, payload) => {
+            if (type!==mutation_types.CLEAR_ALL) fail(type, mutation_types.CLEAR_ALL, "Wrong commit type.");
+            expect(payload).to.equal(undefined);
+            called = true;
+        };
+
+        actions.clear({commit, getters});
+
+        expect(called).to.be.true;
+    });
+
+    it("should clear all notification if payload is null", () => {
+        let called = false;
+        const commit = (type, payload) => {
+            if (type!==mutation_types.CLEAR_ALL) fail(type, mutation_types.CLEAR_ALL, "Wrong commit type.");
+            expect(payload).to.equal(undefined);
+            called = true;
+        };
+
+        actions.clear({commit, getters}, null);
+
+        expect(called).to.be.true;
+    });
+
+    it("should clear all notifications by key if payload is string", () => {
+        state.list = [
+            new Notification(Notification.LEVEL.INFO, "1", "KEY"),
+        ];
+        let called = false;
+        const commit = (type, payload) => {
+            if (type!==mutation_types.CLEAR_BY_KEY) fail(type, mutation_types.CLEAR_BY_KEY, "Wrong commit type.");
+            expect(payload).to.equal("KEY");
+            called = true;
+        };
+
+        actions.clear({commit, state, getters}, "KEY");
+
+        expect(called).to.be.true;
+    });
+
+    it("should clear all notifications by key if payload is string", () => {
+        let n = new Notification(Notification.LEVEL.INFO, "1", "KEY");
+        state.list = [
+            n
+        ];
+        let called = false;
+        const commit = (type, payload) => {
+            if (type!==mutation_types.CLEAR_NOTIFICATION)
+                fail(type, mutation_types.CLEAR_NOTIFICATION, "Wrong commit type.");
+            expect(payload).to.equal(n);
+            called = true;
+        };
+
+        actions.clear({commit, state, getters}, n);
+
+        expect(called).to.be.true;
     });
 
 });

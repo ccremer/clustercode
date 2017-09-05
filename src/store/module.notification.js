@@ -2,7 +2,9 @@ import Notification from "../js/notifications"
 
 export const mutation_types = {
     ADD_NOTIFICATION: "addNotification",
-    CLEAR_NOTIFICATION: "clearNotification"
+    CLEAR_NOTIFICATION: "clearNotification",
+    CLEAR_ALL: "clearAll",
+    CLEAR_BY_KEY: "clearNotificationsByKey"
 };
 
 export const action_types = {
@@ -16,31 +18,34 @@ export const action_types = {
 };
 
 export const getters = {
-    containsNotificationByKey(state, notificationKey) {
-        if (!notificationKey || state.list.length === 0) return false;
-        return !state.list.every(element => element.key !== notificationKey);
-    },
-    getAll(state) {
+    getNotifications(state) {
         return state.list;
     },
 };
 
+const util = {
+    containsNotificationByKey(state, notificationKey) {
+        if (!notificationKey || state.list.length === 0) return false;
+        return !state.list.every(element => element.key !== notificationKey);
+    },
+};
+
 export const actions = {
-    clear({commit, getters}, notification) {
-        if (notification === undefined) {
-            commit("clearAll");
-        } else if (typeof notification === "string" && getters.containsNotificationByKey(notification)) {
-            commit("clearNotificationsByKey", notification);
+    clear({commit, state}, notification) {
+        if (!notification) {
+            commit(mutation_types.CLEAR_ALL);
+        } else if (typeof notification === "string" && util.containsNotificationByKey(state, notification)) {
+            commit(mutation_types.CLEAR_BY_KEY, notification);
         } else {
             commit(mutation_types.CLEAR_NOTIFICATION, notification);
         }
     },
-    add({commit, state, getters}, notification) {
-        if (!notification || getters.containsNotificationByKey(state, notification.key)) return;
+    add({commit, state}, notification) {
+        if (!notification || util.containsNotificationByKey(state, notification.key)) return;
         commit(mutation_types.ADD_NOTIFICATION, notification);
     },
     addWithTimeout({commit}, notification) {
-        if (!notification || getters.containsNotificationByKey(state, notification.key)) return;
+        if (!notification || util.containsNotificationByKey(state, notification.key)) return;
         commit(mutation_types.ADD_NOTIFICATION, notification);
         setTimeout(() => {
             commit(mutation_types.CLEAR_NOTIFICATION, notification);
@@ -64,7 +69,7 @@ export const mutations = {
     addNotification(state, notification) {
         if (notification.key === null ||
             state.list.length === 0 ||
-            !getters.containsNotificationByKey(state, notification.key)
+            !util.containsNotificationByKey(state, notification.key)
         ) {
             state.list.push(notification);
         }

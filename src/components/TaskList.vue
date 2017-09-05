@@ -30,7 +30,7 @@
     import Axios from "axios/dist/axios.min";
     import Notification from "../js/notifications";
     import {TITLE_MUTATION} from "../store/module.navigation"
-    import {ADD_NOTIFICATION, CLEAR_NOTIFICATION, containsNotificationKey} from "../store/module.notification"
+    import {action_types} from "../store/module.notification"
 
     Vue.use(ClientTable, {}, true);
 
@@ -94,23 +94,21 @@
                     });
             },
             addFailNotification: function (message) {
-                if (containsNotificationKey(TASK_FAIL_KEY)) return;
-                let notification = new Notification(Notification.LEVEL.ERROR, message, true);
-                notification.key = TASK_FAIL_KEY;
-                this.$store.commit(ADD_NOTIFICATION, notification);
+                let notification = new Notification(Notification.LEVEL.ERROR, message, TASK_FAIL_KEY);
+                notification.dismissible = true;
+                this.$store.dispatch(action_types.ADD, notification);
             },
             removeFetchNotification: function () {
-                if (containsNotificationKey(TASK_FETCH_KEY)) this.$store.commit(CLEAR_NOTIFICATION, TASK_FETCH_KEY);
+                this.$store.dispatch(action_types.CLEAR, TASK_FETCH_KEY);
             },
             removeFailedNotification: function () {
-                if (containsNotificationKey(TASK_FAIL_KEY)) this.$store.commit(CLEAR_NOTIFICATION, TASK_FAIL_KEY);
+                this.$store.dispatch(action_types.CLEAR, TASK_FAIL_KEY);
             }
         },
         mounted: function () {
             this.$store.commit(TITLE_MUTATION, "Tasks");
-            let notification = new Notification(Notification.LEVEL.INFO, "Fetching data. Please wait...");
-            notification.key = TASK_FETCH_KEY;
-            this.$store.commit(ADD_NOTIFICATION, notification);
+            let n = new Notification(Notification.LEVEL.INFO, "Fetching data. Please wait...", TASK_FETCH_KEY);
+            this.$store.dispatch(action_types.ADD, n);
             this.loadTaskData();
         },
         beforeDestroy: function () {
