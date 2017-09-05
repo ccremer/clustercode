@@ -13,13 +13,16 @@ class CleanupSettingsImpl implements CleanupSettings {
     private final boolean overwriteFiles;
     private final int userId;
     private final int groupId;
+    private final Path markSourceDirectory;
 
     @Inject
     CleanupSettingsImpl(@Named(CleanupModule.CLEANUP_OUTPUT_DIR_KEY) String outputDirectory,
                         @Named(CleanupModule.CLEANUP_OUTPUT_OVERWRITE_KEY) boolean overwriteFiles,
                         @Named(CleanupModule.CLEANUP_OWNER_USER_KEY) int userId,
-                        @Named(CleanupModule.CLEANUP_OWNER_GROUP_KEY) int groupId) {
+                        @Named(CleanupModule.CLEANUP_OWNER_GROUP_KEY) int groupId,
+                        @Named(CleanupModule.CLEANUP_MARK_SOURCE_DIR_KEY) String markSourceDir) {
         this.outputDirectory = FilesystemProvider.getInstance().getPath(outputDirectory);
+        this.markSourceDirectory = FilesystemProvider.getInstance().getPath(markSourceDir);
         this.overwriteFiles = overwriteFiles;
         this.userId = userId;
         this.groupId = groupId;
@@ -43,5 +46,10 @@ class CleanupSettingsImpl implements CleanupSettings {
     @Override
     public int getUserId() {
         return userId;
+    }
+
+    @Override
+    public Path getMarkSourceDirectory() {
+        return markSourceDirectory;
     }
 }

@@ -28,7 +28,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path searchDir = getPath("input");
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
-                .scan();
+            .scan();
 
         assertThat(results.isPresent()).isFalse();
     }
@@ -40,7 +40,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         createFile(searchDir.resolve("subdir/ignored.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withDepth(1).withRecursion(false)
-                .scan();
+            .scan();
 
         assertThat(results.get()).containsExactly(testMedia);
         assertThat(results.get()).hasSize(1);
@@ -53,7 +53,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path subdir = createDirectory(searchDir.resolve("subdir"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true).withDirectories(true)
-                .scan();
+            .scan();
 
         assertThat(results.get()).containsExactly(subdir);
         assertThat(results.get()).hasSize(1);
@@ -66,7 +66,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path testMedia = createFile(searchDir.resolve("subdir/media.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
-                .scan();
+            .scan();
 
         assertThat(results.get()).containsExactly(testMedia);
         assertThat(results.get()).hasSize(1);
@@ -124,6 +124,33 @@ public class FileScannerImplTest implements FileBasedUnitTest {
     }
 
     @Test
+    public void hasNotCompanionFile_ShouldReturnTrue_IfMarkDirProvided_ButFileNotFound() throws Exception {
+        String ext = ".done";
+        Path testFile = createFile(getPath("foo", "bar.ext"));
+        Path dir = createDirectory(getPath("mark"));
+
+        subject.whileSkippingExtraFilesWith(ext)
+            .whileSkippingExtraFilesIn(dir)
+            .searchIn(getPath("input", "foo"));
+
+        assertThat(subject.hasNotCompanionFile(testFile)).isTrue();
+    }
+
+    @Test
+    public void hasNotCompanionFile_ShouldReturnFalse_IfFileExistsInDirectory() throws Exception {
+        String ext = ".done";
+        Path inputFolder = getPath("input", "0");
+        Path testFile = createFile(inputFolder.resolve(("bar.ext")));
+        createFile(getPath("mark", "0", "bar.ext" + ext));
+
+        subject.whileSkippingExtraFilesWith(ext)
+            .whileSkippingExtraFilesIn(getPath("mark"))
+            .searchIn(inputFolder);
+
+        assertThat(subject.hasNotCompanionFile(testFile)).isFalse();
+    }
+
+    @Test
     public void stream_ShouldReturnEmptyStream_IfIOExceptionOccurred() throws Exception {
         Path testDir = getPath("foo", "bar");
         assertThat(subject.searchIn(testDir).streamAndIgnoreErrors()).isEmpty();
@@ -133,6 +160,6 @@ public class FileScannerImplTest implements FileBasedUnitTest {
     public void emptyStreamOnError_ShouldThrowException_IfIOExceptionOccurred() throws Exception {
         Path testDir = getPath("foo", "bar");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                subject.searchIn(testDir).stream());
+            subject.searchIn(testDir).stream());
     }
 }

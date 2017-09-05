@@ -22,6 +22,7 @@ out/
 .idea/libraries
 .idea/workspace.xml
 .idea/uiDesigner.xml
+.idea/encodings.xml
 *.iws
 .idea/dataSources.ids
 .idea/dataSources.xml

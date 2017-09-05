@@ -25,4 +25,11 @@ public interface CleanupSettings {
      * Gets the user id of the new owner of the output file(s).
      */
     int getUserId();
+
+    /**
+     * Gets the root path of the directory in which the sources should get marked as done.
+     *
+     * @return the path, not null.
+     */
+    Path getMarkSourceDirectory();
 }

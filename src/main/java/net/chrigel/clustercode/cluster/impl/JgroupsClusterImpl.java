@@ -175,7 +175,7 @@ class JgroupsClusterImpl implements ClusterService {
     private void updateTask(ClusterTask clusterTask) {
         String address = getChannelAddress();
         if (map.containsKey(address)) {
-            log.debug("Replacing media in map...");
+            log.debug("Updating media state.");
             clusterTask.setLastUpdated(getCurrentUtcTime());
             map.replace(address, clusterTask);
         } else {

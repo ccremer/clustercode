@@ -15,13 +15,14 @@ import java.util.stream.Stream;
 
 @XSlf4j
 class FileScannerImpl
-        implements FileScanner {
+    implements FileScanner {
 
     private boolean isDirEnabled;
     private Optional<Path> searchDir = Optional.empty();
     private Optional<List<String>> allowedExtensions = Optional.empty();
     private Optional<String> skipExtension = Optional.empty();
     private int depth;
+    private Optional<Path> skipDirectory = Optional.empty();
 
 
     @Override
@@ -65,6 +66,12 @@ class FileScannerImpl
     }
 
     @Override
+    public FileScanner whileSkippingExtraFilesIn(Path dir) {
+        this.skipDirectory = Optional.of(dir);
+        return this;
+    }
+
+    @Override
     public Optional<List<Path>> scan() {
         try {
             return Optional.of(createStreamWithLogLevel(XLogger.Level.WARN).collect(Collectors.toList()));
@@ -90,11 +97,11 @@ class FileScannerImpl
     private Stream<Path> createStreamWithLogLevel(XLogger.Level logLevel) {
         try {
             return Files
-                    .walk(searchDir.get(), this.depth, FileVisitOption.FOLLOW_LINKS)
-                    .filter(path -> !path.equals(searchDir.get()))
-                    .filter(this::includeFileOrDirectory)
-                    .filter(this::hasAllowedExtension)
-                    .filter(this::hasNotCompanionFile);
+                .walk(searchDir.get(), this.depth, FileVisitOption.FOLLOW_LINKS)
+                .filter(path -> !path.equals(searchDir.get()))
+                .filter(this::includeFileOrDirectory)
+                .filter(this::hasAllowedExtension)
+                .filter(this::hasNotCompanionFile);
         } catch (IOException e) {
             log.catching(logLevel, e);
             throw new RuntimeException(e);
@@ -109,13 +116,10 @@ class FileScannerImpl
      * @return true if no matcher present or at least one of the extensions is applicable, otherwise false.
      */
     boolean hasAllowedExtension(Path path) {
-        if (allowedExtensions.isPresent()) {
-            return allowedExtensions.get()
-                    .stream()
-                    .anyMatch(extension -> path.getFileName().toString().endsWith(extension));
-        } else {
-            return true;
-        }
+        return allowedExtensions.map(strings -> strings
+            .stream()
+            .anyMatch(extension -> path.getFileName().toString().endsWith(extension))
+        ).orElse(true);
     }
 
     /**
@@ -129,24 +133,28 @@ class FileScannerImpl
      */
     boolean hasNotCompanionFile(Path path) {
         if (skipExtension.isPresent()) {
-            boolean exists = Files.exists(path.resolveSibling(path.getFileName() + skipExtension.get()));
-            if (exists) {
-                log.debug("Ignoring: {}", path);
-            }
-            return !exists;
+            Path sibling = path.resolveSibling(path.getFileName() + skipExtension.get());
+            boolean companionFileExists = Files.exists(sibling);
+            boolean markDirFileExists = skipDirectory.map(dir -> {
+                Path siblingInDir = searchDir.get().getParent().relativize(sibling);
+                Path toChck = dir.resolve(siblingInDir);
+                return Files.exists(toChck);
+            }).orElse(false);
+            if (companionFileExists || markDirFileExists) log.debug("Ignoring: {}", path);
+            return !(companionFileExists || markDirFileExists);
         } else {
             return true;
         }
     }
 
     /**
-     * Tests whether the sourcePath is being included by determining {@link #withDirectories(boolean)}. If the directories
-     * flag is enabled, this method returns whether {@code sourcePath} is a directory, otherwise it tests if {@code sourcePath}
-     * is a regular file.
+     * Tests whether the sourcePath is being included by determining {@link #withDirectories(boolean)}. If the
+     * directories flag is enabled, this method returns whether {@code sourcePath} is a directory, otherwise it tests if
+     * {@code sourcePath} is a regular file.
      *
      * @param path the sourcePath.
-     * @return true if the dir flag is enabled and sourcePath is a dir, true if dir flag is disabled and sourcePath is a file,
-     * false otherwise.
+     * @return true if the dir flag is enabled and sourcePath is a dir, true if dir flag is disabled and sourcePath
+     * is a file, false otherwise.
      */
     boolean includeFileOrDirectory(Path path) {
         if (isDirEnabled) {

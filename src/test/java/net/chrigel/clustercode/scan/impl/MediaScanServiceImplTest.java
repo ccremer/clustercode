@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.scan.impl;
 
+import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
@@ -24,6 +25,8 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
     @Mock
     private MediaScanSettings scanSettings;
+    @Mock
+    private CleanupSettings cleanupSettings;
 
     private Map<Path, List<Media>> candidates;
 
@@ -34,9 +37,10 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
         when(scanSettings.getAllowedExtensions()).thenReturn(Arrays.asList(".mp4"));
         when(scanSettings.getBaseInputDir()).thenReturn(getPath("input"));
         when(scanSettings.getSkipExtension()).thenReturn(".done");
+        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(getPath("mark"));
 
         inputDir = scanSettings.getBaseInputDir();
-        subject = new MediaScanServiceImpl(scanSettings, () -> new FileScannerImpl());
+        subject = new MediaScanServiceImpl(scanSettings, FileScannerImpl::new, cleanupSettings);
     }
 
     @Test
@@ -48,12 +52,12 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
         List<Media> result = subject.getListOfMediaFiles(dir1);
 
-        assertThat(result).extracting(candidate -> candidate.getSourcePath())
+        assertThat(result).extracting(Media::getSourcePath)
                 .containsExactly(inputDir.relativize(file11), inputDir.relativize(file12));
     }
 
     @Test
-    public void getListOfMediaFiles_ShouldReturnListWithOneEntry_AndIgnoreFiles() throws Exception {
+    public void getListOfMediaFiles_ShouldReturnListWithOneEntry_AndIgnoreCompanionFile() throws Exception {
         Path dir1 = inputDir.resolve("1");
 
         Path file11 = createFile(dir1.resolve("file11.mp4"));
@@ -63,7 +67,20 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
         List<Media> result = subject.getListOfMediaFiles(dir1);
 
-        assertThat(result).extracting(c -> c.getSourcePath()).containsExactly(inputDir.relativize(file11));
+        assertThat(result).extracting(Media::getSourcePath).containsExactly(inputDir.relativize(file11));
+    }
+
+    @Test
+    public void getListOfMediaFiles_ShouldReturnListWithOneEntry_AndIgnoreMarkedFileInMarkSourceDir() throws Exception {
+        Path dir1 = getPath("input","1");
+
+        Path file11 = createFile(dir1.resolve("file11.mp4"));
+        createFile(dir1.resolve("file12.mp4"));
+        createFile(cleanupSettings.getMarkSourceDirectory().resolve("1").resolve("file12.mp4.done"));
+
+        List<Media> result = subject.getListOfMediaFiles(dir1);
+
+        assertThat(result).extracting(Media::getSourcePath).containsExactly(inputDir.relativize(file11));
     }
 
     @Test

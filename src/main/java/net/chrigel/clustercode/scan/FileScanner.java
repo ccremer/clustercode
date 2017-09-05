@@ -57,13 +57,23 @@ public interface FileScanner {
     FileScanner withFileExtensions(List<String> allowedExtensions);
 
     /**
-     * Sets the extension which will cause e.g. the "foo/bar" file to be skipped if a sourcePath named "foo/bar.skipping"
-     * exists too. This matcher is executed after {@link #withFileExtensions(List)}
-     * * @param skipping the skipping extension.
+     * Sets the extension which will cause e.g. the "foo/bar" file to be skipped if a sourcePath named
+     * "foo/bar.skipping" exists too. This matcher is executed after {@link #withFileExtensions(List)}
      *
+     * @param skipping the skipping extension.
      * @return this.
      */
     FileScanner whileSkippingExtraFilesWith(String skipping);
+
+    /**
+     * Sets the directory which is expected to contain the extra files for
+     * {@link net.chrigel.clustercode.cleanup.processor.MarkSourceDirProcessor}. Needs {@link
+     * #whileSkippingExtraFilesWith(String)} to be set.
+     *
+     * @param dir the directory. If it does not exist, it will be ignored.
+     * @return this.
+     */
+    FileScanner whileSkippingExtraFilesIn(Path dir);
 
     /**
      * Scans the file system. This method blocks until the file system scan is complete. Any IO exception is being

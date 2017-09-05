@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.scan.impl;
 
 import lombok.extern.slf4j.XSlf4j;
+import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.FileScanner;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanService;
@@ -20,33 +21,37 @@ class MediaScanServiceImpl implements MediaScanService {
 
     private final MediaScanSettings scanSettings;
     private final Provider<FileScanner> scannerProvider;
+    private final CleanupSettings cleanupSettings;
 
     @Inject
-    MediaScanServiceImpl(MediaScanSettings scanSettings, Provider<FileScanner> scannerProvider) {
+    MediaScanServiceImpl(MediaScanSettings scanSettings,
+                         Provider<FileScanner> scannerProvider,
+                         CleanupSettings cleanupSettings) {
         this.scanSettings = scanSettings;
         this.scannerProvider = scannerProvider;
+        this.cleanupSettings = cleanupSettings;
     }
 
     @Override
     public Map<Path, List<Media>> retrieveFiles() {
         log.info("Scanning for directories in {}", scanSettings.getBaseInputDir());
         return scannerProvider.get()
-                .searchIn(scanSettings.getBaseInputDir())
-                .withRecursion(false)
-                .withDirectories(true)
-                .stream()
-                .filter(this::isPriorityDirectory)
-                .peek(path -> log.info("Found input directory: {}", path))
-                .collect(Collectors.toMap(
-                        Function.identity(), this::getListOfMediaFiles));
+            .searchIn(scanSettings.getBaseInputDir())
+            .withRecursion(false)
+            .withDirectories(true)
+            .stream()
+            .filter(this::isPriorityDirectory)
+            .peek(path -> log.info("Found input directory: {}", path))
+            .collect(Collectors.toMap(
+                Function.identity(), this::getListOfMediaFiles));
     }
 
     @Override
     public List<Media> retrieveFilesAsList() {
         return retrieveFiles()
-                .values().stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+            .values().stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -58,14 +63,15 @@ class MediaScanServiceImpl implements MediaScanService {
     List<Media> getListOfMediaFiles(Path path) {
         log.info("Scanning for media files in {}", path);
         return scannerProvider.get()
-                .searchIn(path)
-                .withRecursion(true)
-                .withFileExtensions(scanSettings.getAllowedExtensions())
-                .whileSkippingExtraFilesWith(scanSettings.getSkipExtension())
-                .streamAndIgnoreErrors()
-                .map(file -> buildMedia(path, file))
-                .peek(candidate -> log.info("Found file: {}", candidate))
-                .collect(Collectors.toList());
+            .searchIn(path)
+            .withRecursion(true)
+            .withFileExtensions(scanSettings.getAllowedExtensions())
+            .whileSkippingExtraFilesWith(scanSettings.getSkipExtension())
+            .whileSkippingExtraFilesIn(cleanupSettings.getMarkSourceDirectory())
+            .streamAndIgnoreErrors()
+            .map(file -> buildMedia(path, file))
+            .peek(candidate -> log.info("Found file: {}", candidate))
+            .collect(Collectors.toList());
     }
 
     /**
@@ -77,9 +83,9 @@ class MediaScanServiceImpl implements MediaScanService {
      */
     Media buildMedia(Path priorityDir, Path file) {
         return Media.builder()
-                .sourcePath(scanSettings.getBaseInputDir().relativize(file))
-                .priority(getNumberFromDir(priorityDir))
-                .build();
+            .sourcePath(scanSettings.getBaseInputDir().relativize(file))
+            .priority(getNumberFromDir(priorityDir))
+            .build();
     }
 
     /**

@@ -4,7 +4,10 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_integrationTest.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_integrationTest.iml" group="clustercode" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_integrationTest.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_integrationTest.iml" group="clustercode" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_main.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_main.iml" group="clustercode" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_main.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_main.iml" group="clustercode" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_test.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_test.iml" group="clustercode" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/clustercode_test.iml" filepath="$PROJECT_DIR$/.idea/modules/clustercode_test.iml" group="clustercode" />
     </modules>
   </component>
