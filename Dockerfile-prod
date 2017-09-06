@@ -31,7 +31,7 @@ RUN \
     mkdir /run/nginx && \
     apk update && \
     apk upgrade && \
-    apk add --no-cache ffmpeg nginx supervisor
+    apk add --no-cache ffmpeg nginx supervisor openssl
 
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY \
@@ -48,7 +48,7 @@ COPY static static
 COPY src src/
 RUN \
     echo "Installing Gradle" && \
-    apk add --no-cache unzip openssl && \
+    apk add --no-cache unzip && \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
     unzip -q gradle.zip && \
     rm gradle.zip && \
@@ -66,13 +66,13 @@ RUN \
     apk add --no-cache nodejs-current-npm && \
     npm install --quiet --no-optional && \
     echo "Bulding clustercode-admin" && \
-    npm run unit && \
     npm run build && \
     echo "Cleaning up" && \
     apk del nodejs-current-npm && \
     rm -r ~/.npm && \
     rm -r node_modules && \
     rm -r package.json && \
+    rm -r .postcssrc.js && \
     rm -r .babelrc && \
     rm -r webpack* && \
     rm -r static && \

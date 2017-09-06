@@ -31,6 +31,7 @@ out/
 .idea/dictionaries
 desktop.ini
 .idea/modules/*_*.iml
+.idea/compiler.xml
 
 # project
 /config/

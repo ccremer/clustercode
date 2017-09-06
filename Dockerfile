@@ -42,6 +42,7 @@ COPY \
     .postcssrc.js \
     docker/docker-entrypoint.sh docker/supervisord.conf ./
 
+COPY docker/nginx.conf /etc/nginx/nginx.conf
 RUN \
     echo "Installing Gradle" && \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
@@ -54,9 +55,8 @@ RUN \
 COPY webpack webpack
 COPY webpackcfg webpackcfg
 COPY docker/default default
-COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY static static
-COPY src src/
+COPY src src
 
 RUN \
     echo "Building clustercode" && \
