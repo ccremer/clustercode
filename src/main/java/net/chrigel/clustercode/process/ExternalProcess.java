@@ -4,7 +4,6 @@ package net.chrigel.clustercode.process;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * Represents and wraps an external process. Provides a fluent-like API and throws runtime exceptions on unexpected
@@ -72,14 +71,12 @@ public interface ExternalProcess {
     Optional<Integer> start();
 
     /**
-     * Starts the process in the background. Use either this method or {@link #start()}.
+     * Starts the process in the background. Use either this method or {@link #start()}. Retrieve the result with {@link
+     * RunningExternalProcess#waitFor()}.
      *
-     * @param listener a listener which will be updated with the exit code after termination. If the process could
-     *                 not be executed, the result will be empty.
      * @return this.
      * @throws RuntimeException if the wrapper is configured incorrectly or this method is invoked multiple times.
      */
-    RunningExternalProcess start(Consumer<Optional<Integer>> listener);
-
+    RunningExternalProcess startInBackground();
 
 }

@@ -1,6 +1,11 @@
 package net.chrigel.clustercode.statemachine.actions;
 
+import lombok.val;
 import net.chrigel.clustercode.cluster.ClusterService;
+import net.chrigel.clustercode.cluster.messages.ClusterMessage;
+import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
+import net.chrigel.clustercode.event.Event;
+import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
@@ -17,14 +22,22 @@ public class TranscodeAction extends Action {
 
     private final TranscodingService transcodingService;
     private final ClusterService clusterService;
+    private final EventBus<ClusterMessage> eventBus;
     private ScheduledExecutorService executor;
 
     @Inject
     TranscodeAction(TranscodingService transcodingService,
-                    ClusterService clusterService) {
+                    ClusterService clusterService,
+                    EventBus<ClusterMessage> eventBus) {
         this.transcodingService = transcodingService;
         this.clusterService = clusterService;
 
+        eventBus.registerEventHandler(LocalCancelTaskRequest.class, this::cancelTask);
+        this.eventBus = eventBus;
+    }
+
+    private void cancelTask(Event<LocalCancelTaskRequest> event) {
+        transcodingService.cancelTranscode();
     }
 
     @Override
@@ -32,12 +45,13 @@ public class TranscodeAction extends Action {
         log.entry(from, to, event, context);
         if (this.executor != null) executor.shutdown();
         startProgressUpdateLoop();
-        context.setTranscodeResult(transcodingService.transcode(TranscodeTask.builder()
+        val result = transcodingService.transcode(TranscodeTask.builder()
             .media(context.getSelectedMedia())
             .profile(context.getSelectedProfile())
-            .build()));
+            .build());
+        context.setTranscodeResult(result);
         executor.shutdown();
-        return StateEvent.FINISHED;
+        return result.isCancelled() ? StateEvent.CANCELLED : StateEvent.FINISHED;
     }
 
     private void startProgressUpdateLoop() {

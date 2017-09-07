@@ -8,7 +8,7 @@ import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 import net.chrigel.clustercode.transcode.TranscodingService;
-import net.chrigel.clustercode.transcode.impl.Transcoders;
+import net.chrigel.clustercode.transcode.impl.Transcoder;
 import org.glassfish.jersey.server.JSONP;
 
 import javax.inject.Inject;
@@ -87,7 +87,7 @@ public class ProgressApi extends AbstractRestApi {
                     message = "Unexpected error",
                     response = ApiError.class)})
     public Response getFfmpegProgress() {
-        if (transcodingService.getTranscoder() != Transcoders.FFMPEG)
+        if (transcodingService.getTranscoder() != Transcoder.FFMPEG)
             return clientError("This transcoder is not available on the current node.");
         return createResponse(() -> transcodingService.getProgressCalculator()
                 .getProgress()
@@ -119,7 +119,7 @@ public class ProgressApi extends AbstractRestApi {
                     message = "Unexpected error",
                     response = ApiError.class)})
     public Response getHandbrakeProgress() {
-        if (transcodingService.getTranscoder() != Transcoders.HANDBRAKE)
+        if (transcodingService.getTranscoder() != Transcoder.HANDBRAKE)
             return clientError("This transcoder is not available on the current node.");
         return createResponse(() -> transcodingService.getProgressCalculator()
                 .getProgress()

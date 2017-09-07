@@ -16,7 +16,7 @@ class TranscoderSettingsImpl implements TranscoderSettings {
     private final Path executable;
     private final Path tempDir;
     private final String defaultExtension;
-    private final Transcoders type;
+    private final Transcoder type;
 
     @Inject
     TranscoderSettingsImpl(@Named(TranscodeModule.TRANSCODE_CLI_KEY) String executable,
@@ -28,7 +28,7 @@ class TranscoderSettingsImpl implements TranscoderSettings {
         this.executable = FilesystemProvider.getInstance().getPath(executable);
         this.tempDir = FilesystemProvider.getInstance().getPath(tempDir);
         this.defaultExtension = defaultExtension;
-        this.type = Transcoders.valueOf(type.toUpperCase(Locale.ENGLISH));
+        this.type = Transcoder.valueOf(type.toUpperCase(Locale.ENGLISH));
     }
 
     @Override
@@ -52,7 +52,7 @@ class TranscoderSettingsImpl implements TranscoderSettings {
     }
 
     @Override
-    public Transcoders getTranscoderType() {
+    public Transcoder getTranscoderType() {
         return type;
     }
 

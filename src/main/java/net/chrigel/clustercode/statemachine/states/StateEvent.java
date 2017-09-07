@@ -5,7 +5,8 @@ public enum StateEvent {
     TIMEOUT,
     NO_RESULT,
     RESULT,
-    ERROR;
+    ERROR,
+    CANCELLED;
 
     @Override
     public String toString() {

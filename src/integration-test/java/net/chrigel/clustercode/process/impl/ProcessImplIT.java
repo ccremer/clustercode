@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.process.impl;
 
+import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.test.TestUtility;
 import net.chrigel.clustercode.util.Platform;
 import org.junit.Before;
@@ -8,7 +9,6 @@ import org.junit.Test;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
-import java.util.concurrent.Semaphore;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,16 +41,12 @@ public class ProcessImplIT {
 
     @Test
     public void destroyAfter_ShouldDestroyProcess() throws Exception {
-        Semaphore blocker = new Semaphore(0);
-        subject.withExecutablePath(getSleepScript())
+        RunningExternalProcess process = subject.withExecutablePath(getSleepScript())
                 .withIORedirected(true)
                 .withArguments(Arrays.asList("1000"))
-                .start(result -> {
-                    assertThat(result.isPresent()).isFalse();
-                    blocker.release();
-                })
-                .destroyAfter(500);
-        blocker.acquire();
+                .startInBackground();
+        process.destroyAfter(500);
+        assertThat(process.waitFor()).isEmpty();
     }
 
     private Path getArgumentsScript() {

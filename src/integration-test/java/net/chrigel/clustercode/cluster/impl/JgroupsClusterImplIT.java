@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.After;
@@ -22,12 +23,14 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
     private JgroupsClusterSettings settings;
     @Mock
     private Media candidate;
+    @Mock
+    private JGroupsMessageDispatcher dispatcher;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone());
-        when(settings.getJgroupsConfigFile()).thenReturn("udp.xml");
+        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone(), dispatcher);
+        when(settings.getJgroupsConfigFile()).thenReturn("docker/default/config/tcp.xml");
         when(settings.getClusterName()).thenReturn("clustercode");
         when(settings.getBindingPort()).thenReturn(5000);
         when(settings.isIPv4Preferred()).thenReturn(true);

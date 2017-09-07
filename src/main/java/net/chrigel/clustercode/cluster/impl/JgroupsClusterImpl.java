@@ -5,10 +5,11 @@ import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
+import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.scan.Media;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.ReplicatedHashMap;
-import org.jgroups.util.UUID;
+import org.jgroups.fork.ForkChannel;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
@@ -24,19 +25,23 @@ import java.util.Optional;
 import java.util.concurrent.*;
 
 @XSlf4j
-class JgroupsClusterImpl implements ClusterService {
+class JgroupsClusterImpl
+    implements ClusterService {
 
     private final JgroupsClusterSettings settings;
     private final Clock clock;
+    private final JGroupsMessageDispatcher messageDispatcher;
     private ReplicatedHashMap<String, ClusterTask> map;
     private JChannel channel;
     private ScheduledExecutorService executor;
 
     @Inject
     JgroupsClusterImpl(JgroupsClusterSettings settings,
-                       Clock clock) {
+                       Clock clock,
+                       JGroupsMessageDispatcher messageDispatcher) {
         this.settings = settings;
         this.clock = clock;
+        this.messageDispatcher = messageDispatcher;
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
                 Thread thread = new Thread();
@@ -74,6 +79,10 @@ class JgroupsClusterImpl implements ClusterService {
             executor.scheduleAtFixedRate(this::removeOrphanTasks, 0, 1, TimeUnit.HOURS);
             map.start(5000L);
             map.remove(getChannelAddress());
+
+            ForkChannel forkChannel = new ForkChannel(channel, "rpc", "rpc_ch");
+
+            messageDispatcher.initialize(forkChannel);
             log.info("Joined cluster {} with {} member(s).",
                 channel.getClusterName(), channel.getView().getMembers().size());
             log.info("Cluster address: {}", channel.getAddress());
@@ -149,6 +158,12 @@ class JgroupsClusterImpl implements ClusterService {
     }
 
     @Override
+    public boolean cancelTask(String hostname) {
+        if (hostname == null) hostname = channel.getAddressAsString();
+        return messageDispatcher.cancelTask(hostname);
+    }
+
+    @Override
     public List<ClusterTask> getTasks() {
         if (!isConnected()) return Collections.emptyList();
 
@@ -216,4 +231,5 @@ class JgroupsClusterImpl implements ClusterService {
         if (!isConnected()) return Optional.empty();
         return Optional.ofNullable(channel.getAddressAsString());
     }
+
 }

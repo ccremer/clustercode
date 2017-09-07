@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import net.chrigel.clustercode.cluster.ClusterTask;
+import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.Before;
@@ -26,16 +27,20 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
     private JgroupsClusterSettings settings;
     @Mock
     private Media candidate;
+    @Mock
+    private JGroupsMessageDispatcher dispatcher;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone());
+        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone(), dispatcher);
     }
 
     @Test
     public void getCurrentUtcTime_ShouldReturnTimeInUtc() throws Exception {
-        subject = new JgroupsClusterImpl(settings, Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
+        subject = new JgroupsClusterImpl(settings,
+            Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC),
+            dispatcher);
         ZonedDateTime time = subject.getCurrentUtcTime();
         assertThat(time.getHour()).isEqualTo(13);
         assertThat(time.getMinute()).isEqualTo(30);

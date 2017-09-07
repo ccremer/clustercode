@@ -1,9 +1,7 @@
 package net.chrigel.clustercode.api.rest;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
+import lombok.val;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
@@ -12,9 +10,7 @@ import net.chrigel.clustercode.cluster.ClusterTask;
 import org.glassfish.jersey.server.JSONP;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Date;
@@ -25,8 +21,8 @@ import java.util.stream.Collectors;
 @Api(description = "the tasks API")
 public class TasksApi extends AbstractRestApi {
 
-    private final ClusterService clusterService;
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
+    private final ClusterService clusterService;
 
     @Inject
     TasksApi(ClusterService clusterService) {
@@ -48,6 +44,39 @@ public class TasksApi extends AbstractRestApi {
         return createResponse(() -> clusterService.getTasks().stream()
             .map(this::convertToDto)
             .collect(Collectors.toList()));
+    }
+
+    @DELETE
+    @Path("/stop")
+    @Produces({MediaType.APPLICATION_JSON})
+    @JSONP(queryParam = "callback")
+    @ApiOperation(
+        value = "",
+        notes = "Stops the task that is currently being processed by the given hostname. If successful, the affected " +
+            "node will transition to state WAIT.",
+        response = Boolean.class)
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "The task has been successfully stopped."),
+        @ApiResponse(code = 409, message = "The task has not been found."),
+        @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)
+    })
+    public Response stopTask(
+        @QueryParam("hostname")
+        @ApiParam(value = "host name of the node, as returned by /tasks", required = true) String hostname) {
+        log.debug("Hostname: {}", hostname);
+        if (hostname == null) return Response.status(Response.Status.CONFLICT).build();
+        try {
+            val cancelled = clusterService.cancelTask(hostname);
+            if (cancelled) return Response.ok().build();
+            return Response.status(Response.Status.CONFLICT).build();
+        } catch (Exception ex) {
+            log.catching(ex);
+            return Response.serverError()
+                .entity(ApiError.builder()
+                    .message(ex.getMessage())
+                    .build())
+                .build();
+        }
     }
 
     private Task convertToDto(ClusterTask clusterTask) {

@@ -34,7 +34,7 @@ public class TranscodeModule extends AbstractPropertiesModule {
         bind(TranscoderSettings.class).to(TranscoderSettingsImpl.class);
 
         String type = getEnvironmentVariableOrProperty(properties, TRANSCODE_TYPE).toUpperCase(Locale.ENGLISH);
-        bind(ProgressCalculator.class).to(Transcoders.valueOf(type).getImplementingClass());
+        bind(ProgressCalculator.class).to(Transcoder.valueOf(type).getImplementingClass());
 
         installFfmpeg();
         installHandbrake();

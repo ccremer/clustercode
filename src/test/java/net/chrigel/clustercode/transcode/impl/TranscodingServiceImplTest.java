@@ -2,6 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
@@ -35,6 +36,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     @Mock
     private ExternalProcess process;
     @Mock
+    private RunningExternalProcess runningProcess;
+    @Mock
     private TranscoderSettings transcoderSettings;
     @Mock
     private MediaScanSettings mediaScanSettings;
@@ -60,6 +63,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(process.withArguments(any())).thenReturn(process);
         when(process.withStderrParser(any())).thenReturn(process);
         when(process.withStdoutParser(any())).thenReturn(process);
+        when(process.startInBackground()).thenReturn(runningProcess);
         when(media.getSourcePath()).thenReturn(getPath("0", "video.mkv"));
         when(profile.getFields()).thenReturn(Collections.singletonMap("FORMAT", ".mp4"));
         when(transcoderSettings.getTemporaryDir()).thenReturn(getPath("tmp"));
@@ -79,7 +83,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     public void doTranscode_ShouldReplaceOutput_WithNewValue() throws Exception {
         Path output = getPath("tmp", "video.mp4");
         when(profile.getArguments()).thenReturn(Arrays.asList(TranscodingServiceImpl.OUTPUT_PLACEHOLDER));
-        when(process.start()).thenReturn(Optional.of(0));
+        when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         Optional<Integer> result = subject.doTranscode(
                 media.getSourcePath(), output, profile);
@@ -92,7 +96,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     public void doTranscode_ShouldReplaceInput_WithNewValue() throws Exception {
         Path input = getPath("0", "video.mkv");
         when(profile.getArguments()).thenReturn(Arrays.asList(TranscodingServiceImpl.INPUT_PLACEHOLDER));
-        when(process.start()).thenReturn(Optional.of(0));
+        when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         Optional<Integer> result = subject.doTranscode(
                 media.getSourcePath(), input, profile);
@@ -103,7 +107,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
 
     @Test
     public void transcode_ShouldReturnTrue_IfTranscodingSuccessful() throws Exception {
-        when(process.start()).thenReturn(Optional.of(0));
+        when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         TranscodeResult result = subject.transcode(task);
         assertThat(result.getTemporaryPath()).isEqualTo(getPath("tmp", "video.mp4"));
@@ -112,7 +116,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
 
     @Test(timeout = 1000)
     public void transcode_ShouldRunAsync() throws Exception {
-        when(process.start()).thenReturn(Optional.of(0));
+        when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         Semaphore blocker = new Semaphore(0);
         subject.transcode(task, result -> {
@@ -125,7 +129,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
 
     @Test
     public void transcode_ShouldReturnFalse_IfTranscodingFailed() throws Exception {
-        when(process.start()).thenReturn(Optional.of(1));
+        when(runningProcess.waitFor()).thenReturn(Optional.of(1));
 
         TranscodeResult result = subject.transcode(task);
         assertThat(result.isSuccessful()).isFalse();
@@ -133,10 +137,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
 
     @Test
     public void transcode_ShouldReturnFalse_IfTranscodingUndetermined() throws Exception {
-        when(process.start()).thenReturn(Optional.empty());
+        when(runningProcess.waitFor()).thenReturn(Optional.empty());
 
         TranscodeResult result = subject.transcode(task);
         assertThat(result.isSuccessful()).isFalse();
     }
-
 }

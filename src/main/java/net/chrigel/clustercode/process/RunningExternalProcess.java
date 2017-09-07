@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.process;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -26,6 +27,14 @@ public interface RunningExternalProcess {
      * @return this.
      */
     RunningExternalProcess sleep(long timeout, TimeUnit unit);
+
+    /**
+     * Waits for the process to terminate and returns the exit code, if present.
+     *
+     * @return an optional with the exit code. If there was an exception at running the process, the result will be
+     * empty and logged as error.
+     */
+    Optional<Integer> waitFor();
 
     /**
      * Waits for the specified amount of time before the process will be terminated forcefully. No checks will be

@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.transcode;
 
-import net.chrigel.clustercode.transcode.impl.Transcoders;
+import net.chrigel.clustercode.transcode.impl.Transcoder;
 
 import java.nio.file.Path;
 
@@ -39,6 +39,6 @@ public interface TranscoderSettings {
      *
      * @return the enum.
      */
-    Transcoders getTranscoderType();
+    Transcoder getTranscoderType();
 
 }

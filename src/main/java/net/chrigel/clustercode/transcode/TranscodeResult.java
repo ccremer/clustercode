@@ -35,4 +35,9 @@ public class TranscodeResult {
      */
     private Path temporaryPath;
 
+    /**
+     * Whether the task was cancelled.
+     */
+    private boolean cancelled;
+
 }

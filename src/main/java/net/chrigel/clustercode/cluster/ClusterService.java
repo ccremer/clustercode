@@ -24,6 +24,14 @@ public interface ClusterService {
     void removeTask();
 
     /**
+     * Cancels the current task.
+     *
+     * @param hostname the hostname of the node from which the task is to be cancelled. if null, it means localhost.
+     * @return true if cancelled or no job active. False if otherwise.
+     */
+    boolean cancelTask(String hostname);
+
+    /**
      * Gets the task that is or was scheduled for this node. This method is useful after an application crash where
      * the cluster knows which task was scheduled for this specific node. So this method returns the task
      * previously scheduled for this node, otherwise empty.
@@ -71,4 +79,6 @@ public interface ClusterService {
      * @return the name, otherwise empty.
      */
     Optional<String> getName();
+
+
 }

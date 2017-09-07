@@ -1,22 +1,22 @@
 package net.chrigel.clustercode.process.impl;
 
 import lombok.extern.slf4j.XSlf4j;
+import lombok.val;
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.util.Platform;
 import org.slf4j.ext.XLogger;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.concurrent.*;
 
 /**
  * Wait for Java 9, the implementation of external process will be much more improved. yay :)
@@ -25,8 +25,6 @@ import java.util.function.Consumer;
 class ProcessImpl implements ExternalProcess, RunningExternalProcess {
 
     private final ScheduledExecutorService executor;
-    private boolean redirectIO;
-    private Path executable;
     private Optional<List<String>> arguments;
     private Optional<Process> subprocess;
     private Optional<Path> workingDir;
@@ -34,11 +32,16 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     private OutputParser<?> stdParser;
     private OutputParser<?> errParser;
 
+    private Future<Optional<Integer>> exitCode;
+    private boolean redirectIO;
+    private Path executable;
+
     ProcessImpl() {
         this.arguments = Optional.empty();
         this.workingDir = Optional.empty();
         this.subprocess = Optional.empty();
         this.executor = Executors.newScheduledThreadPool(2);
+        this.exitCode = null;
     }
 
     @Override
@@ -140,13 +143,11 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     }
 
     @Override
-    public RunningExternalProcess start(Consumer<Optional<Integer>> listener) {
-        this.executor.execute(() -> {
-            listener.accept(start());
+    public RunningExternalProcess startInBackground() {
+        this.exitCode = this.executor.submit(() -> {
+            val exitCode = start();
             log.info("Process terminated.");
-            if (!executor.isShutdown()) {
-                executor.shutdown();
-            }
+            return exitCode;
         });
         return this;
     }
@@ -167,6 +168,16 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     }
 
     @Override
+    public Optional<Integer> waitFor() {
+        try {
+            return this.exitCode.get();
+        } catch (InterruptedException | ExecutionException e) {
+            log.catching(e);
+            return Optional.empty();
+        }
+    }
+
+    @Override
     public void destroyAfter(long millis) {
         destroyAfter(millis, TimeUnit.MILLISECONDS);
     }
@@ -174,12 +185,12 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     @Override
     public void destroyAfter(long timeout, TimeUnit unit) {
         this.executor.schedule(() -> subprocess.ifPresent(
-                process -> {
-                    log.info("Destroying external process...");
-                    process.destroyForcibly();
-                    executor.shutdownNow();
-                }),
-                timeout, unit);
+            process -> {
+                log.info("Destroying external process...");
+                process.destroyForcibly();
+                executor.shutdownNow();
+            }),
+            timeout, unit);
     }
 
     @Override

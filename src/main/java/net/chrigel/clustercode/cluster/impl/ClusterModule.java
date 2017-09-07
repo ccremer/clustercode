@@ -1,8 +1,13 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import com.google.inject.Singleton;
+import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterSettings;
+import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
+import net.chrigel.clustercode.cluster.messages.ClusterMessage;
+import net.chrigel.clustercode.event.EventBus;
+import net.chrigel.clustercode.event.impl.EventBusImpl;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 public class ClusterModule extends AbstractPropertiesModule {
@@ -23,5 +28,7 @@ public class ClusterModule extends AbstractPropertiesModule {
         bind(ClusterService.class).to(JgroupsClusterImpl.class).in(Singleton.class);
         bind(ClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
         bind(JgroupsClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
+        bind(new TypeLiteral<EventBus<ClusterMessage>>(){}).toInstance(new EventBusImpl<>());
+        bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
     }
 }

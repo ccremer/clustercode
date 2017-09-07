@@ -4,6 +4,7 @@ import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
 import net.chrigel.clustercode.transcode.*;
@@ -14,6 +15,8 @@ import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -27,6 +30,7 @@ class TranscodingServiceImpl implements TranscodingService {
     private final MediaScanSettings mediaScanSettings;
     private final ProgressCalculator progressCalculator;
     private final Provider<ExternalProcess> externalProcessProvider;
+    private RunningExternalProcess process;
 
     @Inject
     TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
@@ -43,7 +47,7 @@ class TranscodingServiceImpl implements TranscodingService {
     @Synchronized
     Optional<Integer> doTranscode(Path source, Path tempFile, Profile profile) {
         log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
-        return externalProcessProvider.get()
+        this.process = externalProcessProvider.get()
                 .withExecutablePath(transcoderSettings.getTranscoderExecutable())
                 .withIORedirected(transcoderSettings.isIoRedirected())
                 .withArguments(profile.getArguments().stream()
@@ -52,7 +56,8 @@ class TranscodingServiceImpl implements TranscodingService {
                         .collect(Collectors.toList()))
                 .withStderrParser(createParser())
                 .withStdoutParser(createParser())
-                .start();
+                .startInBackground();
+        return process.waitFor();
     }
 
     @Override
@@ -77,6 +82,7 @@ class TranscodingServiceImpl implements TranscodingService {
         doTranscode(source, tempFile, task.getProfile())
                 .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
         progressCalculator.setEnabled(false);
+        process = null;
         log.info(result.isSuccessful() ? "Transcoding finished" : "Transcoding failed.");
         return log.exit(result);
     }
@@ -92,8 +98,20 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     @Override
-    public Transcoders getTranscoder() {
+    public Transcoder getTranscoder() {
         return transcoderSettings.getTranscoderType();
+    }
+
+    @Override
+    public boolean cancelTranscode() {
+        if (process == null) return true;
+        log.info("Cancelling task...");
+        return process.destroyNowWithTimeout(5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public boolean isActive() {
+        return process != null;
     }
 
     private String getPropertyOrDefault(Profile profile, String key, String defaultValue) {
