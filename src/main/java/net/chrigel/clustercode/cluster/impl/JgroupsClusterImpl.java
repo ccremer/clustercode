@@ -82,7 +82,7 @@ class JgroupsClusterImpl
 
             ForkChannel forkChannel = new ForkChannel(channel, "rpc", "rpc_ch");
 
-            messageDispatcher.initialize(forkChannel);
+            messageDispatcher.initialize(forkChannel, channel.getAddressAsString());
             log.info("Joined cluster {} with {} member(s).",
                 channel.getClusterName(), channel.getView().getMembers().size());
             log.info("Cluster address: {}", channel.getAddress());

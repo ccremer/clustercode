@@ -7,6 +7,7 @@ import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.StateMachineService;
 import net.chrigel.clustercode.statemachine.actions.*;
+import org.squirrelframework.foundation.fsm.Condition;
 import org.squirrelframework.foundation.fsm.StateMachineBuilder;
 import org.squirrelframework.foundation.fsm.StateMachineBuilderFactory;
 import org.squirrelframework.foundation.fsm.impl.AbstractStateMachine;
@@ -136,11 +137,19 @@ public class StateController
             .perform(actionOf(AddTaskInClusterAction.class));
         builder.onEntry(State.TRANSCODE).perform(actionOf(TranscodeAction.class));
 
+        // transcoding ------->> Wait
+        builder.externalTransition()
+            .from(State.TRANSCODE)
+            .to(State.WAIT)
+            .on(StateEvent.CANCELLED)
+            .perform(actionOf(RemoveTaskFromClusterAction.class));
+
         // transcoding ------->> Cleanup
         builder.externalTransition()
             .from(State.TRANSCODE)
             .to(State.CLEANUP)
             .on(StateEvent.FINISHED)
+            .when(transcodingSuccess())
             .perform(actionOf(RemoveTaskFromClusterAction.class));
         builder.onEntry(State.CLEANUP).perform(actionOf(CleanupAction.class));
 
@@ -149,6 +158,20 @@ public class StateController
             .from(State.CLEANUP)
             .to(State.SCAN_MEDIA)
             .on(StateEvent.FINISHED);
+    }
+
+    private Condition<StateContext> transcodingSuccess() {
+        return new Condition<StateContext>() {
+            @Override
+            public boolean isSatisfied(StateContext context) {
+                return !context.getTranscodeResult().isCancelled();
+            }
+
+            @Override
+            public String name() {
+                return null;
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")

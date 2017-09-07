@@ -31,6 +31,7 @@ class TranscodingServiceImpl implements TranscodingService {
     private final ProgressCalculator progressCalculator;
     private final Provider<ExternalProcess> externalProcessProvider;
     private RunningExternalProcess process;
+    private boolean cancelRequested;
 
     @Inject
     TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
@@ -82,6 +83,10 @@ class TranscodingServiceImpl implements TranscodingService {
         doTranscode(source, tempFile, task.getProfile())
                 .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
         progressCalculator.setEnabled(false);
+        if (cancelRequested) {
+            result.setCancelled(true);
+            cancelRequested = false;
+        }
         process = null;
         log.info(result.isSuccessful() ? "Transcoding finished" : "Transcoding failed.");
         return log.exit(result);
@@ -106,6 +111,7 @@ class TranscodingServiceImpl implements TranscodingService {
     public boolean cancelTranscode() {
         if (process == null) return true;
         log.info("Cancelling task...");
+        this.cancelRequested = true;
         return process.destroyNowWithTimeout(5, TimeUnit.SECONDS);
     }
 

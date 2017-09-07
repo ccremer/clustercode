@@ -22,6 +22,7 @@ public class JGroupsMessageDispatcherImpl
 
     private final EventBus<ClusterMessage> localBus;
     private RpcDispatcher rpcDispatcher;
+    private String localHostname;
 
     @Inject
     JGroupsMessageDispatcherImpl(EventBus<ClusterMessage> localBus) {
@@ -48,7 +49,7 @@ public class JGroupsMessageDispatcherImpl
 
     @Override
     public boolean cancelTask(String hostname) {
-        if (rpcDispatcher == null || hostname.equals(rpcDispatcher.getChannel().getAddressAsString())) {
+        if (rpcDispatcher == null || localHostname.equals(hostname)) {
             cancelTaskLocally();
             return true;
         }
@@ -70,7 +71,8 @@ public class JGroupsMessageDispatcherImpl
     }
 
     @Override
-    public void initialize(JChannel channel) {
+    public void initialize(JChannel channel, String localHostname) {
         this.rpcDispatcher = new RpcDispatcher(channel, this);
+        this.localHostname = localHostname;
     }
 }

@@ -6,5 +6,5 @@ public interface JGroupsMessageDispatcher {
 
     boolean cancelTask(String hostname);
 
-    void initialize(JChannel channel);
+    void initialize(JChannel channel, String localHostname);
 }
