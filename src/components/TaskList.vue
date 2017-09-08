@@ -20,6 +20,10 @@
             <template slot="percentage" scope="props">
                 <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
             </template>
+            <template slot="actions" scope="props">
+                <button class="btn btn-danger btn-outline" v-on:click="confirmCancel(props.row.nodename)">Cancel
+                </button>
+            </template>
         </v-client-table>
     </div>
 </template>
@@ -31,11 +35,13 @@
     import Notification from "../js/notifications";
     import {TITLE_MUTATION} from "../store/module.navigation"
     import {action_types} from "../store/module.notification"
+    import ConfirmCancelDialog from "./ConfirmCancelDialog"
 
     Vue.use(ClientTable, {}, true);
 
     const TASK_FAIL_KEY = "TASK_FAIL";
     const TASK_FETCH_KEY = "TASK_FETCH";
+    const TASK_CANCEL_KEY = "TASK_CANCEL";
 
     export default {
         name: 'tasklist',
@@ -43,7 +49,7 @@
             return {
                 tableData: [],
                 columns: [
-                    "source", "nodename", "progress", "percentage"
+                    "source", "nodename", "progress", "percentage", "actions"
                 ],
                 options: {
                     filterable: false,
@@ -84,7 +90,7 @@
                             self.removeFailedNotification();
                             setTimeout(self.loadTaskData, 10000);
                         } catch (error) {
-                            console.error(error)
+                            console.error(error);
                         }
                     })
                     .catch(function (error) {
@@ -92,6 +98,39 @@
                         self.addFailNotification("Backend: " + error.message);
                         setTimeout(self.loadTaskData, 10000);
                     });
+            },
+            confirmCancel: function (hostname) {
+                let self = this;
+                this.$vuedals.open({
+                    name: "confirm",
+                    props: {
+                        message: "Really stop task on " + hostname + "?",
+                        btnclass: "btn-danger",
+                        data: hostname,
+                        proceedtext: "Yes!"
+                    },
+                    escapable: true,
+                    component: ConfirmCancelDialog,
+                    onClose(response) {
+                        if (response.result === "ok") {
+                            self.cancelTask(response.data);
+                        }
+                    }
+
+                })
+            },
+            cancelTask: function (hostname) {
+                let self = this;
+                Axios.delete(self.$store.state.settings.taskCancelUrl + "?hostname=" + hostname)
+                    .then(function (response) {
+                        let n = new Notification(Notification.LEVEL.SUCCESS, "Cancelled job on " + hostname, TASK_CANCEL_KEY);
+                        self.$store.dispatch(action_types.ADD_WITH_TIMEOUT, n);
+                        self.addFetchNotification();
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        self.addFailNotification("Backend: " + error.message);
+                    })
             },
             addFailNotification: function (message) {
                 let notification = new Notification(Notification.LEVEL.ERROR, message, TASK_FAIL_KEY);
@@ -103,12 +142,15 @@
             },
             removeFailedNotification: function () {
                 this.$store.dispatch(action_types.CLEAR, TASK_FAIL_KEY);
+            },
+            addFetchNotification: function () {
+                let n = new Notification(Notification.LEVEL.INFO, "Fetching data. Please wait...", TASK_FETCH_KEY);
+                this.$store.dispatch(action_types.ADD, n);
             }
         },
         mounted: function () {
             this.$store.commit(TITLE_MUTATION, "Tasks");
-            let n = new Notification(Notification.LEVEL.INFO, "Fetching data. Please wait...", TASK_FETCH_KEY);
-            this.$store.dispatch(action_types.ADD, n);
+            this.addFetchNotification();
             this.loadTaskData();
         },
         beforeDestroy: function () {

@@ -16,6 +16,9 @@ import Vue from 'vue'
 import App from '../web/App'
 import router from '../router/index'
 import { store } from "../store/state"
+import Vuedals from "vuedals"
+
+Vue.use(Vuedals);
 
 Vue.config.productionTip = false;
 

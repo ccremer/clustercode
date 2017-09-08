@@ -115,7 +115,7 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
             this.subprocess = Optional.empty();
             return log.exit(Optional.empty());
         } catch (InterruptedException e) {
-            log.catching(XLogger.Level.WARN, e);
+            log.warn("Process interrupted: {}", e.getMessage());
             return log.exit(Optional.empty());
         }
     }

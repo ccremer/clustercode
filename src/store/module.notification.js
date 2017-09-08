@@ -22,6 +22,10 @@ const util = {
         if (!notificationKey || state.list.length === 0) return false;
         return !state.list.every(element => element.key !== notificationKey);
     },
+    containsNotification(state, notification) {
+        if (!notification || state.list.length === 0) return false;
+        return (state.list.indexOf(notification) > -1);
+    }
 };
 
 export const actions = {
@@ -30,7 +34,7 @@ export const actions = {
             commit(mutation_types.CLEAR_ALL);
         } else if (typeof notification === "string" && util.containsNotificationByKey(state, notification)) {
             commit(mutation_types.CLEAR_BY_KEY, notification);
-        } else {
+        } else if (util.containsNotification(state, notification)){
             commit(mutation_types.CLEAR_NOTIFICATION, notification);
         }
     },
@@ -38,7 +42,7 @@ export const actions = {
         if (!notification || util.containsNotificationByKey(state, notification.key)) return;
         commit(mutation_types.ADD_NOTIFICATION, notification);
     },
-    addWithTimeout({commit}, notification) {
+    addWithTimeout({commit, state}, notification) {
         if (!notification || util.containsNotificationByKey(state, notification.key)) return;
         commit(mutation_types.ADD_NOTIFICATION, notification);
         setTimeout(() => {
