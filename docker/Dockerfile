@@ -1,4 +1,5 @@
 FROM openjdk:8-jdk-alpine
+# This is the dockerfile to production usage! Make sure that the build context is the parent directory, not '.' .
 
 USER root
 
@@ -31,49 +32,45 @@ RUN \
     mkdir /run/nginx && \
     apk update && \
     apk upgrade && \
-    apk add --no-cache ffmpeg nginx supervisor openssl
+    apk add --no-cache ffmpeg nginx supervisor openssl tree
 
-COPY docker/nginx.conf /etc/nginx/nginx.conf
-COPY \
-    build.gradle \
-    settings.gradle \
-    package.json \
-    .babelrc \
-    .postcssrc.js \
-    docker/docker-entrypoint.sh docker/supervisord.conf ./
-COPY webpack webpack
-COPY webpackcfg webpackcfg
-COPY docker/default default
-COPY static static
-COPY src src/
+COPY . ./
 RUN \
-    echo "Installing Gradle" && \
+    echo "#### Installing Gradle" && \
     apk add --no-cache unzip && \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
     unzip -q gradle.zip && \
     rm gradle.zip && \
-    echo "Building clustercode" && \
+    echo "#### Building clustercode" && \
     gradle-${GRADLE_VERSION}/bin/gradle -w fullBuild generateSwaggerDocumentation && \
     mv build/libs/clustercode.jar clustercode.jar && \
     mv build/swagger/* static/ && \
-    apk del unzip && \
-    rm -r *gradle* && \
-    rm -r .gradle && \
-    rm -r ~/.gradle && \
-    rm -r build
-RUN \
-    echo "Installing node and packages" && \
+    echo "#### Installing node and packages" && \
     apk add --no-cache nodejs-current-npm && \
     npm install --quiet --no-optional && \
-    echo "Bulding clustercode-admin" && \
+    echo "#### Bulding clustercode-admin" && \
     npm run build && \
-    echo "Cleaning up" && \
-    apk del nodejs-current-npm && \
+    echo "#### Configuring" && \
+    mv docker/nginx.conf /etc/nginx/nginx.conf && \
+    mv docker/default . && \
+    mv docker/docker-entrypoint.sh . && \
+    mv docker/supervisord.conf . && \
+    echo "#### Cleaning up" && \
+    apk del nodejs-current-npm unzip && \
     rm -r ~/.npm && \
     rm -r node_modules && \
     rm -r package.json && \
     rm -r .postcssrc.js && \
     rm -r .babelrc && \
     rm -r webpack* && \
+    rm -r test && \
     rm -r static && \
-    rm -r src
+    rm -r src && \
+    rm -r *gradle* && \
+    rm -r .gradle && \
+    rm -r ~/.gradle && \
+    rm -r build && \
+    rm -r docker && \
+    rm -r Dockerfile && \
+    echo "#### Final file structure:" && \
+    tree

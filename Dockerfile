@@ -1,4 +1,5 @@
 FROM openjdk:8-jdk-alpine
+# This is a dockerfile optimized for testing!
 
 USER root
 
