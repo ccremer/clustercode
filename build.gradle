@@ -2,6 +2,7 @@ plugins {
     id "org.unbroken-dome.test-sets" version "1.4.2"
     id "java"
     id "idea"
+    id "jacoco"
     id "com.moowork.node" version "1.2.0"
     id "com.benjaminsproule.swagger" version "0.1.2"
 }
@@ -146,5 +147,10 @@ githubRelease.dependsOn adminZip
 
 tasks.withType(Test) {
     reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+jacoco {
+    reportsDir file("${project.buildDir}/reports/jacoco")
+    toolVersion "0.7.6.201602180812"
 }
 
