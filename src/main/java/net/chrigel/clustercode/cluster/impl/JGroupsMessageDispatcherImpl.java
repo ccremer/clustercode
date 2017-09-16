@@ -13,9 +13,12 @@ import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.blocks.RpcDispatcher;
+import org.jgroups.util.RspList;
 
 import javax.inject.Inject;
+import java.util.stream.Collectors;
 
+@SuppressWarnings("WeakerAccess")
 @XSlf4j
 public class JGroupsMessageDispatcherImpl
     implements JGroupsMessageDispatcher {
@@ -25,8 +28,8 @@ public class JGroupsMessageDispatcherImpl
     private String localHostname;
 
     @Inject
-    JGroupsMessageDispatcherImpl(EventBus<ClusterMessage> localBus) {
-        this.localBus = localBus;
+    JGroupsMessageDispatcherImpl(EventBus<ClusterMessage> localEventBus) {
+        localBus = localEventBus;
     }
 
     public CancelTaskResponse cancelTaskRpc(String hostname) {
@@ -49,20 +52,25 @@ public class JGroupsMessageDispatcherImpl
 
     @Override
     public boolean cancelTask(String hostname) {
-        if (rpcDispatcher == null || localHostname.equals(hostname)) {
+        if (localHostname.equals(hostname)) {
             cancelTaskLocally();
             return true;
         }
         try {
-            log.debug("Calling RPC...");
+            log.debug("Calling cancelTaskRpc for {}...", hostname);
             MethodCall call = new MethodCall(getClass().getMethod("cancelTaskRpc", String.class));
             RequestOptions ops = new RequestOptions(ResponseMode.GET_ALL, 5000);
             call.setArgs(hostname);
-            val responses = rpcDispatcher.callRemoteMethods(null, call, ops);
+            RspList<CancelTaskResponse> responses = rpcDispatcher.callRemoteMethods(rpcDispatcher.getChannel()
+                    .getView()
+                    .getMembers()
+                    .stream()
+                    .filter(h -> h.toString().equalsIgnoreCase(hostname))
+                    .collect(Collectors.toList()),
+                call, ops);
             log.debug("Got answer: {}", responses);
             return responses.getResults()
                 .stream()
-                .map(o -> (CancelTaskResponse) o)
                 .anyMatch(CancelTaskResponse::isCancelled);
         } catch (Exception e) {
             log.catching(e);
@@ -71,7 +79,7 @@ public class JGroupsMessageDispatcherImpl
     }
 
     @Override
-    public void initialize(JChannel channel, String localHostname) {
+    public void initialize(JChannel channel, String localHostname) throws Exception {
         this.rpcDispatcher = new RpcDispatcher(channel, this);
         this.localHostname = localHostname;
     }

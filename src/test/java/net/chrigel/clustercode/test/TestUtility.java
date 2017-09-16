@@ -8,20 +8,12 @@ import java.util.Comparator;
 
 public class TestUtility {
 
-    public static Path getTestDir() {
-        return Paths.get("target", "test-resources");
-    }
-
-    public static Path getTestDir(FileSystem fs) {
-        return fs.getPath("target", "test-resources");
-    }
-
     public static Path getTestResourcesDir() {
-        return Paths.get("src", "test", "resources");
+        return Paths.get("build", "resources", "test");
     }
 
-    public static Path getTestResourcesDir(FileSystem fs) {
-        return fs.getPath("src", "test", "resources");
+    public static Path getIntegrationTestResourcesDir() {
+        return Paths.get("build", "resources", "integrationTest");
     }
 
     public static void createFile(Path path) {

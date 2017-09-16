@@ -56,15 +56,17 @@ public class TasksApi extends AbstractRestApi {
             "node will transition to state WAIT.",
         response = Boolean.class)
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "The task has been successfully stopped."),
+        @ApiResponse(code = 200, message = "Stopped the task successfully."),
         @ApiResponse(code = 409, message = "The task has not been found."),
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)
     })
     public Response stopTask(
         @QueryParam("hostname")
-        @ApiParam(value = "host name of the node, as returned by /tasks", required = true) String hostname) {
+        @ApiParam(value = "host name of the node, as returned by /tasks. If this parameter is omitted, then the node " +
+            "of the current API endpoint will cancel its task.")
+            String hostname
+    ) {
         log.debug("Hostname: {}", hostname);
-        if (hostname == null) return Response.status(Response.Status.CONFLICT).build();
         try {
             val cancelled = clusterService.cancelTask(hostname);
             if (cancelled) return Response.ok().build();

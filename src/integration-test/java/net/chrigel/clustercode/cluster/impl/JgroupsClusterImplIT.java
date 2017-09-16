@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
+import net.chrigel.clustercode.cluster.JGroupsTaskState;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
 import org.junit.After;
@@ -10,9 +11,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.nio.file.Path;
-import java.time.Clock;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
@@ -25,11 +28,13 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
     private Media candidate;
     @Mock
     private JGroupsMessageDispatcher dispatcher;
+    @Mock
+    private JGroupsTaskState taskState;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone(), dispatcher);
+        subject = new JgroupsClusterImpl(settings, dispatcher, taskState);
         when(settings.getJgroupsConfigFile()).thenReturn("docker/default/config/tcp.xml");
         when(settings.getClusterName()).thenReturn("clustercode");
         when(settings.getBindingPort()).thenReturn(5000);
@@ -48,10 +53,11 @@ public class JgroupsClusterImplIT implements MockedFileBasedUnitTest {
         Path source = createPath("0", "movie.mp4");
         when(candidate.getSourcePath()).thenReturn(source);
 
+        when(taskState.isQueuedInCluster(candidate)).thenReturn(true);
         subject.joinCluster();
         subject.setTask(candidate);
         assertThat(subject.isQueuedInCluster(candidate)).isTrue();
+        verify(taskState).setTask(candidate);
     }
-
 
 }

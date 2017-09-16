@@ -98,7 +98,7 @@ class MediaScanServiceImpl implements MediaScanService {
         try {
             return getNumberFromDir(path) >= 0;
         } catch (NumberFormatException ex) {
-            log.catching(XLogger.Level.DEBUG, ex);
+            log.debug(ex.getMessage());
             return false;
         }
     }

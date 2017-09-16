@@ -5,11 +5,13 @@ import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterSettings;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
+import net.chrigel.clustercode.cluster.JGroupsTaskState;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.event.impl.EventBusImpl;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
+@SuppressWarnings("WeakerAccess")
 public class ClusterModule extends AbstractPropertiesModule {
 
     public static final String CLUSTER_NAME_KEY ="CC_CLUSTER_NAME";
@@ -30,5 +32,6 @@ public class ClusterModule extends AbstractPropertiesModule {
         bind(JgroupsClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
         bind(new TypeLiteral<EventBus<ClusterMessage>>(){}).toInstance(new EventBusImpl<>());
         bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
+        bind(JGroupsTaskState.class).to(JGroupsTaskStateImpl.class);
     }
 }

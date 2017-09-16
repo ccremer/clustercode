@@ -1,9 +1,8 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import net.chrigel.clustercode.cluster.ClusterTask;
-import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.test.MockedFileBasedUnitTest;
+import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,28 +18,26 @@ import java.time.ZonedDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
+public class JGroupsTaskStateImplTest implements FileBasedUnitTest {
 
-    private JgroupsClusterImpl subject;
+    private JGroupsTaskStateImpl subject;
 
     @Mock
     private JgroupsClusterSettings settings;
     @Mock
     private Media candidate;
-    @Mock
-    private JGroupsMessageDispatcher dispatcher;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        subject = new JgroupsClusterImpl(settings, Clock.systemDefaultZone(), dispatcher);
+        setupFileSystem();
+        subject = new JGroupsTaskStateImpl(settings, Clock.systemDefaultZone());
     }
 
     @Test
     public void getCurrentUtcTime_ShouldReturnTimeInUtc() throws Exception {
-        subject = new JgroupsClusterImpl(settings,
-            Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC),
-            dispatcher);
+        subject = new JGroupsTaskStateImpl(settings,
+            Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
         ZonedDateTime time = subject.getCurrentUtcTime();
         assertThat(time.getHour()).isEqualTo(13);
         assertThat(time.getMinute()).isEqualTo(30);
@@ -60,21 +57,21 @@ public class JgroupsClusterImplTest implements MockedFileBasedUnitTest {
 
     @Test
     public void isFileEquals_ShouldReturnTrue_WhenComparingPath_FromWindows_ToUnix() throws Exception {
-        boolean result = subject.isFileEquals("0\\movies folder\\movie.mp4", "0/movies folder/movie.mp4");
+        boolean result = subject.fileEquals("0\\movies folder\\movie.mp4", getPath("0/movies folder/movie.mp4"));
 
         assertThat(result).isTrue();
     }
 
     @Test
     public void isFileEquals_ShouldReturnTrue_WhenComparingPath_FromUnix_ToUnix() throws Exception {
-        boolean result = subject.isFileEquals("0/movies folder/movie.mp4", "0/movies folder/movie.mp4");
+        boolean result = subject.fileEquals("0/movies folder/movie.mp4", getPath("0/movies folder/movie.mp4"));
 
         assertThat(result).isTrue();
     }
 
     @Test
     public void isFileEquals_ShouldReturnTrue_WhenComparingPath_FromUnix_ToWindows() throws Exception {
-        boolean result = subject.isFileEquals("0/movies folder/movie.mp4", "0\\movies folder\\movie.mp4");
+        boolean result = subject.fileEquals("0/movies folder/movie.mp4", getPath("0\\movies folder\\movie.mp4"));
 
         assertThat(result).isTrue();
     }

@@ -5,6 +5,9 @@
              xsi:schemaLocation="fork fork-stacks.xsd">
 
     <fork-stack id="rpc">
+        <config/>
+    </fork-stack>
+    <fork-stack id="tasks">
         <config />
     </fork-stack>
 

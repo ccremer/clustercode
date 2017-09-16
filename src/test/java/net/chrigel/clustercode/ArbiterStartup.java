@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class ArbiterStartup {
 
     public static void main(String[] args) throws Exception {
-        Path testDir = TestUtility.getTestDir();
+        Path testDir = TestUtility.getTestResourcesDir();
         TestUtility.deleteFolderAndItsContent(testDir);
         FileUtil.createDirectoriesFor(testDir);
 

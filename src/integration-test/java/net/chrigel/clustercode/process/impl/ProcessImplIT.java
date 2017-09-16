@@ -52,18 +52,18 @@ public class ProcessImplIT {
     private Path getArgumentsScript() {
         switch (Platform.currentPlatform()) {
             case WINDOWS:
-                return TestUtility.getTestResourcesDir().resolve("Echo Arguments.cmd").toAbsolutePath();
+                return TestUtility.getIntegrationTestResourcesDir().resolve("Echo Arguments.cmd").toAbsolutePath();
             default:
-                return TestUtility.getTestResourcesDir().resolve("Echo Arguments.sh").toAbsolutePath();
+                return TestUtility.getIntegrationTestResourcesDir().resolve("Echo Arguments.sh").toAbsolutePath();
         }
     }
 
     private Path getSleepScript() {
         switch (Platform.currentPlatform()) {
             case WINDOWS:
-                return TestUtility.getTestResourcesDir().resolve("Sleep.cmd").toAbsolutePath();
+                return TestUtility.getIntegrationTestResourcesDir().resolve("Sleep.cmd").toAbsolutePath();
             default:
-                return TestUtility.getTestResourcesDir().resolve("Sleep.sh").toAbsolutePath();
+                return TestUtility.getIntegrationTestResourcesDir().resolve("Sleep.sh").toAbsolutePath();
         }
     }
 }

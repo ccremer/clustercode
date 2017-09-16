@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class TestStartup {
 
     public static void main(String[] args) throws Exception {
-        Path testDir = TestUtility.getTestDir();
+        Path testDir = TestUtility.getTestResourcesDir();
         TestUtility.deleteFolderAndItsContent(testDir);
         FileUtil.createDirectoriesFor(testDir);
         Path inputDir = testDir.resolve("input").resolve("0");
