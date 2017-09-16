@@ -21,8 +21,7 @@
                 <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
             </template>
             <template slot="actions" scope="props">
-                <button class="btn btn-danger btn-outline" v-on:click="confirmCancel(props.row.nodename)">Cancel
-                </button>
+                <a href="javascript:void(0)" v-on:click="confirmCancel(props.row.nodename)">Cancel</a>
             </template>
         </v-client-table>
     </div>
@@ -122,7 +121,7 @@
             cancelTask: function (hostname) {
                 let self = this;
                 Axios.delete(self.$store.state.settings.taskCancelUrl + "?hostname=" + hostname)
-                    .then(function (response) {
+                    .then(function () {
                         let n = new Notification(Notification.LEVEL.SUCCESS, "Cancelled job on " + hostname, TASK_CANCEL_KEY);
                         self.$store.dispatch(action_types.ADD_WITH_TIMEOUT, n);
                         self.addFetchNotification();
@@ -130,7 +129,7 @@
                     .catch(function (error) {
                         console.error(error);
                         self.addFailNotification("Backend: " + error.message);
-                    })
+                    });
             },
             addFailNotification: function (message) {
                 let notification = new Notification(Notification.LEVEL.ERROR, message, TASK_FAIL_KEY);
