@@ -1,8 +1,6 @@
 FROM openjdk:8-jdk-alpine
 # This is the dockerfile to production usage! Make sure that the build context is the parent directory, not '.' .
 
-USER root
-
 WORKDIR /usr/src/clustercode
 
 ENV \
@@ -28,16 +26,15 @@ EXPOSE \
 
 CMD ["/usr/src/clustercode/docker-entrypoint.sh"]
 
+COPY . ./
+
 RUN \
-    mkdir /run/nginx && \
+    echo "#### Installing alpine packages" && \
     apk update && \
     apk upgrade && \
-    apk add --no-cache ffmpeg nginx supervisor openssl tree
-
-COPY . ./
-RUN \
+    apk add --no-cache ffmpeg nginx supervisor openssl tree nodejs-current-npm unzip && \
+    mkdir /run/nginx && \
     echo "#### Installing Gradle" && \
-    apk add --no-cache unzip && \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
     unzip -q gradle.zip && \
     rm gradle.zip && \
@@ -45,8 +42,7 @@ RUN \
     gradle-${GRADLE_VERSION}/bin/gradle -w fullBuild generateSwaggerDocumentation && \
     mv build/libs/clustercode.jar clustercode.jar && \
     mv build/swagger/* static/ && \
-    echo "#### Installing node and packages" && \
-    apk add --no-cache nodejs-current-npm && \
+    echo "#### Installing node packages" && \
     npm install --quiet --no-optional && \
     echo "#### Bulding clustercode-admin" && \
     npm run build && \
