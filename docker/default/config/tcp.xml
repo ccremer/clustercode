@@ -14,7 +14,7 @@
               thread_pool.max_threads="20"
               thread_pool.keep_alive_time="30000"/>
 
-    <TCPPING async_discovery="true"
+    <TCPPING async_discovery="false"
              initial_hosts="${jgroups.tcpping.initial_hosts:localhost[7600]}"
              port_range="3"/>
     <MERGE3  min_interval="10000"
@@ -34,6 +34,6 @@
     <FRAG2 frag_size="60K"  />
     <FORK config="config/fork.xml"/>
     <RSVP resend_interval="2000" timeout="10000"/>
-    <pbcast.STATE/>
+    <pbcast.STATE_TRANSFER/>
 </config>
 

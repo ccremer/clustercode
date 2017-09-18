@@ -45,6 +45,6 @@
     <FRAG2 frag_size="60K"/>
     <FORK config="config/fork.xml"/>
     <RSVP resend_interval="2000" timeout="10000"/>
-    <pbcast.STATE_TRANSFER/>
+    <pbcast.STATE/>
 </config>
 
