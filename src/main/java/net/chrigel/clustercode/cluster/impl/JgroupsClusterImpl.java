@@ -57,10 +57,6 @@ class JgroupsClusterImpl
             channel.setName(settings.getHostname());
             channel.connect(settings.getClusterName());
 
-            if (executor != null) executor.shutdown();
-            executor = Executors.newSingleThreadScheduledExecutor();
-            executor.scheduleAtFixedRate(taskState::removeOrphanTasks, 0, 1, TimeUnit.HOURS);
-
             ForkChannel taskChannel = new ForkChannel(channel, "tasks", "tasks_ch");
             taskChannel.connect(settings.getClusterName());
             taskState.initialize(taskChannel, channel.getAddressAsString());
@@ -68,6 +64,10 @@ class JgroupsClusterImpl
             ForkChannel rpcChannel = new ForkChannel(channel, "rpc", "rpc_ch");
             rpcChannel.connect(settings.getClusterName());
             messageDispatcher.initialize(rpcChannel, channel.getAddressAsString());
+
+            if (executor != null) executor.shutdown();
+            executor = Executors.newSingleThreadScheduledExecutor();
+            executor.scheduleAtFixedRate(taskState::removeOrphanTasks, 1, 1, TimeUnit.MINUTES);
 
             log.info("Joined cluster {} with {} member(s).",
                 channel.getClusterName(), channel.getView().getMembers().size());

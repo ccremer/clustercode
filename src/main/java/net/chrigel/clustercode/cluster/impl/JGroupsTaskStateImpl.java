@@ -9,7 +9,6 @@ import org.jgroups.JChannel;
 import org.jgroups.blocks.ReplicatedHashMap;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
@@ -21,16 +20,12 @@ import java.util.List;
 @XSlf4j
 public class JGroupsTaskStateImpl implements JGroupsTaskState {
 
-
-    private final JgroupsClusterSettings settings;
     private final Clock clock;
     private ReplicatedHashMap<String, ClusterTask> map;
     private String hostname;
 
     @Inject
-    JGroupsTaskStateImpl(JgroupsClusterSettings settings,
-                         Clock clock) {
-        this.settings = settings;
+    JGroupsTaskStateImpl(Clock clock) {
         this.clock = clock;
     }
 
@@ -78,7 +73,14 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
         if (map.containsKey(address)) {
             log.debug("Updating media state.");
             clusterTask.setLastUpdated(getCurrentUtcTime());
+            /*
+            We don't use replace method. If another node does not have the key, it won't get added.
+            So we remove it, if it exists and re-add (just to be sure, the docs don't specify whether replace adds if
+             missing).
             map.replace(address, clusterTask);
+             */
+            map.remove(address);
+            map.put(address, clusterTask);
         } else {
             map.put(address, clusterTask);
             log.info("{} accepted in cluster.", clusterTask);
@@ -87,7 +89,7 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
 
     @Override
     public ClusterTask getCurrentTask() {
-        return null;
+        return map.get(getChannelAddress());
     }
 
     @Override
@@ -116,8 +118,8 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
         map.entrySet()
             .removeIf(entry -> entry
                 .getValue()
-                .getDateAdded()
-                .plusHours(settings.getTaskTimeout())
+                .getLastUpdated()
+                .plusMinutes(1)
                 .isBefore(current));
     }
 

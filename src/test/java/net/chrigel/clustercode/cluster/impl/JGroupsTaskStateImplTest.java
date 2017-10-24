@@ -23,21 +23,18 @@ public class JGroupsTaskStateImplTest implements FileBasedUnitTest {
     private JGroupsTaskStateImpl subject;
 
     @Mock
-    private JgroupsClusterSettings settings;
-    @Mock
     private Media candidate;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        subject = new JGroupsTaskStateImpl(settings, Clock.systemDefaultZone());
+        subject = new JGroupsTaskStateImpl(Clock.systemDefaultZone());
     }
 
     @Test
     public void getCurrentUtcTime_ShouldReturnTimeInUtc() throws Exception {
-        subject = new JGroupsTaskStateImpl(settings,
-            Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
+        subject = new JGroupsTaskStateImpl(Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
         ZonedDateTime time = subject.getCurrentUtcTime();
         assertThat(time.getHour()).isEqualTo(13);
         assertThat(time.getMinute()).isEqualTo(30);
