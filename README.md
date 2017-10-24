@@ -2,19 +2,20 @@
 
 Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
 
+![clustercode_webadmin](https://user-images.githubusercontent.com/12159026/31952107-193afa02-b8e0-11e7-9f88-8d3d20e0d84c.png)
+
 ## Features
 
 * Scans and encodes video files from a directory and encodes them using customizable profiles.
 * Encoded files are stored in an output directory.
-* Major video formats supported: x264, x265 (HEVC), ...
 * Take advantage of having multiple computers: Each node encodes a video, enabling parallelization.
-* Works as a single node too
-* No designated master. Whoever is "first" in the network, becomes master
+* Works as a single node too.
+* No designated master. All nodes share the same state.
 * Supports arbiter nodes for providing a quorum. Quorums are needed to prevent a split-brain. Useful if you
 have a spare Raspberry Pi or NAS that is just poor at encoding.
 * Several and different cleanup strategies.
 * Supports Handbrake and ffmpeg
-* Basic REST API (more to come)
+* Basic REST API
 
 ## Installation
 
@@ -54,7 +55,7 @@ contact the local node. Use the physical address of the docker host.
 ### Docker Compose, Swarm mode
 
 **This is untested**, as I don't have a Swarm. Just make sure to limit the CPU
-resources somehow, so that other containers still work reliably. I figure that
+resources somehow, so that other containers still work reliably. I'm assuming that
 encoding is a low-priority service that takes forever anyway.
 ```
 version: "3.2"
@@ -92,7 +93,7 @@ in order to have them persistent.
 
 ## Project status
 
-Active Development as of August/September 2017.
+Sporadic Maintenance as of October 2017. University and stuff...
 
 ## Future Plans
 
@@ -100,7 +101,7 @@ Active Development as of August/September 2017.
 - [ ] More control with REST
 - [x] [netdata](https://my-netdata.io/) plugin for progress monitoring.
 - [x] Smooth-ier Windows deployment.
-- [ ] Web-Admin (if I have spare time...)
+- [x] Web-Admin
 
 ## Docker Tags
 
@@ -110,7 +111,7 @@ Active Development as of August/September 2017.
 
 ## SSL
 
-The REST API is easy to support with SSL/https. Just put a reverse proxy in front of clustercode
+The REST API and WebAdmin are easy to support with SSL/https. Just put a reverse proxy in front of clustercode
 that handles https client connections and forwards the request via http to clustercode.
 Check out https://github.com/jwilder/nginx-proxy for an excellent docker nginx proxy with SSL support.
 
