@@ -19,7 +19,7 @@
 
 # use x264 encoder
 -c:v libx264
--preset ultrafast
+-preset medium
 # set parameter for libx264
 -crf 24
 

@@ -21,7 +21,7 @@
 
 # use x265 encoder
 -c:v libx265
--preset faster
+-preset medium
 # set parameter for libx265
 -x265-params ctu=32:max-tu-size=16:crf=23:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44
 
