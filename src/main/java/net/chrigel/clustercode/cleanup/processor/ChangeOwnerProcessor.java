@@ -36,6 +36,7 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
     }
 
     private void checkSettings() {
+        enabled = true;
         if (!cleanupSettings.getGroupId().isPresent() || !cleanupSettings.getUserId().isPresent()) {
             log.warn("User and/or Group ID not set. Please set {} and {} accordingly. This strategy will be ignored.",
                 CleanupModule.CLEANUP_OWNER_GROUP_KEY, CleanupModule.CLEANUP_OWNER_USER_KEY);

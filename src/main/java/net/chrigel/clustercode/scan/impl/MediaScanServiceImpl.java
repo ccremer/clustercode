@@ -67,7 +67,7 @@ class MediaScanServiceImpl implements MediaScanService {
             .withRecursion(true)
             .withFileExtensions(scanSettings.getAllowedExtensions())
             .whileSkippingExtraFilesWith(scanSettings.getSkipExtension())
-            .whileSkippingExtraFilesIn(cleanupSettings.getMarkSourceDirectory())
+            .whileSkippingExtraFilesIn(cleanupSettings.getMarkSourceDirectory().orElse(null))
             .streamAndIgnoreErrors()
             .map(file -> buildMedia(path, file))
             .peek(candidate -> log.info("Found file: {}", candidate))

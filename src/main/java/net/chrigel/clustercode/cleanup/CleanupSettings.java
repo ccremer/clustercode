@@ -30,7 +30,7 @@ public interface CleanupSettings {
     /**
      * Gets the root path of the directory in which the sources should get marked as done.
      *
-     * @return the path, not null.
+     * @return the path or empty.
      */
-    Path getMarkSourceDirectory();
+    Optional<Path> getMarkSourceDirectory();
 }

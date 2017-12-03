@@ -13,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -47,7 +48,7 @@ public class MarkSourceDirProcessorTest implements FileBasedUnitTest {
         transcodeResult.setSuccessful(true);
         when(mediaScanSettings.getSkipExtension()).thenReturn(".done");
         when(mediaScanSettings.getBaseInputDir()).thenReturn(inputDir);
-        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(markDir);
+        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(Optional.of(markDir));
         subject = new MarkSourceDirProcessor(mediaScanSettings, cleanupSettings);
     }
 

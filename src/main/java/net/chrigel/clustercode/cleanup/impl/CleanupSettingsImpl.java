@@ -16,14 +16,12 @@ class CleanupSettingsImpl implements CleanupSettings {
     private final boolean overwriteFiles;
     private Integer userId;
     private Integer groupId;
-    private final Path markSourceDirectory;
+    private Path markSourceDirectory;
 
     @Inject
     CleanupSettingsImpl(@Named(CleanupModule.CLEANUP_OUTPUT_DIR_KEY) String outputDirectory,
-                        @Named(CleanupModule.CLEANUP_OUTPUT_OVERWRITE_KEY) boolean overwriteFiles,
-                        @Named(CleanupModule.CLEANUP_MARK_SOURCE_DIR_KEY) String markSourceDir) {
+                        @Named(CleanupModule.CLEANUP_OUTPUT_OVERWRITE_KEY) boolean overwriteFiles) {
         this.outputDirectory = FilesystemProvider.getInstance().getPath(outputDirectory);
-        this.markSourceDirectory = FilesystemProvider.getInstance().getPath(markSourceDir);
         this.overwriteFiles = overwriteFiles;
     }
 
@@ -35,6 +33,11 @@ class CleanupSettingsImpl implements CleanupSettings {
     @Inject(optional = true)
     void setGroupId(@Named(CleanupModule.CLEANUP_OWNER_GROUP_KEY) Integer groupId) {
         this.groupId = groupId;
+    }
+
+    @Inject(optional = true)
+    void setMarkSourceDirectory(@Named(CleanupModule.CLEANUP_MARK_SOURCE_DIR_KEY) String markSourceDirectory) {
+        this.markSourceDirectory = FilesystemProvider.getInstance().getPath(markSourceDirectory);
     }
 
     @Override
@@ -58,7 +61,7 @@ class CleanupSettingsImpl implements CleanupSettings {
     }
 
     @Override
-    public Path getMarkSourceDirectory() {
-        return markSourceDirectory;
+    public Optional<Path> getMarkSourceDirectory() {
+        return Optional.ofNullable(markSourceDirectory);
     }
 }

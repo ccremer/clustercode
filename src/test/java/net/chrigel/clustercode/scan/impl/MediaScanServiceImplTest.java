@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -37,7 +38,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
         when(scanSettings.getAllowedExtensions()).thenReturn(Arrays.asList(".mp4"));
         when(scanSettings.getBaseInputDir()).thenReturn(getPath("input"));
         when(scanSettings.getSkipExtension()).thenReturn(".done");
-        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(getPath("mark"));
+        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(Optional.of(getPath("mark")));
 
         inputDir = scanSettings.getBaseInputDir();
         subject = new MediaScanServiceImpl(scanSettings, FileScannerImpl::new, cleanupSettings);
@@ -76,7 +77,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
         Path file11 = createFile(dir1.resolve("file11.mp4"));
         createFile(dir1.resolve("file12.mp4"));
-        createFile(cleanupSettings.getMarkSourceDirectory().resolve("1").resolve("file12.mp4.done"));
+        createFile(cleanupSettings.getMarkSourceDirectory().get().resolve("1").resolve("file12.mp4.done"));
 
         List<Media> result = subject.getListOfMediaFiles(dir1);
 

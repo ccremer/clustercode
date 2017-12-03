@@ -67,7 +67,7 @@ class FileScannerImpl
 
     @Override
     public FileScanner whileSkippingExtraFilesIn(Path dir) {
-        this.skipDirectory = Optional.of(dir);
+        this.skipDirectory = Optional.ofNullable(dir);
         return this;
     }
 

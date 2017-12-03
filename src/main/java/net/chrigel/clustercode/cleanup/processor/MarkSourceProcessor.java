@@ -17,30 +17,33 @@ public class MarkSourceProcessor
     extends AbstractMarkSourceProcessor
     implements CleanupProcessor {
 
-    private final MediaScanSettings mediaScanSettings;
-
     @Inject
     MarkSourceProcessor(MediaScanSettings mediaScanSettings) {
-        this.mediaScanSettings = mediaScanSettings;
+        super(mediaScanSettings);
     }
 
     @Override
-    public CleanupContext processStep(CleanupContext context) {
-        log.entry(context);
-        Path source = mediaScanSettings.getBaseInputDir().resolve(
-            context.getTranscodeResult().getMedia().getSourcePath());
+    protected CleanupContext doProcessStep(CleanupContext context) {
+        Path source = getSourcePath(context);
+
         Path marked = source.resolveSibling(source.getFileName().toString() + mediaScanSettings.getSkipExtension());
 
+        createMarkFile(marked, source);
+        return context;
+    }
+
+    @Override
+    protected boolean isStepValid(CleanupContext context) {
+        Path source = getSourcePath(context);
         if (!context.getTranscodeResult().isSuccessful()) {
             log.warn("Not marking {} as done, since transcoding failed.", source);
-            return log.exit(context);
+            return false;
         }
-
-        if (!Files.exists(source)) return LogUtil.logWarnAndExit(context, log,
-            "Not marking {} as done, since the file does not exist (anymore).", source);
-
-        createMarkFile(marked, source);
-        return log.exit(context);
+        if (!Files.exists(source)) {
+            log.warn("Not marking {} as done, since the file does not exist (anymore).", source);
+            return false;
+        }
+        return true;
     }
 
 }

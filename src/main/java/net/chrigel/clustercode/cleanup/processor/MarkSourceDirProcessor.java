@@ -3,13 +3,15 @@ package net.chrigel.clustercode.cleanup.processor;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupSettings;
+import net.chrigel.clustercode.cleanup.impl.CleanupModule;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.FileUtil;
+import net.chrigel.clustercode.util.InvalidConfigurationException;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Provides a processor which marks the source file as done in a designated directory, so that it would not be
@@ -19,38 +21,52 @@ public class MarkSourceDirProcessor
     extends AbstractMarkSourceProcessor
     implements CleanupProcessor {
 
-    private final MediaScanSettings mediaScanSettings;
     private final CleanupSettings cleanupSettings;
 
     @Inject
     MarkSourceDirProcessor(MediaScanSettings mediaScanSettings,
                            CleanupSettings cleanupSettings) {
-        this.mediaScanSettings = mediaScanSettings;
+        super(mediaScanSettings);
         this.cleanupSettings = cleanupSettings;
+        checkSettings();
+    }
+
+    private void checkSettings() {
+        if (!cleanupSettings.getMarkSourceDirectory().isPresent()) {
+            RuntimeException ex = new InvalidConfigurationException(
+                "{} is not set. You cannot use the {} strategy without setting this directory.",
+                CleanupModule.CLEANUP_MARK_SOURCE_DIR_KEY, CleanupProcessors.MARK_SOURCE_DIR.name());
+            log.error(ex.getMessage());
+            throw ex;
+        }
     }
 
     @Override
-    public CleanupContext processStep(CleanupContext context) {
-        log.entry(context);
-        Path source = mediaScanSettings.getBaseInputDir().resolve(
-            context.getTranscodeResult().getMedia().getSourcePath());
-
-        if (!context.getTranscodeResult().isSuccessful()) {
-            log.warn("Not marking {} as done, since transcoding failed.", source);
-            return log.exit(context);
-        }
-
-        if (!Files.exists(source)) {
-            log.warn("Not marking {} as done, since the file does not exist (anymore).", source);
-            return log.exit(context);
-        }
+    protected CleanupContext doProcessStep(CleanupContext context) {
+        Path source = getSourcePath(context);
 
         Path marked = createOutputDirectoryTree(
             mediaScanSettings.getBaseInputDir().relativize(source.resolveSibling(
                 source.getFileName().toString() + mediaScanSettings.getSkipExtension())));
 
         createMarkFile(marked, source);
-        return log.exit(context);
+        return context;
+    }
+
+    @Override
+    protected boolean isStepValid(CleanupContext context) {
+        Path source = getSourcePath(context);
+
+        if (!context.getTranscodeResult().isSuccessful()) {
+            log.warn("Not marking {} as done, since transcoding failed.", source);
+            return false;
+        }
+
+        if (!Files.exists(source)) {
+            log.warn("Not marking {} as done, since the file does not exist (anymore).", source);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -67,7 +83,7 @@ public class MarkSourceDirProcessor
      * @return the target as described.
      */
     Path createOutputDirectoryTree(Path mediaSource) {
-        Path target = cleanupSettings.getMarkSourceDirectory().resolve(mediaSource);
+        Path target = cleanupSettings.getMarkSourceDirectory().orElse(Paths.get("")).resolve(mediaSource);
         FileUtil.createParentDirectoriesFor(target);
         return target;
     }
