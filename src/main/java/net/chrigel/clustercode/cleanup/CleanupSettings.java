@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.cleanup;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface CleanupSettings {
 
@@ -19,12 +20,12 @@ public interface CleanupSettings {
     /**
      * Gets the group id of the new owner of the output file(s).
      */
-    int getGroupId();
+    Optional<Integer> getGroupId();
 
     /**
      * Gets the user id of the new owner of the output file(s).
      */
-    int getUserId();
+    Optional<Integer> getUserId();
 
     /**
      * Gets the root path of the directory in which the sources should get marked as done.

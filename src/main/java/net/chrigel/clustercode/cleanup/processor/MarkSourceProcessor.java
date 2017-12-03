@@ -28,7 +28,7 @@ public class MarkSourceProcessor
     public CleanupContext processStep(CleanupContext context) {
         log.entry(context);
         Path source = mediaScanSettings.getBaseInputDir().resolve(
-                context.getTranscodeResult().getMedia().getSourcePath());
+            context.getTranscodeResult().getMedia().getSourcePath());
         Path marked = source.resolveSibling(source.getFileName().toString() + mediaScanSettings.getSkipExtension());
 
         if (!context.getTranscodeResult().isSuccessful()) {
@@ -37,7 +37,7 @@ public class MarkSourceProcessor
         }
 
         if (!Files.exists(source)) return LogUtil.logWarnAndExit(context, log,
-                "Not marking {} as done, since the file does not exist (anymore).", source);
+            "Not marking {} as done, since the file does not exist (anymore).", source);
 
         createMarkFile(marked, source);
         return log.exit(context);

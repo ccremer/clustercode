@@ -4,9 +4,9 @@ import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupSettings;
+import net.chrigel.clustercode.cleanup.impl.CleanupModule;
 import net.chrigel.clustercode.process.ExternalProcess;
 import net.chrigel.clustercode.util.InvalidConfigurationException;
-import net.chrigel.clustercode.util.LogUtil;
 import net.chrigel.clustercode.util.Platform;
 
 import javax.inject.Inject;
@@ -22,52 +22,74 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
 
     private final CleanupSettings cleanupSettings;
     private final Provider<ExternalProcess> externalProcessProvider;
+    private boolean enabled;
 
     @Inject
     ChangeOwnerProcessor(
-            CleanupSettings cleanupSettings,
-            Provider<ExternalProcess> externalProcessProvider) {
+        CleanupSettings cleanupSettings,
+        Provider<ExternalProcess> externalProcessProvider) {
         this.cleanupSettings = cleanupSettings;
         this.externalProcessProvider = externalProcessProvider;
-        checkId(cleanupSettings.getGroupId());
-        checkId(cleanupSettings.getUserId());
+        cleanupSettings.getUserId().ifPresent(this::checkId);
+        cleanupSettings.getGroupId().ifPresent(this::checkId);
+        checkSettings();
+    }
+
+    private void checkSettings() {
+        if (!cleanupSettings.getGroupId().isPresent() || !cleanupSettings.getUserId().isPresent()) {
+            log.warn("User and/or Group ID not set. Please set {} and {} accordingly. This strategy will be ignored.",
+                CleanupModule.CLEANUP_OWNER_GROUP_KEY, CleanupModule.CLEANUP_OWNER_USER_KEY);
+            enabled = false;
+        }
+        if (Platform.currentPlatform() == Platform.WINDOWS) {
+            log.warn("Changing owner on Windows is not supported. This strategy will be ignored.");
+            enabled = false;
+        }
     }
 
     @Override
     public CleanupContext processStep(CleanupContext context) {
         log.entry(context);
 
-        if (context.getOutputPath() == null)
-            return LogUtil.logWarnAndExit(context, log,
-                    "Output file has not been created yet. Are you sure you have " +
-                            "configured the cleanup strategies correctly?");
-
-        if (Platform.currentPlatform() == Platform.WINDOWS)
-            return LogUtil.logWarnAndExit(context, log, "Cowardly refusing to change the owner on Windows.");
+        if (!isStepValid(context)) return log.exit(context);
 
         Path outputFile = context.getOutputPath();
         List<String> args = buildArguments(outputFile);
 
         log.info("Changing owner of {} to {}.", outputFile, args.get(0));
         Optional<Integer> exitCode = externalProcessProvider.get()
-                .withExecutablePath(Paths.get("/bin", "chown"))
-                .withIORedirected(true)
-                .withArguments(args)
-                .start();
+            .withExecutablePath(Paths.get("/bin", "chown"))
+            .withIORedirected(true)
+            .withArguments(args)
+            .start();
 
         exitCode.ifPresent(code -> {
             if (code > 0) log.warn(
-                    "Could not change owner of {}. Exit code of 'chown' with arguments {} was {}.",
-                    outputFile, args, code);
+                "Could not change owner of {}. Exit code of 'chown' with arguments {} was {}.",
+                outputFile, args, code);
         });
 
         return log.exit(context);
     }
 
+    private boolean isStepValid(CleanupContext context) {
+        if (!enabled) {
+            log.debug("This processor is disabled.");
+            return false;
+        }
+
+        if (context.getOutputPath() == null) {
+            log.warn("Output file has not been created yet. Are you sure you have " +
+                "configured the cleanup strategies correctly?");
+            return false;
+        }
+        return true;
+    }
+
     private List<String> buildArguments(Path outputFile) {
         return Arrays.asList(
-                cleanupSettings.getUserId() + ":" + cleanupSettings.getGroupId(),
-                outputFile.toString());
+            cleanupSettings.getUserId().orElse(65534) + ":" + cleanupSettings.getGroupId().orElse(65534),
+            outputFile.toString());
     }
 
     private void checkId(int id) {
