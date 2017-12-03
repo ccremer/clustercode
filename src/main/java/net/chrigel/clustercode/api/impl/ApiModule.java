@@ -30,12 +30,12 @@ public class ApiModule extends AbstractPropertiesModule {
 
         bind(StateMachineMonitor.class).to(StateMachineMonitorImpl.class).in(Singleton.class);
 
-        String restEnabled = getEnvironmentVariableOrProperty(properties, REST_ENABLED_KEY);
+        String restEnabled = getEnvironmentVariableOrPropertyIgnoreError(properties, REST_ENABLED_KEY, "true");
         String restPort = getEnvironmentVariableOrProperty(properties, REST_PORT_KEY);
-        if ("true".equalsIgnoreCase(restEnabled)) {
-            installJersey(Integer.valueOf(restPort));
-        } else {
+        if ("false".equalsIgnoreCase(restEnabled)) {
             bind(RestApiServices.class).to(DisabledApiService.class);
+        } else {
+            installJersey(Integer.valueOf(restPort));
         }
 
         bind(new TypeLiteral<ProgressReportAdapter<FfmpegProgressReport>>() {

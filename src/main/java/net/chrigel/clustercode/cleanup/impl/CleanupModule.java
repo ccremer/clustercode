@@ -46,9 +46,9 @@ public class CleanupModule extends AbstractPropertiesModule {
         }
 
         ModuleHelper.checkStrategiesForIncompatibilities(strategies, CLEANUP_STRATEGY_KEY,
-                CleanupProcessors.STRUCTURED_OUTPUT.name(), CleanupProcessors.UNIFIED_OUTPUT.name());
+            CleanupProcessors.STRUCTURED_OUTPUT.name(), CleanupProcessors.UNIFIED_OUTPUT.name());
         ModuleHelper.checkStrategiesForIncompatibilities(strategies, CLEANUP_STRATEGY_KEY,
-                CleanupProcessors.DELETE_SOURCE.name(), CleanupProcessors.MARK_SOURCE.name());
+            CleanupProcessors.DELETE_SOURCE.name(), CleanupProcessors.MARK_SOURCE.name());
 
     }
 
