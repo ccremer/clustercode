@@ -1,35 +1,19 @@
 package net.chrigel.clustercode;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import net.chrigel.clustercode.cleanup.impl.CleanupModule;
-import net.chrigel.clustercode.cluster.impl.ClusterModule;
-import net.chrigel.clustercode.constraint.impl.ConstraintModule;
 import net.chrigel.clustercode.api.RestApiServices;
-import net.chrigel.clustercode.api.impl.ApiModule;
-import net.chrigel.clustercode.process.impl.ProcessModule;
-import net.chrigel.clustercode.scan.impl.ScanModule;
 import net.chrigel.clustercode.statemachine.StateMachineService;
-import net.chrigel.clustercode.statemachine.actions.ActionModule;
-import net.chrigel.clustercode.statemachine.states.StateMachineModule;
-import net.chrigel.clustercode.transcode.impl.TranscodeModule;
 import net.chrigel.clustercode.util.ConfigurationHelper;
-import net.chrigel.clustercode.util.di.EnvironmentModule;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.jar.Manifest;
 
 /**
  * Provides the entry point of the application. The main method expects the path to the configuration file as an
@@ -62,35 +46,10 @@ public class Startup {
 
         Properties config = getProperties(args.length >= 1 ? args[0] : null);
 
-        log.debug("Creating guice modules...");
-        List<Module> modules = new LinkedList<>();
+        GuiceContainer container = new GuiceContainer(config);
 
-        modules.add(new CleanupModule(config));
-        modules.add(new ClusterModule());
-        modules.add(new ConstraintModule(config));
-        modules.add(new ProcessModule());
-        modules.add(new ScanModule(config));
-        modules.add(new TranscodeModule(config));
-        modules.add(new StateMachineModule());
-        modules.add(new ActionModule());
-        modules.add(new EnvironmentModule(config));
-        modules.add(new ApiModule(config));
-
-        log.info("Booting clustercode {}...", getApplicationVersion());
-        Injector injector = Guice.createInjector(modules);
-
-        injector.getInstance(RestApiServices.class).start();
-        injector.getInstance(StateMachineService.class).initialize();
-    }
-
-    private static String getApplicationVersion() {
-        InputStream stream = ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF");
-        try {
-            return new Manifest(stream).getMainAttributes().getValue("Implementation-Version");
-        } catch (IOException | NullPointerException e) {
-            log.catching(e);
-        }
-        return "unknown-version";
+        container.getInstance(RestApiServices.class).start();
+        container.getInstance(StateMachineService.class).initialize();
     }
 
     private static Properties getProperties(String arg) throws IOException {

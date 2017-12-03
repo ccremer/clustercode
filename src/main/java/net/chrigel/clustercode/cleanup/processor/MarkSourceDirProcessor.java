@@ -1,12 +1,10 @@
 package net.chrigel.clustercode.cleanup.processor;
 
-import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.FileUtil;
-import net.chrigel.clustercode.util.LogUtil;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -17,8 +15,9 @@ import java.nio.file.Path;
  * Provides a processor which marks the source file as done in a designated directory, so that it would not be
  * rescheduled for transcoding during the next scan.
  */
-@XSlf4j
-public class MarkSourceDirProcessor implements CleanupProcessor {
+public class MarkSourceDirProcessor
+    extends AbstractMarkSourceProcessor
+    implements CleanupProcessor {
 
     private final MediaScanSettings mediaScanSettings;
     private final CleanupSettings cleanupSettings;
@@ -50,14 +49,7 @@ public class MarkSourceDirProcessor implements CleanupProcessor {
             mediaScanSettings.getBaseInputDir().relativize(source.resolveSibling(
                 source.getFileName().toString() + mediaScanSettings.getSkipExtension())));
 
-        try {
-            log.debug("Creating file {}", marked);
-            Files.createFile(marked);
-        } catch (IOException e) {
-            log.error("Could not create file {}: {}", marked, e.getMessage());
-            log.warn("It may be possible that {} will be scheduled for transcoding again, as it could not be " +
-                "marked as done.", source);
-        }
+        createMarkFile(marked, source);
         return log.exit(context);
     }
 
