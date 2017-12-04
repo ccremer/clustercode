@@ -1,11 +1,12 @@
 package net.chrigel.clustercode.scan.impl;
 
+import com.google.inject.Inject;
+import lombok.Getter;
 import lombok.ToString;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.util.FilesystemProvider;
 import net.chrigel.clustercode.util.InvalidConfigurationException;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -13,23 +14,21 @@ import java.util.LinkedList;
 import java.util.List;
 
 @ToString
-class MediaScanSettingsImpl implements MediaScanSettings {
+@Getter
+public class MediaScanSettingsImpl implements MediaScanSettings {
 
-    private final String skip;
+    private String skipExtension;
     private final Path baseInputDir;
-    private final List<String> extensionList;
-    private final long scanInterval;
+    private List<String> allowedExtensions;
+    private long mediaScanInterval = 30;
 
     @Inject
-    MediaScanSettingsImpl(@Named(ScanModule.MEDIA_INPUT_DIR_KEY) String baseDir,
-                          @Named(ScanModule.MEDIA_EXTENSIONS_KEY) String extensions,
-                          @Named(ScanModule.MEDIA_SKIP_NAME_KEY) String skip,
-                          @Named(ScanModule.MEDIA_SCAN_INTERVAL_KEY) long scanInterval) {
-        this.skip = skip;
+    MediaScanSettingsImpl(
+        @Named(ScanModule.MEDIA_INPUT_DIR_KEY) String baseDir
+    ) {
         this.baseInputDir = FilesystemProvider.getInstance().getPath(baseDir);
-        this.extensionList = new LinkedList<>(Arrays.asList(extensions.split(",")));
-        checkInterval(scanInterval);
-        this.scanInterval = scanInterval;
+        setAllowedExtensions("mkv,mp4,avi");
+        setMediaScanInterval(mediaScanInterval);
     }
 
     private void checkInterval(long scanInterval) {
@@ -38,23 +37,20 @@ class MediaScanSettingsImpl implements MediaScanSettings {
         }
     }
 
-    @Override
-    public Path getBaseInputDir() {
-        return baseInputDir;
+    @Inject(optional = true)
+    void setSkipExtension(@Named(ScanModule.MEDIA_SKIP_NAME_KEY) String skipExtension) {
+        this.skipExtension = skipExtension;
     }
 
-    @Override
-    public List<String> getAllowedExtensions() {
-        return extensionList;
+    @Inject(optional = true)
+    void setMediaScanInterval(@Named(ScanModule.MEDIA_SCAN_INTERVAL_KEY) long mediaScanInterval) {
+        checkInterval(mediaScanInterval);
+        this.mediaScanInterval = mediaScanInterval;
     }
 
-    @Override
-    public String getSkipExtension() {
-        return skip;
+    @Inject(optional = true)
+    void setAllowedExtensions(@Named(ScanModule.MEDIA_EXTENSIONS_KEY) String allowedExtensions) {
+        this.allowedExtensions = new LinkedList<>(Arrays.asList(allowedExtensions.split(",")));
     }
 
-    @Override
-    public long getMediaScanInterval() {
-        return scanInterval;
-    }
 }

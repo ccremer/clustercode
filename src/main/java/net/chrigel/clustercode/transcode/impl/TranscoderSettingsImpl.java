@@ -1,59 +1,58 @@
 package net.chrigel.clustercode.transcode.impl;
 
+import com.google.inject.Inject;
+import lombok.Getter;
 import lombok.ToString;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.util.FilesystemProvider;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import java.nio.file.Path;
 import java.util.Locale;
 
 @ToString
+@Getter
 class TranscoderSettingsImpl implements TranscoderSettings {
 
-    private final boolean ioRedirected;
-    private final Path executable;
-    private final Path tempDir;
-    private final String defaultExtension;
-    private final Transcoder type;
+    private boolean isIoRedirected;
+    private Path transcoderExecutable;
+    private Path tempDir;
+    private String defaultVideoExtension = ".mkv";
+    private Transcoder transcoderType = Transcoder.FFMPEG;
 
-    @Inject
-    TranscoderSettingsImpl(@Named(TranscodeModule.TRANSCODE_CLI_KEY) String executable,
-                           @Named(TranscodeModule.TRANSCODE_TEMPDIR_KEY) String tempDir,
-                           @Named(TranscodeModule.TRANSCODE_IO_REDIRECTED_KEY) boolean ioRedirected,
-                           @Named(TranscodeModule.TRANSCODE_DEFAULT_FORMAT_KEY) String defaultExtension,
-                           @Named(TranscodeModule.TRANSCODE_TYPE) String type) {
-        this.ioRedirected = ioRedirected;
-        this.executable = FilesystemProvider.getInstance().getPath(executable);
+    TranscoderSettingsImpl() {
+        setExecutable("/usr/bin/ffmpeg");
+        setTempDir("/var/tmp/clustercode");
+    }
+
+    @Inject(optional = true)
+    void setTranscoderType(@Named(TranscodeModule.TRANSCODE_TYPE_KEY) String transcoderType) {
+        this.transcoderType = Transcoder.valueOf(transcoderType.toUpperCase(Locale.ENGLISH));
+    }
+
+    @Inject(optional = true)
+    void setExecutable(@Named(TranscodeModule.TRANSCODE_CLI_KEY) String executable) {
+        this.transcoderExecutable = FilesystemProvider.getInstance().getPath(executable);
+    }
+
+    @Inject(optional = true)
+    void setIoRedirected(@Named(TranscodeModule.TRANSCODE_IO_REDIRECTED_KEY) boolean isIoRedirected) {
+        this.isIoRedirected = isIoRedirected;
+    }
+
+    @Inject(optional = true)
+    void setDefaultVideoExtension(@Named(TranscodeModule.TRANSCODE_DEFAULT_FORMAT_KEY) String defaultVideoExtension) {
+        this.defaultVideoExtension = defaultVideoExtension;
+    }
+
+    @Inject(optional = true)
+    void setTempDir(@Named(TranscodeModule.TRANSCODE_TEMPDIR_KEY) String tempDir) {
         this.tempDir = FilesystemProvider.getInstance().getPath(tempDir);
-        this.defaultExtension = defaultExtension;
-        this.type = Transcoder.valueOf(type.toUpperCase(Locale.ENGLISH));
-    }
-
-    @Override
-    public Path getTranscoderExecutable() {
-        return executable;
-    }
-
-    @Override
-    public boolean isIoRedirected() {
-        return ioRedirected;
     }
 
     @Override
     public Path getTemporaryDir() {
         return tempDir;
-    }
-
-    @Override
-    public String getDefaultVideoExtension() {
-        return defaultExtension;
-    }
-
-    @Override
-    public Transcoder getTranscoderType() {
-        return type;
     }
 
 }

@@ -31,6 +31,7 @@ public class GuiceContainer {
         log.debug("Creating guice modules...");
         List<Module> modules = new LinkedList<>();
 
+        modules.add(new GlobalModule());
         modules.add(new CleanupModule(config));
         modules.add(new ClusterModule());
         modules.add(new ConstraintModule(config));

@@ -1,12 +1,10 @@
 package net.chrigel.clustercode.constraint.impl;
 
-import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
 import net.chrigel.clustercode.constraint.Constraint;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 import net.chrigel.clustercode.util.di.ModuleHelper;
 
-import java.time.Clock;
 import java.util.Properties;
 
 public class ConstraintModule extends AbstractPropertiesModule {
@@ -63,8 +61,4 @@ public class ConstraintModule extends AbstractPropertiesModule {
         }
     }
 
-    @Provides
-    private Clock getSystemClock() {
-        return Clock.systemDefaultZone();
-    }
 }
