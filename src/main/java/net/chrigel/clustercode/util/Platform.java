@@ -17,11 +17,11 @@ public enum Platform {
     public static Platform currentPlatform() {
         if (detectedOS == null) {
             String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-            if ((OS.indexOf("mac") >= 0) || (OS.indexOf("darwin") >= 0)) {
+            if ((OS.contains("mac")) || (OS.contains("darwin"))) {
                 detectedOS = Platform.MAC;
-            } else if (OS.indexOf("win") >= 0) {
+            } else if (OS.contains("win")) {
                 detectedOS = Platform.WINDOWS;
-            } else if (OS.indexOf("nux") >= 0) {
+            } else if (OS.contains("nux")) {
                 detectedOS = Platform.LINUX;
             } else {
                 detectedOS = Platform.OTHER;

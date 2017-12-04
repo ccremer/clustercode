@@ -47,7 +47,7 @@ public class JGroupsMessageDispatcherImpl
     }
 
     private void cancelTaskLocally() {
-        localBus.emit(new Event<>(this, new LocalCancelTaskRequest()));
+        localBus.emit(new Event<>(new LocalCancelTaskRequest()));
     }
 
     @Override

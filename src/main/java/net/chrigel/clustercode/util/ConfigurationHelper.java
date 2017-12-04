@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -28,10 +29,10 @@ public class ConfigurationHelper {
      */
     public static Map<String, String> getEnvironmentalVariablesFromKeys(List<String> keys) {
         return System.getenv()
-                .entrySet()
-                .stream()
-                .filter(entry -> keys.contains(entry.getKey()))
-                .collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+            .entrySet()
+            .stream()
+            .filter(entry -> keys.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     /**
@@ -43,19 +44,19 @@ public class ConfigurationHelper {
      * variables if their keys were found.
      */
     public static Map<String, String> getEnvironmentVariablesWithDefaults(Map<String, String> map) {
-        return Stream.concat(map.entrySet().stream(), getEnvironmentalVariablesFromKeys(map.keySet()
-                .stream().collect(Collectors.toList())).entrySet().stream())
-                .collect(Collectors.toMap(
-                        entry -> entry.getKey(),
-                        entry -> entry.getValue(),
-                        (value1, value2) -> {
-                            if (map.containsValue(value1)) {
-                                return value2;
-                            } else {
-                                return value1;
-                            }
-                        }
-                ));
+        return Stream.concat(map.entrySet().stream(), getEnvironmentalVariablesFromKeys(
+            new ArrayList<>(map.keySet())).entrySet().stream())
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                (value1, value2) -> {
+                    if (map.containsValue(value1)) {
+                        return value2;
+                    } else {
+                        return value1;
+                    }
+                }
+            ));
     }
 
     /**

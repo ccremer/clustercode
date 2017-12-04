@@ -12,6 +12,7 @@ import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
 import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscodingService;
+import net.chrigel.clustercode.util.OptionalFunction;
 
 import javax.inject.Inject;
 import java.util.concurrent.Executors;
@@ -32,7 +33,7 @@ public class TranscodeAction extends Action {
         this.transcodingService = transcodingService;
         this.clusterService = clusterService;
 
-        eventBus.registerEventHandler(LocalCancelTaskRequest.class, this::cancelTask);
+        eventBus.registerEventHandler(LocalCancelTaskRequest.class, OptionalFunction.returningEmpty(this::cancelTask));
         this.eventBus = eventBus;
     }
 

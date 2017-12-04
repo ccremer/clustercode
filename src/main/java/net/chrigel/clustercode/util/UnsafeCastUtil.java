@@ -6,7 +6,7 @@ package net.chrigel.clustercode.util;
 public class UnsafeCastUtil {
 
     private UnsafeCastUtil() {
-        /* not instatiable */
+        /* not instantiable */
     }
 
     /**

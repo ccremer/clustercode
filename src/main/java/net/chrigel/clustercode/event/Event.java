@@ -1,17 +1,28 @@
 package net.chrigel.clustercode.event;
 
 import lombok.Getter;
+import lombok.ToString;
 
-import java.util.EventObject;
+import java.util.Optional;
+import java.util.UUID;
 
-@Getter
-public class Event<T> extends EventObject {
+@ToString
+public class Event<T> {
 
+    @Getter
     private final T payload;
+    private UUID messageID;
 
-    public Event(Object source, T payload) {
-        super(source);
+    public Event(T payload) {
         this.payload = payload;
     }
 
+    public Event(T payload, UUID messageId) {
+        this.payload = payload;
+        this.messageID = messageId;
+    }
+
+    public Optional<UUID> getMessageId() {
+        return Optional.ofNullable(messageID);
+    }
 }
