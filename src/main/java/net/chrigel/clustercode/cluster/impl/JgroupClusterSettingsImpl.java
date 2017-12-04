@@ -1,54 +1,27 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import com.google.inject.Inject;
+import lombok.Getter;
 import lombok.ToString;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 
 @ToString
+@Getter
 class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
 
-    private final String clusterName;
-    private final String jgroupsConfig;
-    private final boolean preferIPv4;
-    private final String bindingAddress;
-    private final int bindingPort;
-    private final String hostname;
-    private final long taskTimeoutHours;
-    private final boolean isArbiter;
+    private String clusterName = "clustercode";
+    private String jgroupsConfigFile = "config/tcp.xml";
+    private boolean isIPv4Preferred = true;
+    private int bindingPort = 7600;
+    private String hostname = "";
+    private boolean isArbiter = false;
+    private String bindingAddress = "127.0.0.1";
 
-    @Inject
-    JgroupClusterSettingsImpl(@Named(ClusterModule.CLUSTER_NAME_KEY) String clusterName,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_CONFIG_KEY) String jgroupsConfig,
-                              @Named(ClusterModule.CLUSTER_PREFER_IPV4_KEY) boolean preferIPv4,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_BIND_ADDR_KEY) String bindingAddress,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_EXTERNAL_ADDR_KEY) String externalAddress,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname,
-                              @Named(ClusterModule.CLUSTER_JGROUPS_TCP_INITAL_HOSTS) String initialHosts,
-                              @Named(ClusterModule.CLUSTER_TASK_TIMEOUT_KEY) long taskTimeoutHours,
-                              @Named(ClusterModule.CLUSTER_IS_ARBITER_NODE_KEY) boolean isArbiter) {
-        checkPort(bindingPort);
-        checkTimeout(taskTimeoutHours);
-        this.isArbiter = isArbiter;
-        this.clusterName = clusterName;
-        this.jgroupsConfig = jgroupsConfig;
-        this.preferIPv4 = preferIPv4;
-        this.bindingAddress = bindingAddress;
-        this.bindingPort = bindingPort;
-        this.hostname = hostname;
-        this.taskTimeoutHours = taskTimeoutHours;
-        System.setProperty("java.net.preferIPv4Stack", String.valueOf(preferIPv4));
-        System.setProperty("jgroups.bind_addr", bindingAddress);
-        System.setProperty("jgroups.tcpping.initial_hosts", initialHosts);
-        System.setProperty("jgroups.bind_port", String.valueOf(bindingPort));
-        if (!"-".equals(externalAddress)) System.setProperty("ext-addr", externalAddress);
-    }
-
-    private void checkTimeout(long taskTimoutHours) {
-        if (taskTimoutHours < 1L) {
-            throw new IllegalArgumentException("ClusterTask timeout must be >= 1, was " + taskTimoutHours);
-        }
+    JgroupClusterSettingsImpl() {
+        setIPv4Preferred(isIPv4Preferred);
+        setBindingPort(bindingPort);
+        setBindingAddress(bindingAddress);
     }
 
     private void checkPort(int port) {
@@ -57,43 +30,55 @@ class JgroupClusterSettingsImpl implements JgroupsClusterSettings {
         }
     }
 
-    @Override
-    public String getClusterName() {
-        return clusterName;
+    //<editor-fold desc="Injected Setters">
+    @Inject(optional = true)
+    void setArbiter(@Named(ClusterModule.CLUSTER_IS_ARBITER_NODE_KEY) boolean arbiter) {
+        this.isArbiter = arbiter;
     }
 
-    @Override
-    public long getTaskTimeout() {
-        return taskTimeoutHours;
+    @Inject(optional = true)
+    void setIPv4Preferred(@Named(ClusterModule.CLUSTER_PREFER_IPV4_KEY) boolean IPv4Preferred) {
+        System.setProperty("java.net.preferIPv4Stack", String.valueOf(IPv4Preferred));
+        this.isIPv4Preferred = IPv4Preferred;
     }
 
-    @Override
-    public boolean isArbiter() {
-        return isArbiter;
+    @Inject(optional = true)
+    void setClusterName(@Named(ClusterModule.CLUSTER_NAME_KEY) String clusterName) {
+        this.clusterName = clusterName;
     }
 
-    @Override
-    public String getJgroupsConfigFile() {
-        return jgroupsConfig;
+    @Inject(optional = true)
+    void setJgroupsConfigFile(@Named(ClusterModule.CLUSTER_JGROUPS_CONFIG_KEY) String jgroupsConfigFile) {
+        this.jgroupsConfigFile = jgroupsConfigFile;
     }
 
-    @Override
-    public boolean isIPv4Preferred() {
-        return preferIPv4;
+    @Inject(optional = true)
+    void setHostname(@Named(ClusterModule.CLUSTER_JGROUPS_HOSTNAME_KEY) String hostname) {
+        this.hostname = hostname;
     }
 
-    @Override
-    public String getBindingAddress() {
-        return bindingAddress;
+    @Inject(optional = true)
+    void setBindingPort(@Named(ClusterModule.CLUSTER_JGROUPS_BIND_PORT_KEY) int bindingPort) {
+        checkPort(bindingPort);
+        System.setProperty("jgroups.bind_port", String.valueOf(bindingPort));
+        this.bindingPort = bindingPort;
     }
 
-    @Override
-    public String getHostname() {
-        return hostname;
+    @Inject(optional = true)
+    void setExternalAddress(@Named(ClusterModule.CLUSTER_JGROUPS_EXTERNAL_ADDR_KEY) String externalAddress) {
+        System.setProperty("ext-addr", externalAddress);
     }
 
-    @Override
-    public int getBindingPort() {
-        return bindingPort;
+    @Inject(optional = true)
+    void setInitialHosts(@Named(ClusterModule.CLUSTER_JGROUPS_TCP_INITAL_HOSTS) String initialHosts) {
+        System.setProperty("jgroups.tcpping.initial_hosts", initialHosts);
     }
+
+    @Inject(optional = true)
+    void setBindingAddress(@Named(ClusterModule.CLUSTER_JGROUPS_BIND_ADDR_KEY) String bindingAddress) {
+        System.setProperty("jgroups.bind_addr", bindingAddress);
+        this.bindingAddress = bindingAddress;
+    }
+    //</editor-fold>
+
 }

@@ -42,8 +42,7 @@ public interface ClusterService {
 
     /**
      * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one task
-     * can be active. Tasks which are longer in the cluster than {@link ClusterSettings#getTaskTimeout()} are being
-     * removed.
+     * can be active.
      * This method does nothing if not connected to the cluster.
      *
      * @param candidate the candidate, not null.
