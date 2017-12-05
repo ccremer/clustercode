@@ -23,22 +23,13 @@ public class TranscodeAction extends Action {
 
     private final TranscodingService transcodingService;
     private final ClusterService clusterService;
-    private final EventBus<ClusterMessage> eventBus;
     private ScheduledExecutorService executor;
 
     @Inject
     TranscodeAction(TranscodingService transcodingService,
-                    ClusterService clusterService,
-                    EventBus<ClusterMessage> eventBus) {
+                    ClusterService clusterService) {
         this.transcodingService = transcodingService;
         this.clusterService = clusterService;
-
-        eventBus.registerEventHandler(LocalCancelTaskRequest.class, OptionalFunction.returningEmpty(this::cancelTask));
-        this.eventBus = eventBus;
-    }
-
-    private void cancelTask(Event<LocalCancelTaskRequest> event) {
-        transcodingService.cancelTranscode();
     }
 
     @Override

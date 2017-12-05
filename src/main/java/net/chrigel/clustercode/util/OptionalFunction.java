@@ -8,6 +8,17 @@ import java.util.function.Function;
 public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
 
     /**
+     * Creates function that always returns an empty optional.
+     *
+     * @param <E>
+     * @param <R>
+     * @return a new function.
+     */
+    static <E, R> OptionalFunction<E, R> empty() {
+        return arg -> Optional.empty();
+    }
+
+    /**
      * Creates function that returns an empty optional. This is used to consume the parameter without returning a value.
      *
      * @param consumer
@@ -15,9 +26,9 @@ public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
      * @param <R>
      * @return a new function.
      */
-    static <E, R> OptionalFunction<E, R> returningEmpty(Consumer<E> consumer) {
-        return event -> {
-            consumer.accept(event);
+    static <E, R> OptionalFunction<E, R> empty(Consumer<E> consumer) {
+        return arg -> {
+            consumer.accept(arg);
             return Optional.empty();
         };
     }
@@ -31,7 +42,7 @@ public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
      * @param <R>
      * @return a new function.
      */
-    static <E, R> OptionalFunction<E, R> toOptional(Function<E, R> function) {
-        return event -> Optional.ofNullable(function.apply(event));
+    static <E, R> OptionalFunction<E, R> ofNullable(Function<E, R> function) {
+        return arg -> Optional.ofNullable(function.apply(arg));
     }
 }

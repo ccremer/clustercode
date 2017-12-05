@@ -2,10 +2,7 @@ package net.chrigel.clustercode.cluster.impl;
 
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import net.chrigel.clustercode.cluster.ClusterService;
-import net.chrigel.clustercode.cluster.ClusterSettings;
-import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
-import net.chrigel.clustercode.cluster.JGroupsTaskState;
+import net.chrigel.clustercode.cluster.*;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.event.impl.EventBusImpl;
@@ -33,5 +30,7 @@ public class ClusterModule extends AbstractPropertiesModule {
         bind(new TypeLiteral<EventBus<ClusterMessage>>(){}).toInstance(new EventBusImpl<>());
         bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
         bind(JGroupsTaskState.class).to(JGroupsTaskStateImpl.class);
+
+        bind(ClusterConnector.class).to(ClusterConnectorImpl.class).asEagerSingleton();
     }
 }

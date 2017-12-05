@@ -1,5 +1,7 @@
 package net.chrigel.clustercode.transcode.messages;
 
-public class TranscodeMessage {
+import java.io.Serializable;
+
+public interface TranscodeMessage extends Serializable {
 
 }

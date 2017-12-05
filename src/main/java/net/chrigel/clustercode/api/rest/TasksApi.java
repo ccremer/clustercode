@@ -7,6 +7,11 @@ import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
+import net.chrigel.clustercode.cluster.messages.ClusterMessage;
+import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
+import net.chrigel.clustercode.event.Event;
+import net.chrigel.clustercode.event.EventBus;
+import net.chrigel.clustercode.util.OptionalFunction;
 import org.glassfish.jersey.server.JSONP;
 
 import javax.inject.Inject;
@@ -15,6 +20,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Date;
 import java.text.DecimalFormat;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path(RestApiServices.REST_API_CONTEXT_PATH + "/tasks")
@@ -23,10 +29,13 @@ public class TasksApi extends AbstractRestApi {
 
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
     private final ClusterService clusterService;
+    private final EventBus<ClusterMessage> clusterBus;
 
     @Inject
-    TasksApi(ClusterService clusterService) {
+    TasksApi(ClusterService clusterService,
+             EventBus<ClusterMessage> clusterBus) {
         this.clusterService = clusterService;
+        this.clusterBus = clusterBus;
     }
 
     @GET
@@ -58,6 +67,7 @@ public class TasksApi extends AbstractRestApi {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Stopped the task successfully."),
         @ApiResponse(code = 409, message = "The task has not been found."),
+        @ApiResponse(code = 412, message = "The parameters were fully and correctly specified"),
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)
     })
     public Response stopTask(
@@ -67,9 +77,10 @@ public class TasksApi extends AbstractRestApi {
             String hostname
     ) {
         log.debug("Hostname: {}", hostname);
+        if (hostname == null) return Response.status(Response.Status.PRECONDITION_FAILED).build();
         try {
-            val cancelled = clusterService.cancelTask(hostname);
-            if (cancelled) return Response.ok().build();
+            Optional<Boolean> cancelled = clusterBus.emitAndGet(new Event<>(new LocalCancelTaskRequest(hostname)));
+            if (cancelled.orElse(false)) return Response.ok().build();
             return Response.status(Response.Status.CONFLICT).build();
         } catch (Exception ex) {
             log.catching(ex);

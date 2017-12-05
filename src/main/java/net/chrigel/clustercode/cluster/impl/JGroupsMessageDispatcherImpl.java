@@ -3,7 +3,8 @@ package net.chrigel.clustercode.cluster.impl;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
-import net.chrigel.clustercode.cluster.messages.CancelTaskResponse;
+import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
+import net.chrigel.clustercode.cluster.messages.CancelTaskRpcResponse;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
 import net.chrigel.clustercode.event.Event;
@@ -32,13 +33,13 @@ public class JGroupsMessageDispatcherImpl
         localBus = localEventBus;
     }
 
-    public CancelTaskResponse cancelTaskRpc(String hostname) {
+    public CancelTaskRpcResponse cancelTaskRpc(String hostname) {
         log.debug("Received hostname: {}", hostname);
         boolean hostnameMatches = hostnameMatchesLocalName(hostname);
-        val response = CancelTaskResponse.builder()
+        val response = CancelTaskRpcResponse.builder()
             .cancelled(hostnameMatches)
             .build();
-        if (hostnameMatches) cancelTaskLocally();
+        if (hostnameMatches) cancelTaskLocally(hostname);
         return response;
     }
 
@@ -46,22 +47,18 @@ public class JGroupsMessageDispatcherImpl
         return rpcDispatcher.getChannel().getAddressAsString().equals(hostname);
     }
 
-    private void cancelTaskLocally() {
-        localBus.emit(new Event<>(new LocalCancelTaskRequest()));
+    private void cancelTaskLocally(String hostname) {
+        localBus.emit(new Event<>(new CancelTaskMessage(hostname)));
     }
 
     @Override
     public boolean cancelTask(String hostname) {
-        if (localHostname.equals(hostname)) {
-            cancelTaskLocally();
-            return true;
-        }
         try {
             log.debug("Calling cancelTaskRpc for {}...", hostname);
             MethodCall call = new MethodCall(getClass().getMethod("cancelTaskRpc", String.class));
             RequestOptions ops = new RequestOptions(ResponseMode.GET_ALL, 5000);
             call.setArgs(hostname);
-            RspList<CancelTaskResponse> responses = rpcDispatcher.callRemoteMethods(rpcDispatcher.getChannel()
+            RspList<CancelTaskRpcResponse> responses = rpcDispatcher.callRemoteMethods(rpcDispatcher.getChannel()
                     .getView()
                     .getMembers()
                     .stream()
@@ -71,7 +68,7 @@ public class JGroupsMessageDispatcherImpl
             log.debug("Got answer: {}", responses);
             return responses.getResults()
                 .stream()
-                .anyMatch(CancelTaskResponse::isCancelled);
+                .anyMatch(CancelTaskRpcResponse::isCancelled);
         } catch (Exception e) {
             log.catching(e);
             return false;

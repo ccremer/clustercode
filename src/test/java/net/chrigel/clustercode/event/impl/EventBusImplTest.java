@@ -26,7 +26,7 @@ public class EventBusImplTest {
     @Test
     public void register_ShouldIgnoreSameListener() {
         AtomicInteger counter = new AtomicInteger();
-        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.toOptional(
+        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.ofNullable(
             event -> counter.incrementAndGet());
 
         subject.registerEventHandler(Message.class, responder);
@@ -40,7 +40,7 @@ public class EventBusImplTest {
     @Test
     public void unRegister_ShouldRemoveListener() {
         AtomicInteger counter = new AtomicInteger();
-        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.toOptional(
+        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.ofNullable(
             event -> counter.incrementAndGet());
 
         subject.registerEventHandler(Message.class, responder);
@@ -54,7 +54,7 @@ public class EventBusImplTest {
     @Test
     public void emit_ShouldPassEventToListener() throws Exception {
         AtomicBoolean received = new AtomicBoolean();
-        subject.registerEventHandler(Message.class, OptionalFunction.returningEmpty(event -> received.set(true)));
+        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> received.set(true)));
         subject.emit(new Event<>(new Message()));
 
         assertThat(received).isTrue();
@@ -64,7 +64,7 @@ public class EventBusImplTest {
     public void emitAsync_ShouldPassEventToListener() throws Exception {
         AtomicBoolean received = new AtomicBoolean();
         Thread testThread = Thread.currentThread();
-        subject.registerEventHandler(Message.class, OptionalFunction.returningEmpty(event -> {
+        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {
             assertThat(testThread).isNotEqualTo(Thread.currentThread());
             received.set(true);
         }));
@@ -84,7 +84,7 @@ public class EventBusImplTest {
     @Test
     public void emitAndGet_ShouldReturnResultFromResponder() throws Exception {
         subject.registerEventHandler(Message.class,
-            OptionalFunction.toOptional(event -> event.getPayload().getNumber()));
+            OptionalFunction.ofNullable(event -> event.getPayload().getNumber()));
         Optional<Integer> result = subject.emitAndGet(new Event<>(new Message(5)));
 
         assertThat(result).contains(5);
@@ -93,7 +93,7 @@ public class EventBusImplTest {
     @Test
     public void emitAndGetAll_ShouldReturnResultFromResponder() throws Exception {
         subject.registerEventHandler(Message.class,
-            OptionalFunction.toOptional(event -> 7));
+            OptionalFunction.ofNullable(event -> 7));
         Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
 
         assertThat(result).contains(7);
@@ -101,9 +101,9 @@ public class EventBusImplTest {
 
     @Test
     public void emitAndGetAll_ShouldReturnResultFromSecondResponder_IfFirstResponderDoesNotReturnValue() {
-        subject.registerEventHandler(Message.class, OptionalFunction.returningEmpty(event -> {/* Do Nothing */}));
+        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {/* Do Nothing */}));
         subject.registerEventHandler(Message.class,
-            OptionalFunction.toOptional(event -> event.getPayload().getNumber()));
+            OptionalFunction.ofNullable(event -> event.getPayload().getNumber()));
         Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
 
         assertThat(result).containsExactly(5);
@@ -111,11 +111,11 @@ public class EventBusImplTest {
 
     @Test
     public void emitAndGetAll_ShouldReturnResultFromAllResponder_IfFirstResponderDoesNotReturnValue() {
-        subject.registerEventHandler(Message.class, OptionalFunction.returningEmpty(event -> {/* Do Nothing */}));
+        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {/* Do Nothing */}));
         subject.registerEventHandler(Message.class,
-            OptionalFunction.toOptional(event -> 1));
+            OptionalFunction.ofNullable(event -> 1));
         subject.registerEventHandler(Message.class,
-            OptionalFunction.toOptional(event -> 2));
+            OptionalFunction.ofNullable(event -> 2));
         Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
 
         assertThat(result).containsExactly(1, 2);

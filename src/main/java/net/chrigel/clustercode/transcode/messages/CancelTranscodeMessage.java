@@ -1,5 +1,5 @@
 package net.chrigel.clustercode.transcode.messages;
 
-public class CancelTranscodeMessage {
+public class CancelTranscodeMessage implements TranscodeMessage {
 
 }

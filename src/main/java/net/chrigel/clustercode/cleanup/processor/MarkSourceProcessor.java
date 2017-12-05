@@ -3,7 +3,6 @@ package net.chrigel.clustercode.cleanup.processor;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.util.LogUtil;
 
 import javax.inject.Inject;
 import java.nio.file.Files;
