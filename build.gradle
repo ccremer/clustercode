@@ -52,8 +52,6 @@ dependencies {
     compileOnly "org.projectlombok:lombok:1.16.+"
     compileOnly "io.swagger:swagger-annotations:1.5.+"
     // DI frameworks
-    compile "javax.inject:javax.inject:1"
-    compile "com.google.code.findbugs:jsr305:3.0.0"
     compile "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
 
     // logging
@@ -145,10 +143,6 @@ adminZip.dependsOn generateSwaggerDocumentation
 
 githubRelease.dependsOn windowsZip
 githubRelease.dependsOn adminZip
-
-tasks.withType(Test) {
-    reports.html.destination = file("${reporting.baseDir}/${name}")
-}
 
 jacoco {
     reportsDir file("${project.buildDir}/reports/jacoco")
