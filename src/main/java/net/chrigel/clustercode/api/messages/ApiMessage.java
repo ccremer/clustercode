@@ -1,5 +1,7 @@
 package net.chrigel.clustercode.api.messages;
 
-public interface ApiMessage {
+import java.io.Serializable;
+
+public interface ApiMessage extends Serializable {
 
 }

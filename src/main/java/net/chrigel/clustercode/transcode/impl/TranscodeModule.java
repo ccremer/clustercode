@@ -2,7 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.event.impl.EventBusImpl;
+import net.chrigel.clustercode.event.EventBusImpl;
 import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.transcode.TranscodeConnector;
 import net.chrigel.clustercode.transcode.TranscoderSettings;

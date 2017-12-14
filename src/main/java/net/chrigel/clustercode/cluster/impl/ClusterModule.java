@@ -5,7 +5,7 @@ import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.cluster.*;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.event.impl.EventBusImpl;
+import net.chrigel.clustercode.event.EventBusImpl;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 @SuppressWarnings("WeakerAccess")

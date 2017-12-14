@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CancelTaskApiMessage implements ApiMessage {
+public class CancelTaskApiRequest implements ApiMessage {
 
     private String hostname;
 

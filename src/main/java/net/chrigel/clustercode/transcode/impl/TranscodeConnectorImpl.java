@@ -5,10 +5,14 @@ import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.transcode.TranscodeConnector;
 import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
+import net.chrigel.clustercode.transcode.messages.ProgressMessage;
 import net.chrigel.clustercode.transcode.messages.TranscodeMessage;
 import net.chrigel.clustercode.util.OptionalFunction;
 
 import javax.inject.Inject;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class TranscodeConnectorImpl implements TranscodeConnector {
 
@@ -19,7 +23,7 @@ public class TranscodeConnectorImpl implements TranscodeConnector {
     TranscodeConnectorImpl(
         TranscodingService transcodingService,
         EventBus<TranscodeMessage> transcodeBus
-    ){
+    ) {
         this.transcodingService = transcodingService;
         this.transcodeBus = transcodeBus;
     }
@@ -27,13 +31,22 @@ public class TranscodeConnectorImpl implements TranscodeConnector {
     @Inject
     @Override
     public void start() {
-        transcodeBus.registerEventHandler(CancelTranscodeMessage.class,
-            OptionalFunction.ofNullable(this::cancelTask));
+        transcodeBus.registerEventHandler(CancelTranscodeMessage.class, this::onCancelTranscodeTask);
 
-
+        startProgressUpdateLoop();
     }
 
-    private Boolean cancelTask(Event<CancelTranscodeMessage> event) {
-        return transcodingService.cancelTranscode();
+    private void onCancelTranscodeTask(Event<CancelTranscodeMessage> event) {
+        event.addAnswer(transcodingService.cancelTranscode());
+    }
+
+    private void startProgressUpdateLoop() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(() ->
+            transcodingService.getProgressCalculator().getProgress().ifPresent(result ->
+                transcodeBus.emit(ProgressMessage.builder()
+                                                 .percentage(result.getPercentage())
+                                                 .build())
+            ), 10, 10, TimeUnit.SECONDS);
     }
 }

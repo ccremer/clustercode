@@ -1,6 +1,8 @@
 package net.chrigel.clustercode.event.impl;
 
 import net.chrigel.clustercode.event.Event;
+import net.chrigel.clustercode.event.EventBusImpl;
+import net.chrigel.clustercode.event.Response;
 import net.chrigel.clustercode.util.OptionalFunction;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,100 +28,53 @@ public class EventBusImplTest {
 
     @Test
     public void register_ShouldIgnoreSameListener() {
-        AtomicInteger counter = new AtomicInteger();
-        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.ofNullable(
-            event -> counter.incrementAndGet());
-
+        Consumer<Event<Message>> responder = event -> event.addAnswer(1);
         subject.registerEventHandler(Message.class, responder);
         subject.registerEventHandler(Message.class, responder);
+        Response<Integer> response = subject.emit(new Message(1));
 
-        subject.emit(new Event<>(new Message(1)));
-
-        assertThat(counter).hasValue(1);
+        assertThat(response.getAnswers()).hasSize(1);
     }
 
     @Test
     public void unRegister_ShouldRemoveListener() {
-        AtomicInteger counter = new AtomicInteger();
-        OptionalFunction<Event<Message>, Object> responder = OptionalFunction.ofNullable(
-            event -> counter.incrementAndGet());
+        Consumer<Event<Message>> responder = event -> event.addAnswer(1);
 
         subject.registerEventHandler(Message.class, responder);
         subject.unRegister(Message.class, responder);
 
-        subject.emit(new Event<>(new Message(1)));
+        Response<Integer> response = subject.emit(new Message(1));
 
-        assertThat(counter).hasValue(0);
-    }
-
-    @Test
-    public void emit_ShouldPassEventToListener() throws Exception {
-        AtomicBoolean received = new AtomicBoolean();
-        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> received.set(true)));
-        subject.emit(new Event<>(new Message()));
-
-        assertThat(received).isTrue();
+        assertThat(response.getAnswer()).isEmpty();
     }
 
     @Test(timeout = 1000)
-    public void emitAsync_ShouldPassEventToListener() throws Exception {
-        AtomicBoolean received = new AtomicBoolean();
+    public void emitAsync_ShouldReturnResponse_WithAnswer() throws Exception {
         Thread testThread = Thread.currentThread();
-        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {
+        subject.registerEventHandler(Message.class, event -> {
             assertThat(testThread).isNotEqualTo(Thread.currentThread());
-            received.set(true);
-        }));
-        CompletableFuture future = subject.emitAsync(new Event<>(new Message()));
+            event.addAnswer(true);
+        });
+        CompletableFuture<Response<Message>> future = subject.emitAsync(new Message());
 
-        future.get();
-        assertThat(received).isTrue();
+        assertThat(future.get().getAnswer(Boolean.class)).contains(true);
     }
 
     @Test(timeout = 1000)
     public void emitAsync_ShouldDoNothing_IfNoListener() throws Exception {
-        CompletableFuture result = subject.emitAsync(new Event<>(new Message()));
+        CompletableFuture<Response<Message>> result = subject.emitAsync(new Message());
 
-        result.get();
+        assertThat(result.isDone()).isTrue();
+        assertThat(result.get().getAnswer()).isEmpty();
     }
 
     @Test
-    public void emitAndGet_ShouldReturnResultFromResponder() throws Exception {
-        subject.registerEventHandler(Message.class,
-            OptionalFunction.ofNullable(event -> event.getPayload().getNumber()));
-        Optional<Integer> result = subject.emitAndGet(new Event<>(new Message(5)));
+    public void emitAsync_ShouldCatchException() throws Exception {
+        subject.registerEventHandler(Message.class, event -> event.addAnswer(5));
+        subject.registerEventHandler(Message.class, event -> {throw new RuntimeException();});
+        CompletableFuture<Response<Integer>> result = subject.emitAsync(new Message(5));
 
-        assertThat(result).contains(5);
-    }
-
-    @Test
-    public void emitAndGetAll_ShouldReturnResultFromResponder() throws Exception {
-        subject.registerEventHandler(Message.class,
-            OptionalFunction.ofNullable(event -> 7));
-        Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
-
-        assertThat(result).contains(7);
-    }
-
-    @Test
-    public void emitAndGetAll_ShouldReturnResultFromSecondResponder_IfFirstResponderDoesNotReturnValue() {
-        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {/* Do Nothing */}));
-        subject.registerEventHandler(Message.class,
-            OptionalFunction.ofNullable(event -> event.getPayload().getNumber()));
-        Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
-
-        assertThat(result).containsExactly(5);
-    }
-
-    @Test
-    public void emitAndGetAll_ShouldReturnResultFromAllResponder_IfFirstResponderDoesNotReturnValue() {
-        subject.registerEventHandler(Message.class, OptionalFunction.empty(event -> {/* Do Nothing */}));
-        subject.registerEventHandler(Message.class,
-            OptionalFunction.ofNullable(event -> 1));
-        subject.registerEventHandler(Message.class,
-            OptionalFunction.ofNullable(event -> 2));
-        Collection<Integer> result = subject.emitAndGetAll(new Event<>(new Message(5)));
-
-        assertThat(result).containsExactly(1, 2);
+        assertThat(result.get().getAnswer()).contains(5);
     }
 
     private static class Message implements Serializable {

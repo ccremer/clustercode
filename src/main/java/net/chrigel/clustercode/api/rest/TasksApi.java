@@ -51,8 +51,8 @@ public class TasksApi extends AbstractRestApi {
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public Response getTasks() {
         return createResponse(() -> clusterService.getTasks().stream()
-            .map(this::convertToDto)
-            .collect(Collectors.toList()));
+                                                  .map(this::convertToDto)
+                                                  .collect(Collectors.toList()));
     }
 
     @DELETE
@@ -79,28 +79,30 @@ public class TasksApi extends AbstractRestApi {
         log.debug("Hostname: {}", hostname);
         if (hostname == null) return Response.status(Response.Status.PRECONDITION_FAILED).build();
         try {
-            Optional<Boolean> cancelled = clusterBus.emitAndGet(new Event<>(new LocalCancelTaskRequest(hostname)));
-            if (cancelled.orElse(false)) return Response.ok().build();
+            boolean cancelled = clusterBus.emit(new LocalCancelTaskRequest(hostname))
+                                          .getAnswer(Boolean.class)
+                                          .orElse(false);
+            if (cancelled) return Response.ok().build();
             return Response.status(Response.Status.CONFLICT).build();
         } catch (Exception ex) {
             log.catching(ex);
             return Response.serverError()
-                .entity(ApiError.builder()
-                    .message(ex.getMessage())
-                    .build())
-                .build();
+                           .entity(ApiError.builder()
+                                           .message(ex.getMessage())
+                                           .build())
+                           .build();
         }
     }
 
     private Task convertToDto(ClusterTask clusterTask) {
         return Task.builder()
-            .priority(clusterTask.getPriority())
-            .source(clusterTask.getSourceName())
-            .added(Date.from(clusterTask.getDateAdded().toInstant()))
-            .updated(Date.from(clusterTask.getLastUpdated().toInstant()))
-            .nodename(clusterTask.getMemberName())
-            .progress(Double.parseDouble(decimalFormat.format(clusterTask.getPercentage())))
-            .build();
+                   .priority(clusterTask.getPriority())
+                   .source(clusterTask.getSourceName())
+                   .added(Date.from(clusterTask.getDateAdded().toInstant()))
+                   .updated(Date.from(clusterTask.getLastUpdated().toInstant()))
+                   .nodename(clusterTask.getMemberName())
+                   .progress(Double.parseDouble(decimalFormat.format(clusterTask.getPercentage())))
+                   .build();
     }
 }
 

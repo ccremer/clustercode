@@ -9,6 +9,7 @@ import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
 import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
+import net.chrigel.clustercode.transcode.messages.ProgressMessage;
 import net.chrigel.clustercode.transcode.messages.TranscodeMessage;
 import net.chrigel.clustercode.util.OptionalFunction;
 
@@ -35,10 +36,14 @@ public class ClusterConnectorImpl implements ClusterConnector {
 
     @Inject
     public void start() {
-        clusterBus.registerEventHandler(CancelTaskMessage.class,
-            OptionalFunction.ofNullable(this::onTaskCancelViaRpc));
-        clusterBus.registerEventHandler(LocalCancelTaskRequest.class,
-            OptionalFunction.ofNullable(this::onTaskCancelRequestedViaApi));
+        clusterBus.registerEventHandler(CancelTaskMessage.class, this::onTaskCancelViaRpc);
+        clusterBus.registerEventHandler(LocalCancelTaskRequest.class, this::onTaskCancelRequestedViaApi);
+
+        transcodeBus.registerEventHandler(ProgressMessage.class, this::onProgressUpdate);
+    }
+
+    private void onProgressUpdate(Event<ProgressMessage> event) {
+        clusterService.setProgress(event.getPayload().getPercentage());
     }
 
     private boolean isLocalHostnameEqualTo(String otherHostname) {
@@ -46,23 +51,22 @@ public class ClusterConnectorImpl implements ClusterConnector {
         return otherHostname.equals(localName);
     }
 
-    private Boolean onTaskCancelRequestedViaApi(Event<LocalCancelTaskRequest> event) {
+    private void onTaskCancelViaRpc(Event<CancelTaskMessage> event) {
         String hostname = event.getPayload().getHostname();
-        if (isLocalHostnameEqualTo(hostname)) return cancelTaskLocally();
-        else return cancelTaskInCluster(hostname);
+        event.addAnswer(isLocalHostnameEqualTo(hostname) && cancelTaskLocally());
     }
 
-    private Boolean onTaskCancelViaRpc(Event<CancelTaskMessage> event) {
+    private void onTaskCancelRequestedViaApi(Event<LocalCancelTaskRequest> event) {
         String hostname = event.getPayload().getHostname();
-        return isLocalHostnameEqualTo(hostname) && cancelTaskLocally();
+        if (isLocalHostnameEqualTo(hostname)) {
+            event.addAnswer(cancelTaskLocally());
+        } else {
+            event.addAnswer(clusterService.cancelTask(hostname));
+        }
     }
 
     private boolean cancelTaskLocally() {
-        Optional<Boolean> result = transcodeBus.emitAndGet(new Event<>(new CancelTranscodeMessage()));
-        return result.orElse(false);
+        return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
     }
 
-    private boolean cancelTaskInCluster(String hostname) {
-        return clusterService.cancelTask(hostname);
-    }
 }

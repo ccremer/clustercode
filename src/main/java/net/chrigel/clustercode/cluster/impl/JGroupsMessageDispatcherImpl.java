@@ -37,8 +37,8 @@ public class JGroupsMessageDispatcherImpl
         log.debug("Received hostname: {}", hostname);
         boolean hostnameMatches = hostnameMatchesLocalName(hostname);
         val response = CancelTaskRpcResponse.builder()
-            .cancelled(hostnameMatches)
-            .build();
+                                            .cancelled(hostnameMatches)
+                                            .build();
         if (hostnameMatches) cancelTaskLocally(hostname);
         return response;
     }
@@ -48,7 +48,7 @@ public class JGroupsMessageDispatcherImpl
     }
 
     private void cancelTaskLocally(String hostname) {
-        localBus.emit(new Event<>(new CancelTaskMessage(hostname)));
+        localBus.emit(new CancelTaskMessage(hostname));
     }
 
     @Override
@@ -58,17 +58,18 @@ public class JGroupsMessageDispatcherImpl
             MethodCall call = new MethodCall(getClass().getMethod("cancelTaskRpc", String.class));
             RequestOptions ops = new RequestOptions(ResponseMode.GET_ALL, 5000);
             call.setArgs(hostname);
-            RspList<CancelTaskRpcResponse> responses = rpcDispatcher.callRemoteMethods(rpcDispatcher.getChannel()
-                    .getView()
-                    .getMembers()
-                    .stream()
-                    .filter(h -> h.toString().equalsIgnoreCase(hostname))
-                    .collect(Collectors.toList()),
+            RspList<CancelTaskRpcResponse> responses = rpcDispatcher.callRemoteMethods(
+                rpcDispatcher.getChannel()
+                             .getView()
+                             .getMembers()
+                             .stream()
+                             .filter(h -> h.toString().equalsIgnoreCase(hostname))
+                             .collect(Collectors.toList()),
                 call, ops);
             log.debug("Got answer: {}", responses);
             return responses.getResults()
-                .stream()
-                .anyMatch(CancelTaskRpcResponse::isCancelled);
+                            .stream()
+                            .anyMatch(CancelTaskRpcResponse::isCancelled);
         } catch (Exception e) {
             log.catching(e);
             return false;

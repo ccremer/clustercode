@@ -1,11 +1,8 @@
 package net.chrigel.clustercode.event;
 
-import net.chrigel.clustercode.util.OptionalFunction;
-
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * Represents an event bus for a common event type.
@@ -19,56 +16,34 @@ public interface EventBus<B extends Serializable> {
      *
      * @param subscriber the subscriber.
      */
-    <E extends B, R> void registerEventHandler(Class<? extends B> clazz, OptionalFunction<Event<E>, R> subscriber);
+    <E extends B> void registerEventHandler(Class<? extends B> clazz, Consumer<Event<E>> subscriber);
 
     /**
      * Unregister a subscriber for the specified event class. Is a no-op if it doesn't exist.
      *
      * @param subscriber the subscriber.
      */
-    <E extends B, R> void unRegister(Class<? extends B> clazz, OptionalFunction<Event<E>, R> subscriber);
+    <E extends B> void unRegister(Class<? extends B> clazz, Consumer<Event<E>> subscriber);
 
     /**
-     * Fires the event to the bus. All subscribers will receive the specified event object. This method blocks until all
-     * subscribers processed the event.
+     * Fires the event to the bus. All subscribers will receive the specified event object. Processing the event will
+     * be handled in a separate thread. This method is a blocking shortcut for {@link #emitAsync(E)}. If a subscriber
+     * throws a runtime exception, it will be logged and existing answers will be kept, but no further subscribers will
+     * be notified.
      *
-     * @param event the event object.
+     * @param payload the payload object.
+     * @return a response from the subscribers, which enables RPC-alike one-to-many communication.
      */
-    <E extends B> void emit(Event<E> event);
+    <E extends B, R> Response<R> emit(E payload);
 
     /**
      * Fires the event to the bus asynchronously. All subscribers will receive the specified event object in a single
-     * separate
-     * thread.
+     * separate thread. If a subscriber throws a runtime exception, it will be logged and existing answers will be kept,
+     * but no further subscribers will be notified.
      *
-     * @param event the event object.
-     * @return the future holding the state of the execution.
+     * @param payload the payload object.
+     * @return the future holding the response from the subscribers, which enables RPC-alike one-to-many communication.
      */
-    <E extends B> CompletableFuture<Void> emitAsync(Event<E> event);
+    <E extends B, R> CompletableFuture<Response<R>> emitAsync(E payload);
 
-    /**
-     * Emits the given event and awaits the return value of a subscriber. If multiple subscribers handle the same event
-     * type, it will return the first non-empty result. If no subscribers returned a value, an empty optional is
-     * returned. This method is blocking. The subscribers may not return the value as R, the programmer is responsible
-     * for using or casting the correct types.
-     *
-     * @param event the event object.
-     * @param <R>   the expected return type.
-     * @param <E>   the message type.
-     * @return An optional holding the result.
-     */
-    <R, E extends B> Optional<R> emitAndGet(Event<E> event);
-
-    /**
-     * Emits the given event and awaits all return values of all subscribers. Subscribers that returned an empty
-     * optional will be omitted from the collection. If no subscribers returned a value, the collection is empty. This
-     * method is blocking. The subscribers may not return the value as R and even mix multiple types. The programmer is
-     * responsible for using or casting the correct types.
-     *
-     * @param event the event object.
-     * @param <R>   the expected return type.
-     * @param <E>   the message type.
-     * @return A collection holding the return values.
-     */
-    <R, E extends B> Collection<R> emitAndGetAll(Event<E> event);
 }

@@ -17,6 +17,7 @@ import net.chrigel.clustercode.scan.impl.ScanModule;
 import net.chrigel.clustercode.transcode.impl.TranscodeModule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -51,7 +52,6 @@ public class CancelTaskIT {
 
     @After
     public void tearDown() throws Exception {
-        injector.getInstance(RestApiServices.class).stop();
         injector.getInstance(ClusterService.class).leaveCluster();
     }
 
