@@ -41,7 +41,7 @@ RUN \
     echo "#### Building clustercode" && \
     gradle-${GRADLE_VERSION}/bin/gradle -w fullBuild generateSwaggerDocumentation && \
     mv build/libs/clustercode.jar clustercode.jar && \
-    mv build/swagger/* static/ && \
+    mv build/swagger/* src/frontend/static/ && \
     echo "#### Installing node packages" && \
     npm install --quiet --no-optional && \
     echo "#### Bulding clustercode-admin" && \
