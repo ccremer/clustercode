@@ -13,7 +13,7 @@ require("../css/clustercode.css");
 require("./clustercode");
 
 import Vue from 'vue'
-import App from '../web/App'
+import App from '../web/App.vue'
 import router from '../router/index'
 import { store } from "../store/state"
 import Vuedals from "vuedals"

@@ -28,7 +28,7 @@ module.exports = merge(baseWebpackConfig, {
         // https://github.com/ampedandwired/html-webpack-plugin
         new HtmlWebpackPlugin({
             filename: 'index.html',
-            template: path.join(__dirname, '../src/web/index.html'),
+            template: path.join(__dirname, '../src/frontend/web/index.html'),
             inject: true,
             title: "WebAdmin"
         }),

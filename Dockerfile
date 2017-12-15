@@ -56,7 +56,6 @@ RUN \
 COPY webpack webpack
 COPY webpackcfg webpackcfg
 COPY docker/default default
-COPY static static
 COPY src src
 
 RUN \

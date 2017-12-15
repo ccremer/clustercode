@@ -60,7 +60,6 @@ RUN \
     rm -r .babelrc && \
     rm -r webpack* && \
     rm -r test && \
-    rm -r static && \
     rm -r src && \
     rm -r *gradle* && \
     rm -r .gradle && \

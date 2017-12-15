@@ -2,28 +2,22 @@ package net.chrigel.clustercode.cluster.impl;
 
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
-import lombok.val;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.cluster.JGroupsTaskState;
 import net.chrigel.clustercode.scan.Media;
 import org.jgroups.JChannel;
-import org.jgroups.blocks.ReplicatedHashMap;
 import org.jgroups.fork.ForkChannel;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @XSlf4j
 class JgroupsClusterImpl

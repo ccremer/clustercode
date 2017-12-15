@@ -17,6 +17,17 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    main {
+        java { srcDirs = ["src/backend/main/java"] }
+        resources { srcDirs = ["src/backend/main/resources"] }
+    }
+    test {
+        java { srcDirs = ["src/backend/test/java"] }
+        resources { srcDirs = ["src/backend/test/resources"] }
+    }
+}
+
 testSets {
     integrationTest { dirName = 'integration-test' }
 }
@@ -31,6 +42,12 @@ allprojects {
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+    idea {
+        module {
+            outputDir file('build/classes/main')
+            testOutputDir file('build/classes/test')
         }
     }
 }

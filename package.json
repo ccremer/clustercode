@@ -2,9 +2,9 @@
     "name": "clustercode",
     "version": "1.4.0",
     "description": "Clustercode WebAdmin UI",
-    "author": "BrainDoctor",
+    "author": "ccremer",
     "license": "MIT",
-    "repository": "BrainDoctor/clustercode",
+    "repository": "ccremer/clustercode",
     "scripts": {
         "dev": "node webpack/dev-server.js",
         "start": "node webpack/dev-server.js",
