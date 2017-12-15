@@ -4,7 +4,7 @@
             This page displays the tasks that are currently being processed by the cluster members.
         </p>
         <v-client-table name="tasks" :data="tableData" :columns="columns" :options="options">
-            <template slot="progress" scope="props">
+            <template slot="progress" slot-scope="props">
                 <div>
                     <div class="progress progress-striped active col-xs-7">
                         <div class="progress-bar progress-bar-success"
@@ -15,12 +15,12 @@
                     <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
                 </div>
             </template>
-            <template slot="h__nodename" scope="props">Host</template>
-            <template slot="h__percentage" scope="props">Progress</template>
-            <template slot="percentage" scope="props">
+            <template slot="h__nodename" slot-scope="props">Host</template>
+            <template slot="h__percentage" slot-scope="props">Progress</template>
+            <template slot="percentage" slot-scope="props">
                 <div class="col-xs-1 progress-label">{{props.row.progress}}%</div>
             </template>
-            <template slot="actions" scope="props">
+            <template slot="actions" slot-scope="props">
                 <a href="javascript:void(0)" v-on:click="confirmCancel(props.row.nodename)">Cancel</a>
             </template>
         </v-client-table>

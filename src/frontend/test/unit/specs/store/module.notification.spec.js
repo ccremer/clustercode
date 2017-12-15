@@ -1,5 +1,5 @@
-import {actions, mutations, getters, mutation_types, util} from "@/store/module.notification";
-import Notification from "@/js/notifications"
+import {actions, mutations, getters, mutation_types, util} from "@/frontend/store/module.notification";
+import Notification from "@/frontend/js/notifications"
 
 describe("Notification mutation", () => {
 

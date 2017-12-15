@@ -44,4 +44,4 @@ desktop.ini
 # NPM, Webpack
 node_modules/
 dist/
-/test/unit/coverage/
+/src/frontend/test/unit/coverage/

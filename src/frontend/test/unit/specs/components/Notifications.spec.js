@@ -1,9 +1,9 @@
 import Vue from "vue"
 import Vuex from "vuex"
 import {mount} from "avoriaz"
-import Notifications from "@/components/Notifications"
-import Notification from "@/js/notifications"
-import {action_types} from "@/store/module.notification"
+import Notifications from "@/frontend/components/Notifications"
+import Notification from "@/frontend/js/notifications"
+import {action_types} from "@/frontend/store/module.notification"
 
 Vue.use(Vuex);
 
