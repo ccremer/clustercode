@@ -29,7 +29,7 @@ sourceSets {
 }
 
 testSets {
-    integrationTest { dirName = 'integration-test' }
+    integrationTest { dirName = 'backend/integration-test' }
 }
 
 ext {

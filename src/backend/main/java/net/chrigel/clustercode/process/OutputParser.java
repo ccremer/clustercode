@@ -1,7 +1,5 @@
 package net.chrigel.clustercode.process;
 
-import net.chrigel.clustercode.util.Publisher;
-
 import java.util.Optional;
 
 /**
@@ -9,7 +7,7 @@ import java.util.Optional;
  *
  * @param <T> the type of the parsing result.
  */
-public interface OutputParser<T> extends Publisher<T> {
+public interface OutputParser<T> {
 
     /**
      * Starts parsing the output. Does nothing if already started.

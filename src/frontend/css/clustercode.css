@@ -15,6 +15,10 @@
     height: 60px;
     background-color: #f8f8f8;
 }
+.alert {
+    margin-top: 10px;
+    margin-bottom: 0;
+}
 .bottom-align-text {
     position: absolute;
     bottom: 0;

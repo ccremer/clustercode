@@ -9,7 +9,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Optional;
 
-public abstract class AbstractOutputParser<T> extends AbstractPublisher<T> implements OutputParser<T> {
+public abstract class AbstractOutputParser<T> implements OutputParser<T> {
 
     private boolean started = false;
     private T result;
@@ -45,7 +45,6 @@ public abstract class AbstractOutputParser<T> extends AbstractPublisher<T> imple
             val result = doParse(line);
             if (result == null) return;
             this.result = result;
-            publishPayload(result);
         } catch (Exception ex) {
             log.catching(ex);
             log.warn("Shutting down parser.");

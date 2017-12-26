@@ -3,8 +3,8 @@
             <navigation/>
             <vuedal/>
             <div id="page-wrapper">
-                <page-header/>
                 <notifications/>
+                <page-header/>
                 <div class="row">
                     <div class="col-lg-12">
                         <router-view/>

@@ -3,16 +3,11 @@ package net.chrigel.clustercode.event.impl;
 import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBusImpl;
 import net.chrigel.clustercode.event.Response;
-import net.chrigel.clustercode.util.OptionalFunction;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +63,7 @@ public class EventBusImplTest {
         assertThat(result.get().getAnswer()).isEmpty();
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void emitAsync_ShouldCatchException() throws Exception {
         subject.registerEventHandler(Message.class, event -> event.addAnswer(5));
         subject.registerEventHandler(Message.class, event -> {throw new RuntimeException();});
