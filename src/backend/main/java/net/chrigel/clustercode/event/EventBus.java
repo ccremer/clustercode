@@ -16,14 +16,14 @@ public interface EventBus<B extends Serializable> {
      *
      * @param subscriber the subscriber.
      */
-    <E extends B> void registerEventHandler(Class<? extends B> clazz, Consumer<Event<E>> subscriber);
+    <E extends B> void registerEventHandler(Class<E> clazz, Consumer<Event<E>> subscriber);
 
     /**
      * Unregister a subscriber for the specified event class. Is a no-op if it doesn't exist.
      *
      * @param subscriber the subscriber.
      */
-    <E extends B> void unRegister(Class<? extends B> clazz, Consumer<Event<E>> subscriber);
+    <E extends B> void unRegister(Class<E> clazz, Consumer<Event<E>> subscriber);
 
     /**
      * Fires the event to the bus. All subscribers will receive the specified event object. Processing the event will

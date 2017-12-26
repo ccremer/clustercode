@@ -45,3 +45,4 @@ desktop.ini
 node_modules/
 dist/
 /src/frontend/test/unit/coverage/
+package-lock.json

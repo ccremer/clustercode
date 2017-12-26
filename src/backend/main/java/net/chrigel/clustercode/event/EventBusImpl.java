@@ -1,49 +1,40 @@
 package net.chrigel.clustercode.event;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
-import lombok.val;
-import net.chrigel.clustercode.event.Event;
-import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.util.OptionalFunction;
 import net.chrigel.clustercode.util.UnsafeCastUtil;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @XSlf4j
 public class EventBusImpl<B extends Serializable> implements EventBus<B> {
 
-    private final HashMap<Class, List<Consumer>> map = new HashMap<>();
+    private final ListMultimap<Class, Consumer<Event<? extends B>>> map =
+        MultimapBuilder.hashKeys().arrayListValues().build();
 
     @Synchronized
     @Override
-    public <E extends B> void registerEventHandler(Class<? extends B> clazz, Consumer<Event<E>> subscriber) {
-        if (map.containsKey(clazz)) {
-            val list = map.get(clazz);
-            if (list.contains(subscriber)) {
-                log.debug("Already registered: {}", subscriber);
-                return;
-            }
-            list.add(subscriber);
-        } else {
-            this.map.put(clazz, new LinkedList<>(Collections.singletonList(subscriber)));
+    public <E extends B> void registerEventHandler(Class<E> clazz, Consumer<Event<E>> subscriber) {
+        if (map.containsValue(subscriber)) {
+            log.debug("Already registered: {}", subscriber);
+            return;
         }
+        map.put(clazz, UnsafeCastUtil.cast(subscriber));
         log.debug("Registered: {} for {}", subscriber, clazz.getName());
     }
 
     @Synchronized
     @Override
-    public <E extends B> void unRegister(Class<? extends B> clazz, Consumer<Event<E>> subscriber) {
-        if (!map.containsKey(clazz)) return;
-        List<Consumer> responders = map.get(clazz);
-        responders.remove(subscriber);
-        if (responders.isEmpty()) map.remove(clazz);
-        log.debug("Removed: {} for {}", subscriber, clazz);
+    public <E extends B> void unRegister(Class<E> clazz, Consumer<Event<E>> subscriber) {
+        if (map.remove(clazz, subscriber)) {
+            log.debug("Removed: {} for {}", subscriber, clazz);
+        }
     }
 
     @Override

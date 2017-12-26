@@ -60,6 +60,7 @@ dependencies {
         exclude group: "org.slf4j"
     }
     compile "org.jgroups:jgroups:4.0.+"
+    compile 'com.google.guava:guava:23.5-jre'
 
     // REST dependencies
     compile "io.logz:guice-jersey:1.0.+"
