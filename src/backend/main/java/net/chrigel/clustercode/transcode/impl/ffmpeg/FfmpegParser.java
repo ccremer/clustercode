@@ -2,15 +2,17 @@ package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
+import net.chrigel.clustercode.event.RxEventBus;
 import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
+import javax.inject.Inject;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
 
 @XSlf4j
 public class FfmpegParser
-        extends AbstractOutputParser<FfmpegOutput> {
+        extends AbstractOutputParser {
 
     /*
     frame=\s*([0-9]+)\s*fps=\s*([0-9]*\.?[0-9]*).*size=\s*([0-9]*)kB\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\s*
@@ -25,19 +27,25 @@ public class FfmpegParser
      */
     private static final Pattern durationPattern = Pattern.compile("\\s*Duration:\\s*(\\d+:\\d{2}:[0-9]{2}(?:\\" +
             ".\\d{1,3})?)");
+    private final RxEventBus eventBus;
 
     private boolean foundDuration = false;
     private FfmpegOutput result = new FfmpegOutput();
 
+    @Inject
+    FfmpegParser(RxEventBus eventBus){
+        this.eventBus = eventBus;
+    }
+
     @Override
-    public FfmpegOutput doParse(String line) {
+    public void doParse(String line) {
         // sample: frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s speed=1.36x
 
         log.trace("Matching line: {}", line);
 
         if (!foundDuration) findDuration(line);
         val matcher = progressPattern.matcher(line);
-        if (!matcher.find()) return null;
+        if (!matcher.find()) return;
         val frame = matcher.group(1);
         val fps = matcher.group(2);
         val size = matcher.group(3);
@@ -53,7 +61,8 @@ public class FfmpegParser
         result.setFileSize(calculateFileSize(size));
         result.setSpeed(getDoubleOrDefault(speed, 0d));
         result.setFrame(getLongOrDefault(frame, 0L));
-        return result;
+        result.setPercentage(calculatePercentage());
+        eventBus.emit(result);
     }
 
     private void findDuration(String line) {
@@ -79,6 +88,15 @@ public class FfmpegParser
         } catch (DateTimeParseException ex) {
             return Duration.ofMillis(0);
         }
+    }
+
+    private double calculatePercentage() {
+
+        val duration = result.getDuration().toMillis();
+        val current = result.getTime().toMillis();
+
+        if (current <= 0 || duration == 0) return 0d;
+        return 100d / duration * current;
     }
 
     @Override

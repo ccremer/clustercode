@@ -23,4 +23,8 @@ public class TranscodeTask {
      */
     private Profile profile;
 
+    /**
+     * Whether the task has been accepted for transcoding.
+     */
+    private boolean accepted;
 }

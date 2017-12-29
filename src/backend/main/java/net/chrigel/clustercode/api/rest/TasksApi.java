@@ -3,6 +3,7 @@ package net.chrigel.clustercode.api.rest;
 import io.swagger.annotations.*;
 import lombok.val;
 import net.chrigel.clustercode.api.RestApiServices;
+import net.chrigel.clustercode.api.cache.TaskCache;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
 import net.chrigel.clustercode.cluster.ClusterService;
@@ -28,14 +29,14 @@ import java.util.stream.Collectors;
 public class TasksApi extends AbstractRestApi {
 
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
-    private final ClusterService clusterService;
     private final EventBus<ClusterMessage> clusterBus;
+    private final TaskCache cache;
 
     @Inject
-    TasksApi(ClusterService clusterService,
-             EventBus<ClusterMessage> clusterBus) {
-        this.clusterService = clusterService;
+    TasksApi(             EventBus<ClusterMessage> clusterBus,
+             TaskCache cache) {
         this.clusterBus = clusterBus;
+        this.cache = cache;
     }
 
     @GET
@@ -50,9 +51,10 @@ public class TasksApi extends AbstractRestApi {
             "List"),
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public Response getTasks() {
-        return createResponse(() -> clusterService.getTasks().stream()
-                                                  .map(this::convertToDto)
-                                                  .collect(Collectors.toList()));
+        return createResponse(() -> cache.getClusterTasks()
+                                         .stream()
+                                         .map(this::convertToDto)
+                                         .collect(Collectors.toList()));
     }
 
     @DELETE
@@ -86,11 +88,7 @@ public class TasksApi extends AbstractRestApi {
             return Response.status(Response.Status.CONFLICT).build();
         } catch (Exception ex) {
             log.catching(ex);
-            return Response.serverError()
-                           .entity(ApiError.builder()
-                                           .message(ex.getMessage())
-                                           .build())
-                           .build();
+            return serverError(ex);
         }
     }
 

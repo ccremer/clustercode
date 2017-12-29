@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import net.chrigel.clustercode.cluster.ClusterTask;
+import net.chrigel.clustercode.event.RxEventBusImpl;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
 import org.junit.Before;
@@ -29,12 +30,12 @@ public class JGroupsTaskStateImplTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        subject = new JGroupsTaskStateImpl(Clock.systemDefaultZone());
+        subject = new JGroupsTaskStateImpl(Clock.systemDefaultZone(), new RxEventBusImpl());
     }
 
     @Test
     public void getCurrentUtcTime_ShouldReturnTimeInUtc() throws Exception {
-        subject = new JGroupsTaskStateImpl(Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
+        subject = new JGroupsTaskStateImpl(Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC), new RxEventBusImpl());
         ZonedDateTime time = subject.getCurrentUtcTime();
         assertThat(time.getHour()).isEqualTo(13);
         assertThat(time.getMinute()).isEqualTo(30);

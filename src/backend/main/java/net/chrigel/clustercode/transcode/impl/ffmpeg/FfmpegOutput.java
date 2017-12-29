@@ -1,17 +1,16 @@
 package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 
 import java.time.Duration;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
+@EqualsAndHashCode
 public class FfmpegOutput implements TranscodeProgress {
 
     private double percentage;

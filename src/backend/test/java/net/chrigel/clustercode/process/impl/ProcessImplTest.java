@@ -22,9 +22,9 @@ public class ProcessImplTest {
     @Test
     public void start_ShouldReturnEmptyResult() throws Exception {
         subject.withExecutablePath(Paths.get("inexistent.file"))
-                .withIORedirected(false)
-                .withLogSuppressed()
-                .withCurrentWorkingDirectory(Paths.get("inexistent.dir"));
+               .withIORedirected(false)
+               .withLogSuppressed()
+               .withCurrentWorkingDirectory(Paths.get("inexistent.dir"));
         Optional<Integer> exitCode = subject.start();
         assertThat(exitCode.isPresent());
     }

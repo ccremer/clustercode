@@ -4,6 +4,7 @@ import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.process.OutputParser;
 import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
@@ -28,7 +29,7 @@ class TranscodingServiceImpl implements TranscodingService {
 
     private final TranscoderSettings transcoderSettings;
     private final MediaScanSettings mediaScanSettings;
-    private final ProgressCalculator progressCalculator;
+    private final OutputParser parser;
     private final Provider<ExternalProcess> externalProcessProvider;
     private RunningExternalProcess process;
     private boolean cancelRequested;
@@ -37,12 +38,12 @@ class TranscodingServiceImpl implements TranscodingService {
     TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
                            TranscoderSettings transcoderSettings,
                            MediaScanSettings mediaScanSettings,
-                           ProgressCalculator progressCalculator) {
+                           OutputParser parser) {
         this.externalProcessProvider = externalProcessProvider;
         this.transcoderSettings = transcoderSettings;
         this.mediaScanSettings = mediaScanSettings;
-        this.progressCalculator = progressCalculator;
 
+        this.parser = parser;
     }
 
     @Synchronized
@@ -55,8 +56,8 @@ class TranscodingServiceImpl implements TranscodingService {
                         .map(s -> replaceInput(s, source))
                         .map(s -> replaceOutput(s, tempFile))
                         .collect(Collectors.toList()))
-                .withStderrParser(createParser())
-                .withStdoutParser(createParser())
+                .withStderrParser(parser)
+                .withStdoutParser(parser)
                 .startInBackground();
         return process.waitFor();
     }
@@ -77,12 +78,9 @@ class TranscodingServiceImpl implements TranscodingService {
                 .profile(task.getProfile())
                 .build();
 
-        progressCalculator.setTask(task);
-        progressCalculator.setEnabled(true);
         val source = task.getMedia().getSourcePath();
         doTranscode(source, tempFile, task.getProfile())
                 .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
-        progressCalculator.setEnabled(false);
         if (cancelRequested) {
             result.setCancelled(true);
             cancelRequested = false;
@@ -95,11 +93,6 @@ class TranscodingServiceImpl implements TranscodingService {
     @Override
     public void transcode(TranscodeTask task, Consumer<TranscodeResult> listener) {
         CompletableFuture.runAsync(() -> listener.accept(transcode(task)));
-    }
-
-    @Override
-    public ProgressCalculator getProgressCalculator() {
-        return progressCalculator;
     }
 
     @Override
@@ -132,8 +125,4 @@ class TranscodingServiceImpl implements TranscodingService {
         return s.replace(INPUT_PLACEHOLDER, mediaScanSettings.getBaseInputDir().resolve(path).toString());
     }
 
-    private RedirectedParser<? extends TranscodeProgress> createParser() {
-       // if (transcoderSettings.isIoRedirected()) return null;
-        return new RedirectedParser<>(progressCalculator.getParser());
-    }
 }

@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
+import net.chrigel.clustercode.event.RxEventBusImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
@@ -16,7 +17,7 @@ public class FfmpegParserTest {
     public void  setup() {
         MockitoAnnotations.initMocks(this);
 
-        this.subject = new FfmpegParser();
+        this.subject = new FfmpegParser(new RxEventBusImpl());
     }
 
     @Test

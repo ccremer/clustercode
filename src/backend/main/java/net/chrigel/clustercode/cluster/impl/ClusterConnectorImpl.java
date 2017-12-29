@@ -8,30 +8,28 @@ import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
 import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
-import net.chrigel.clustercode.transcode.messages.ProgressMessage;
-import net.chrigel.clustercode.transcode.messages.TranscodeMessage;
-import net.chrigel.clustercode.util.OptionalFunction;
+import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
 
 import javax.inject.Inject;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @XSlf4j
 public class ClusterConnectorImpl implements ClusterConnector {
 
     private final ClusterService clusterService;
     private final EventBus<ClusterMessage> clusterBus;
-    private final EventBus<TranscodeMessage> transcodeBus;
+    private final RxEventBus eventBus;
 
     @Inject
     ClusterConnectorImpl(
         ClusterService clusterService,
         EventBus<ClusterMessage> clusterBus,
-        EventBus<TranscodeMessage> transcodeBus
+        RxEventBus eventBus
     ) {
         this.clusterService = clusterService;
         this.clusterBus = clusterBus;
-        this.transcodeBus = transcodeBus;
+        this.eventBus = eventBus;
     }
 
     @Inject
@@ -39,11 +37,10 @@ public class ClusterConnectorImpl implements ClusterConnector {
         clusterBus.registerEventHandler(CancelTaskMessage.class, this::onTaskCancelViaRpc);
         clusterBus.registerEventHandler(LocalCancelTaskRequest.class, this::onTaskCancelRequestedViaApi);
 
-        transcodeBus.registerEventHandler(ProgressMessage.class, this::onProgressUpdate);
-    }
-
-    private void onProgressUpdate(Event<ProgressMessage> event) {
-        clusterService.setProgress(event.getPayload().getPercentage());
+        eventBus.register(HandbrakeOutput.class)
+                .sample(10, TimeUnit.SECONDS)
+                .map(HandbrakeOutput::getPercentage)
+                .subscribe(clusterService::setProgress);
     }
 
     private boolean isLocalHostnameEqualTo(String otherHostname) {
@@ -66,7 +63,8 @@ public class ClusterConnectorImpl implements ClusterConnector {
     }
 
     private boolean cancelTaskLocally() {
-        return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
+       // return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
+        return false;
     }
 
 }

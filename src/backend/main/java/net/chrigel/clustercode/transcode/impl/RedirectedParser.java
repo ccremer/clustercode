@@ -2,18 +2,17 @@ package net.chrigel.clustercode.transcode.impl;
 
 import net.chrigel.clustercode.process.OutputParser;
 
-public class RedirectedParser<T> extends AbstractOutputParser<T> {
+public class RedirectedParser extends AbstractOutputParser {
 
-    private final OutputParser<T> backend;
+    private final OutputParser backend;
 
-    public RedirectedParser(OutputParser<T> backend) {
+    public RedirectedParser(OutputParser backend) {
         this.backend = backend;
     }
 
     @Override
-    protected T doParse(String line) {
-        backend.parse(line);
-        return backend.getResult().orElse(null);
+    protected void doParse(String line) {
+        this.backend.parse(line);
     }
 
     @Override

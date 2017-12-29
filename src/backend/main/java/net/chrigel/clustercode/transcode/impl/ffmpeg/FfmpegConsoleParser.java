@@ -6,7 +6,7 @@ import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 import javax.inject.Inject;
 
 public class FfmpegConsoleParser
-        extends AbstractOutputParser<String> {
+        extends AbstractOutputParser {
 
     private final FfmpegParser outputParser;
 
@@ -16,10 +16,8 @@ public class FfmpegConsoleParser
     }
 
     @Override
-    public String doParse(String line) {
+    public void doParse(String line) {
         outputParser.parse(line);
-        val output = outputParser.getResult();
-        return output.map(this::convertToString).orElse(null);
     }
 
     @Override

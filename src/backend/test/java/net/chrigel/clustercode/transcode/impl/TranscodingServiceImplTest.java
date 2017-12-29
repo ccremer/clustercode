@@ -10,9 +10,6 @@ import net.chrigel.clustercode.test.FileBasedUnitTest;
 import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
-import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
-import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegProgressCalculator;
-import net.chrigel.clustercode.transcode.impl.ffmpeg.FfprobeOutput;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -42,7 +39,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     @Mock
     private MediaScanSettings mediaScanSettings;
     @Mock
-    private ProgressCalculator progressCalculator;
+    private OutputParser parser;
 
     @Spy
     private Media media;
@@ -74,9 +71,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         task.setProfile(profile);
 
         subject = new TranscodingServiceImpl(() -> process,
-                transcoderSettings,
-                mediaScanSettings,
-                progressCalculator);
+            transcoderSettings,
+            mediaScanSettings,
+            parser);
     }
 
     @Test
@@ -86,7 +83,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         Optional<Integer> result = subject.doTranscode(
-                media.getSourcePath(), output, profile);
+            media.getSourcePath(), output, profile);
 
         assertThat(result).hasValue(0);
         verify(process).withArguments(Arrays.asList(output.toString()));
@@ -99,7 +96,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
         Optional<Integer> result = subject.doTranscode(
-                media.getSourcePath(), input, profile);
+            media.getSourcePath(), input, profile);
 
         assertThat(result).hasValue(0);
         verify(process).withArguments(Arrays.asList(mediaScanSettings.getBaseInputDir().resolve(input).toString()));

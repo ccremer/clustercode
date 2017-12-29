@@ -1,22 +1,23 @@
 package net.chrigel.clustercode.transcode.impl;
 
-import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegProgressCalculator;
-import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeProgressCalculator;
+import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegParser;
+import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeParser;
 import net.chrigel.clustercode.util.di.EnumeratedImplementation;
 
 public enum Transcoder implements EnumeratedImplementation {
 
-    FFMPEG(FfmpegProgressCalculator.class),
-    HANDBRAKE(HandbrakeProgressCalculator.class);
+    FFMPEG(FfmpegParser.class),
+    HANDBRAKE(HandbrakeParser.class);
 
-    private final Class<? extends ProgressCalculator> implementingClass;
+    private final Class<? extends OutputParser> implementingClass;
 
-    Transcoder(Class<? extends ProgressCalculator> implementingClass) {
+    Transcoder(Class<? extends OutputParser> implementingClass) {
         this.implementingClass = implementingClass;
     }
 
     @Override
-    public Class<? extends ProgressCalculator> getImplementingClass() {
+    public Class<? extends OutputParser> getImplementingClass() {
         return implementingClass;
     }
 }

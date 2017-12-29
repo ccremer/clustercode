@@ -33,4 +33,12 @@ abstract class AbstractRestApi {
             .build();
     }
 
+    final Response serverError(Throwable ex) {
+        return Response.serverError()
+                       .entity(ApiError.builder()
+                                       .message(ex.getMessage())
+                                       .build())
+                       .build();
+    }
+
 }

@@ -1,5 +1,10 @@
 package net.chrigel.clustercode.process.impl;
 
+import io.reactivex.Emitter;
+import io.reactivex.Flowable;
+import io.reactivex.Observable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.process.ExternalProcess;
@@ -29,8 +34,8 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     private Optional<Process> subprocess;
     private Optional<Path> workingDir;
     private boolean logSuppressed;
-    private OutputParser<?> stdParser;
-    private OutputParser<?> errParser;
+    private OutputParser stdParser;
+    private OutputParser errParser;
 
     private Future<Optional<Integer>> exitCode;
     private boolean redirectIO;
@@ -51,13 +56,13 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
     }
 
     @Override
-    public ExternalProcess withStdoutParser(OutputParser<?> stdParser) {
+    public ExternalProcess withStdoutParser(OutputParser stdParser) {
         this.stdParser = stdParser;
         return this;
     }
 
     @Override
-    public ExternalProcess withStderrParser(OutputParser<?> errParser) {
+    public ExternalProcess withStderrParser(OutputParser errParser) {
         this.errParser = errParser;
         return this;
     }
@@ -120,19 +125,31 @@ class ProcessImpl implements ExternalProcess, RunningExternalProcess {
         }
     }
 
-    private void captureStream(InputStream stream, OutputParser<?> parser) {
-        CompletableFuture.runAsync(() -> {
-            parser.start();
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    parser.parse(line);
-                }
-            } catch (IOException ex) {
-                log.catching(XLogger.Level.WARN, ex);
+    private void captureStream(InputStream stream, OutputParser parser) {
+        parser.start();
+        log.debug("started");
+        Flowable.generate(
+            () -> new BufferedReader(new InputStreamReader(stream)),
+            this::readLine,
+            BufferedReader::close
+        )
+                .sample(1, TimeUnit.SECONDS)
+                .subscribe(parser::parse,
+                    ex -> log.catching(XLogger.Level.WARN, ex),
+                    parser::stop);
+    }
+
+    private void readLine(BufferedReader reader, Emitter<String> emitter) {
+        try {
+            String line = reader.readLine();
+            if (line == null) {
+                emitter.onComplete();
+            } else {
+                emitter.onNext(line);
             }
-            parser.stop();
-        });
+        } catch (IOException ex) {
+            emitter.onError(ex);
+        }
     }
 
     private List<String> buildArguments() {

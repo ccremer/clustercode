@@ -61,6 +61,7 @@ dependencies {
     }
     compile "org.jgroups:jgroups:4.0.+"
     compile 'com.google.guava:guava:23.5-jre'
+    compile "io.reactivex.rxjava2:rxjava:2.1.+"
 
     // REST dependencies
     compile "io.logz:guice-jersey:1.0.+"

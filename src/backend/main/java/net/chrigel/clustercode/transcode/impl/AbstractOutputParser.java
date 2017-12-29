@@ -9,17 +9,15 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Optional;
 
-public abstract class AbstractOutputParser<T> implements OutputParser<T> {
+public abstract class AbstractOutputParser implements OutputParser {
 
     private boolean started = false;
-    private T result;
     private XLogger log = XLoggerFactory.getXLogger(getClass());
 
     @Synchronized
     @Override
     public final void start() {
         if (started) return;
-        this.result = null;
         doStart();
         this.started = true;
     }
@@ -39,12 +37,9 @@ public abstract class AbstractOutputParser<T> implements OutputParser<T> {
     @Synchronized
     @Override
     public final void parse(String line) {
-      //  if (!isStarted()) return;
         if (line == null || "".equals(line)) return;
         try {
-            val result = doParse(line);
-            if (result == null) return;
-            this.result = result;
+            doParse(line);
         } catch (Exception ex) {
             log.catching(ex);
             log.warn("Shutting down parser.");
@@ -52,18 +47,12 @@ public abstract class AbstractOutputParser<T> implements OutputParser<T> {
         }
     }
 
-    @Override
-    public final Optional<T> getResult() {
-        return Optional.ofNullable(result);
-    }
-
     /**
      * Parses the given line.
      *
      * @param line the non-null line.
-     * @return the result, otherwise null.
      */
-    protected abstract T doParse(String line);
+    protected abstract void doParse(String line);
 
     protected abstract void doStart();
 
