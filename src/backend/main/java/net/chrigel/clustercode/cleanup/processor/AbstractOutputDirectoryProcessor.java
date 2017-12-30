@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.cleanup.processor;
 
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.util.FileUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -52,7 +52,7 @@ public abstract class AbstractOutputDirectoryProcessor {
         }
     }
 
-    protected boolean isFailed(TranscodeResult result) {
+    protected boolean isFailed(TranscodeFinishedEvent result) {
         if (!result.isSuccessful()) {
             log.warn("Not moving file {}, since transcoding failed.", result.getTemporaryPath().toString());
             return true;

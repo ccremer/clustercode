@@ -5,7 +5,7 @@ import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 public class MarkSourceDirProcessorTest implements FileBasedUnitTest {
@@ -34,7 +33,7 @@ public class MarkSourceDirProcessorTest implements FileBasedUnitTest {
     @Spy
     private Media media;
     @Spy
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
 
     @Before
     public void setUp() throws Exception {
@@ -43,9 +42,9 @@ public class MarkSourceDirProcessorTest implements FileBasedUnitTest {
 
         inputDir = getPath("input");
         markDir = getPath("mark");
-        context.setTranscodeResult(transcodeResult);
-        transcodeResult.setMedia(media);
-        transcodeResult.setSuccessful(true);
+        context.setTranscodeFinishedEvent(transcodeFinishedEvent);
+        transcodeFinishedEvent.setMedia(media);
+        transcodeFinishedEvent.setSuccessful(true);
         when(mediaScanSettings.getSkipExtension()).thenReturn(".done");
         when(mediaScanSettings.getBaseInputDir()).thenReturn(inputDir);
         when(cleanupSettings.getMarkSourceDirectory()).thenReturn(Optional.of(markDir));

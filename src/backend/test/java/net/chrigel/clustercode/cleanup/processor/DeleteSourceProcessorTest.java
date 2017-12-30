@@ -4,7 +4,7 @@ import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,7 +24,7 @@ public class DeleteSourceProcessorTest implements FileBasedUnitTest {
     @Mock
     private MediaScanSettings mediaScanSettings;
     @Spy
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
     @Spy
     private CleanupContext context;
     @Spy
@@ -37,8 +37,8 @@ public class DeleteSourceProcessorTest implements FileBasedUnitTest {
 
         inputDir = getPath("input");
         when(mediaScanSettings.getBaseInputDir()).thenReturn(inputDir);
-        transcodeResult.setMedia(media);
-        context.setTranscodeResult(transcodeResult);
+        transcodeFinishedEvent.setMedia(media);
+        context.setTranscodeFinishedEvent(transcodeFinishedEvent);
         subject = new DeleteSourceProcessor(mediaScanSettings);
     }
 

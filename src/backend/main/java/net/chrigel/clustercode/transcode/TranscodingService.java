@@ -1,26 +1,20 @@
 package net.chrigel.clustercode.transcode;
 
+import io.reactivex.Flowable;
 import net.chrigel.clustercode.transcode.impl.Transcoder;
+import net.chrigel.clustercode.transcode.messages.TranscodeBeginEvent;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 
 import java.util.function.Consumer;
 
 public interface TranscodingService {
 
     /**
-     * Performs the transcoding. This method blocks until the process finished or failed.
+     * Performs the transcoding.
      *
      * @param task the cleanup, not null.
-     * @return the transcoding result
      */
-    TranscodeResult transcode(TranscodeTask task);
-
-    /**
-     * Runs {@link #transcode(TranscodeTask)} in background.
-     *
-     * @param task     the cleanup, not null.
-     * @param listener the listener instance for retrieving the result.
-     */
-    void transcode(TranscodeTask task, Consumer<TranscodeResult> listener);
+    void transcode(TranscodeTask task);
 
     /**
      * Gets the type of the locally configured transcoder.
@@ -42,5 +36,9 @@ public interface TranscodingService {
      * @return true if active, otherwise false.
      */
     boolean isActive();
+
+    Flowable<TranscodeBeginEvent> transcodeBegin();
+
+    Flowable<TranscodeFinishedEvent> transcodeFinished();
 
 }

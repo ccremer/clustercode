@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.transcode;
+package net.chrigel.clustercode.transcode.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +13,7 @@ import java.nio.file.Path;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TranscodeResult {
+public class TranscodeFinishedEvent {
 
     /**
      * The original media instance.

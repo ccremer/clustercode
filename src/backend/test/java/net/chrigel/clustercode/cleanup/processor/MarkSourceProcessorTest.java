@@ -4,7 +4,7 @@ import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,7 +24,7 @@ public class MarkSourceProcessorTest implements FileBasedUnitTest {
     @Mock
     private MediaScanSettings mediaScanSettings;
     @Spy
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
     @Spy
     private CleanupContext context;
     @Spy
@@ -36,9 +36,9 @@ public class MarkSourceProcessorTest implements FileBasedUnitTest {
         setupFileSystem();
 
         inputDir = getPath("input");
-        context.setTranscodeResult(transcodeResult);
-        transcodeResult.setMedia(media);
-        transcodeResult.setSuccessful(true);
+        context.setTranscodeFinishedEvent(transcodeFinishedEvent);
+        transcodeFinishedEvent.setMedia(media);
+        transcodeFinishedEvent.setSuccessful(true);
         when(mediaScanSettings.getSkipExtension()).thenReturn(".done");
         when(mediaScanSettings.getBaseInputDir()).thenReturn(inputDir);
 

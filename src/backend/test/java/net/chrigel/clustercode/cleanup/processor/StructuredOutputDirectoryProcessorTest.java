@@ -5,7 +5,7 @@ import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.ClockBasedUnitTest;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ public class StructuredOutputDirectoryProcessorTest
     @Spy
     private CleanupContext context;
     @Spy
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
     @Spy
     private Media media;
 
@@ -37,12 +37,12 @@ public class StructuredOutputDirectoryProcessorTest
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        context.setTranscodeResult(transcodeResult);
-        transcodeResult.setMedia(media);
+        context.setTranscodeFinishedEvent(transcodeFinishedEvent);
+        transcodeFinishedEvent.setMedia(media);
 
         outputDir = getPath("output");
         when(settings.getOutputBaseDirectory()).thenReturn(outputDir);
-        when(transcodeResult.isSuccessful()).thenReturn(true);
+        when(transcodeFinishedEvent.isSuccessful()).thenReturn(true);
 
         subject = new StructuredOutputDirectoryProcessor(settings, getFixedClock(8, 20));
     }
@@ -53,7 +53,7 @@ public class StructuredOutputDirectoryProcessorTest
         Path source = createFile(getPath("0", "subdir", "file.ext"));
         Path temp = createFile(getPath("tmp", "file.ext"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
         media.setSourcePath(source);
 
         CleanupContext result = subject.processStep(context);
@@ -69,7 +69,7 @@ public class StructuredOutputDirectoryProcessorTest
         Path source = createFile(getPath("0", "subdir", "file.mp4"));
         Path temp = createFile(getPath("tmp", "file.mkv"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
         media.setSourcePath(source);
 
         CleanupContext result = subject.processStep(context);
@@ -86,7 +86,7 @@ public class StructuredOutputDirectoryProcessorTest
         createFile(getPath("output", "subdir", "file.ext"));
         Path temp = createFile(getPath("tmp", "file.ext"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
         media.setSourcePath(source);
 
         CleanupContext result = subject.processStep(context);

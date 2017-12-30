@@ -5,7 +5,7 @@ import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupService;
 import net.chrigel.clustercode.cleanup.CleanupStrategy;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 
 import javax.inject.Inject;
 import java.util.Iterator;
@@ -21,10 +21,10 @@ class CleanupServiceImpl implements CleanupService {
     }
 
     @Override
-    public void performCleanup(TranscodeResult result) {
+    public void performCleanup(TranscodeFinishedEvent result) {
 
         CleanupContext context = CleanupContext.builder()
-                .transcodeResult(result)
+                .transcodeFinishedEvent(result)
                 .build();
 
         log.info("Performing cleanup...");

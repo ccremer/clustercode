@@ -19,7 +19,7 @@ public class CleanupAction extends Action {
 
     @Override
     protected StateEvent doExecute(State from, State to, StateEvent event, StateContext context) {
-        cleanupService.performCleanup(context.getTranscodeResult());
+        cleanupService.performCleanup(context.getTranscodeFinishedEvent());
         return StateEvent.FINISHED;
     }
 }

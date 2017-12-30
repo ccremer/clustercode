@@ -5,7 +5,7 @@ import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.test.ClockBasedUnitTest;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -27,7 +27,7 @@ public class UnifiedOutputDirectoryProcessorTest
     @Spy
     private CleanupContext context;
     @Spy
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
     @Spy
     private Media media;
 
@@ -38,10 +38,10 @@ public class UnifiedOutputDirectoryProcessorTest
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
         outputDir = getPath("output");
-        context.setTranscodeResult(transcodeResult);
-        transcodeResult.setMedia(media);
+        context.setTranscodeFinishedEvent(transcodeFinishedEvent);
+        transcodeFinishedEvent.setMedia(media);
         when(settings.getOutputBaseDirectory()).thenReturn(outputDir);
-        when(transcodeResult.isSuccessful()).thenReturn(true);
+        when(transcodeFinishedEvent.isSuccessful()).thenReturn(true);
 
         subject = new UnifiedOutputDirectoryProcessor(settings, getFixedClock(8, 20));
     }
@@ -51,7 +51,7 @@ public class UnifiedOutputDirectoryProcessorTest
 
         Path temp = createFile(getPath("0", "video.ext"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
 
         CleanupContext result = subject.processStep(context);
 
@@ -67,7 +67,7 @@ public class UnifiedOutputDirectoryProcessorTest
 
         Path temp = createFile(getPath("0", "subdir", "video.ext"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
 
         CleanupContext result = subject.processStep(context);
 
@@ -83,7 +83,7 @@ public class UnifiedOutputDirectoryProcessorTest
         Path temp = createFile(getPath("0", "subdir", "video.ext"));
         createFile(outputDir.resolve("video.ext"));
 
-        transcodeResult.setTemporaryPath(temp);
+        transcodeFinishedEvent.setTemporaryPath(temp);
 
         CleanupContext result = subject.processStep(context);
 

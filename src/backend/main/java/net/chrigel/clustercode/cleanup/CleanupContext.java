@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 
 import java.nio.file.Path;
 
@@ -14,7 +14,7 @@ import java.nio.file.Path;
 @AllArgsConstructor
 public class CleanupContext {
 
-    private TranscodeResult transcodeResult;
+    private TranscodeFinishedEvent transcodeFinishedEvent;
 
     private Path outputPath;
 

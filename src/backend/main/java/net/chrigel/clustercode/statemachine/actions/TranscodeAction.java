@@ -5,9 +5,9 @@ import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
-import net.chrigel.clustercode.transcode.TranscodeResult;
-import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscodingService;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
+import net.chrigel.clustercode.transcode.TranscodeTask;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
@@ -15,17 +15,17 @@ import java.util.concurrent.ExecutionException;
 
 public class TranscodeAction extends Action {
 
-    private final RxEventBus eventBus;
-    private CompletableFuture<TranscodeResult> future;
+    private final TranscodingService service;
+    private CompletableFuture<TranscodeFinishedEvent> future;
 
     @Inject
-    TranscodeAction(RxEventBus eventBus) {
-        this.eventBus = eventBus;
+    TranscodeAction(RxEventBus eventBus, TranscodingService service) {
+        this.service = service;
 
-        eventBus.register(TranscodeResult.class, this::onTranscodeFinished);
+        eventBus.register(TranscodeFinishedEvent.class, this::onTranscodeFinished);
     }
 
-    private void onTranscodeFinished(TranscodeResult event) {
+    private void onTranscodeFinished(TranscodeFinishedEvent event) {
         future.complete(event);
     }
 
@@ -34,16 +34,16 @@ public class TranscodeAction extends Action {
         log.entry(from, to, event, context);
 
         future = new CompletableFuture<>();
-        eventBus.emit(TranscodeTask
+
+        service.transcode(TranscodeTask
             .builder()
             .media(context.getSelectedMedia())
             .profile(context.getSelectedProfile())
-            .build()
-        );
+            .build());
 
         try {
-            TranscodeResult result = future.get();
-            context.setTranscodeResult(result);
+            TranscodeFinishedEvent result = future.get();
+            context.setTranscodeFinishedEvent(result);
             return result.isCancelled() ? StateEvent.CANCELLED : StateEvent.FINISHED;
         } catch (InterruptedException | ExecutionException e) {
             return StateEvent.ERROR;

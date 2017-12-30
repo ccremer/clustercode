@@ -28,9 +28,9 @@ public class DeleteSourceProcessor implements CleanupProcessor {
         log.entry(context);
 
         Path source = mediaScanSettings.getBaseInputDir().resolve(
-                context.getTranscodeResult().getMedia().getSourcePath());
+                context.getTranscodeFinishedEvent().getMedia().getSourcePath());
 
-        if (!context.getTranscodeResult().isSuccessful()) {
+        if (!context.getTranscodeFinishedEvent().isSuccessful()) {
             log.warn("Not deleting {}, since transcoding failed.", source);
             return log.exit(context);
         }

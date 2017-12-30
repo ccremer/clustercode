@@ -164,7 +164,7 @@ public class StateController
         return new Condition<StateContext>() {
             @Override
             public boolean isSatisfied(StateContext context) {
-                return !context.getTranscodeResult().isCancelled();
+                return !context.getTranscodeFinishedEvent().isCancelled();
             }
 
             @Override

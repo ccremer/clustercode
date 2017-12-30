@@ -34,7 +34,7 @@ public class MarkSourceProcessor
     @Override
     protected boolean isStepValid(CleanupContext context) {
         Path source = getSourcePath(context);
-        if (!context.getTranscodeResult().isSuccessful()) {
+        if (!context.getTranscodeFinishedEvent().isSuccessful()) {
             log.warn("Not marking {} as done, since transcoding failed.", source);
             return false;
         }

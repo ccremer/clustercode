@@ -3,7 +3,7 @@ package net.chrigel.clustercode.cleanup.processor;
 import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupSettings;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
@@ -30,7 +30,7 @@ public class UnifiedOutputDirectoryProcessor
     @Override
     public CleanupContext processStep(CleanupContext context) {
         log.entry(context);
-        TranscodeResult result = context.getTranscodeResult();
+        TranscodeFinishedEvent result = context.getTranscodeFinishedEvent();
 
         if (isFailed(result)) return log.exit(context);
 

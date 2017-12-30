@@ -13,22 +13,22 @@ import java.util.Collections;
 @XSlf4j
 public class TaskCache {
 
-    private final ClusterService clusterService;
+    private Collection<ClusterTask> clusterTasks = Collections.emptyList();
 
     @Inject
-    TaskCache(RxEventBus eventBus,
-              ClusterService clusterService){
-        this.clusterService = clusterService;
-        eventBus.register(ClusterTaskCollectionChanged.class, this::onTaskCollectionChanged);
+    TaskCache(RxEventBus eventBus) {
+        eventBus.register(ClusterTaskCollectionChanged.class)
+                .subscribe(this::onTaskCollectionChanged);
     }
 
     private void onTaskCollectionChanged(ClusterTaskCollectionChanged event) {
         log.debug("Task collection changed: {}", event);
+        this.clusterTasks = event.getTasks();
         // for future web sockets usage.
     }
 
     public Collection<ClusterTask> getClusterTasks() {
-        return Collections.unmodifiableCollection(clusterService.getTasks());
+        return clusterTasks;
     }
 
 }

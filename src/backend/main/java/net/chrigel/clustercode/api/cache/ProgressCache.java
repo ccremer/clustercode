@@ -1,18 +1,15 @@
 package net.chrigel.clustercode.api.cache;
 
 import com.google.inject.Inject;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.event.RxEventBus;
-import net.chrigel.clustercode.transcode.TranscodeResult;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
-import org.slf4j.ext.XLogger;
 
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @XSlf4j
 public class ProgressCache {
@@ -28,11 +25,11 @@ public class ProgressCache {
         eventBus.register(FfmpegOutput.class, this::onFfmpegOutputUpdated);
         eventBus.register(HandbrakeOutput.class, this::onHandbrakeOutputUpdated);
 
-        eventBus.register(TranscodeResult.class, this::onTranscodingFinished);
+        eventBus.register(TranscodeFinishedEvent.class, this::onTranscodingFinished);
     }
 
-    private void onTranscodingFinished(TranscodeResult transcodeResult) {
-        log.entry(transcodeResult);
+    private void onTranscodingFinished(TranscodeFinishedEvent event) {
+        log.entry(event);
         this.percentage = -1;
         this.ffmpegOutput = null;
         this.handbrakeOutput = null;
