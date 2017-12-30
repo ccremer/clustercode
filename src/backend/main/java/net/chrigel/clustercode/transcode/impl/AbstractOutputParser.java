@@ -1,13 +1,9 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import lombok.Synchronized;
-import lombok.val;
 import net.chrigel.clustercode.process.OutputParser;
-import net.chrigel.clustercode.util.AbstractPublisher;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import java.util.Optional;
 
 public abstract class AbstractOutputParser implements OutputParser {
 

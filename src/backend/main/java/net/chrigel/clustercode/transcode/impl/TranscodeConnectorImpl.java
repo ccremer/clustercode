@@ -10,7 +10,6 @@ import javax.inject.Inject;
 public class TranscodeConnectorImpl {
 
     private final TranscodingService transcodingService;
-    private final RxEventBus eventBus;
 
     @Inject
     TranscodeConnectorImpl(
@@ -18,14 +17,7 @@ public class TranscodeConnectorImpl {
         RxEventBus eventBus
     ) {
         this.transcodingService = transcodingService;
-        this.eventBus = eventBus;
         eventBus.register(CancelTranscodeMessage.class, this::onCancelTranscodeTask);
-        eventBus.register(TranscodeTask.class, this::onTranscodeTaskCreated);
-    }
-
-    private void onTranscodeTaskCreated(TranscodeTask event) {
-        transcodingService.transcode(event, eventBus::emit);
-        event.setAccepted(!transcodingService.isActive());
     }
 
     private void onCancelTranscodeTask(CancelTranscodeMessage event) {

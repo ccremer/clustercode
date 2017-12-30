@@ -6,8 +6,8 @@ import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
+import net.chrigel.clustercode.test.CompletableUnitTest;
 import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.transcode.TranscodeResult;
 import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import org.junit.Before;
@@ -20,15 +20,17 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TranscodingServiceImplTest implements FileBasedUnitTest {
+public class TranscodingServiceImplTest implements FileBasedUnitTest, CompletableUnitTest {
 
     @Mock
     private ExternalProcess process;
@@ -54,6 +56,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
+        setupCompletable();
 
         when(process.withExecutablePath(any())).thenReturn(process);
         when(process.withIORedirected(anyBoolean())).thenReturn(process);
@@ -102,41 +105,52 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest {
         verify(process).withArguments(Arrays.asList(mediaScanSettings.getBaseInputDir().resolve(input).toString()));
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void transcode_ShouldReturnTrue_IfTranscodingSuccessful() throws Exception {
         when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
-        TranscodeResult result = subject.transcode(task);
-        assertThat(result.getTemporaryPath()).isEqualTo(getPath("tmp", "video.mp4"));
-        assertThat(result.isSuccessful()).isTrue();
+        subject.transcodeFinished().subscribe(result -> {
+            assertThat(result.getTemporaryPath()).isEqualTo(getPath("tmp", "video.mp4"));
+            assertThat(result.isSuccessful()).isTrue();
+            incrementAndComplete();
+        });
+        subject.transcode(task);
+        waitForCompletion();
     }
 
     @Test(timeout = 1000)
     public void transcode_ShouldRunAsync() throws Exception {
         when(runningProcess.waitFor()).thenReturn(Optional.of(0));
 
-        Semaphore blocker = new Semaphore(0);
-        subject.transcode(task, result -> {
+        subject.transcodeFinished().subscribe(result -> {
             assertThat(result.isSuccessful()).isTrue();
-            blocker.release();
+            incrementAndComplete();
         });
-
-        blocker.acquire();
+        subject.transcode(task);
+        waitForCompletion();
     }
 
     @Test
     public void transcode_ShouldReturnFalse_IfTranscodingFailed() throws Exception {
         when(runningProcess.waitFor()).thenReturn(Optional.of(1));
 
-        TranscodeResult result = subject.transcode(task);
-        assertThat(result.isSuccessful()).isFalse();
+        subject.transcodeFinished().subscribe(result -> {
+            assertThat(result.isSuccessful()).isFalse();
+            incrementAndComplete();
+        });
+        subject.transcode(task);
+        waitForCompletion();
     }
 
     @Test
     public void transcode_ShouldReturnFalse_IfTranscodingUndetermined() throws Exception {
         when(runningProcess.waitFor()).thenReturn(Optional.empty());
 
-        TranscodeResult result = subject.transcode(task);
-        assertThat(result.isSuccessful()).isFalse();
+        subject.transcodeFinished().subscribe(result -> {
+            assertThat(result.isSuccessful()).isFalse();
+            incrementAndComplete();
+        });
+        subject.transcode(task);
+        waitForCompletion();
     }
 }

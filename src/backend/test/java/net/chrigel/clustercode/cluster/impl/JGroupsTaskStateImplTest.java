@@ -30,12 +30,12 @@ public class JGroupsTaskStateImplTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        subject = new JGroupsTaskStateImpl(Clock.systemDefaultZone(), new RxEventBusImpl());
+        subject = new JGroupsTaskStateImpl(Clock.systemDefaultZone());
     }
 
     @Test
     public void getCurrentUtcTime_ShouldReturnTimeInUtc() throws Exception {
-        subject = new JGroupsTaskStateImpl(Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC), new RxEventBusImpl());
+        subject = new JGroupsTaskStateImpl(Clock.fixed(Instant.parse("2017-01-01T13:30:00Z"), ZoneOffset.UTC));
         ZonedDateTime time = subject.getCurrentUtcTime();
         assertThat(time.getHour()).isEqualTo(13);
         assertThat(time.getMinute()).isEqualTo(30);

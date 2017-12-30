@@ -30,7 +30,7 @@ public class InitializeAction extends Action {
             log.info("in order to make sure that there wasn't a connection problem and we can join");
             log.info("an existing cluster.");
             try {
-                Thread.sleep(15000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
                 log.warn(e.getMessage());
             }

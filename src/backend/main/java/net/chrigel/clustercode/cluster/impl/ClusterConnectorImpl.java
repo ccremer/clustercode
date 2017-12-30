@@ -2,13 +2,13 @@ package net.chrigel.clustercode.cluster.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterConnector;
-import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
 import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
 
 import javax.inject.Inject;
@@ -17,13 +17,13 @@ import java.util.concurrent.TimeUnit;
 @XSlf4j
 public class ClusterConnectorImpl implements ClusterConnector {
 
-    private final ClusterService clusterService;
+    private final JgroupsClusterImpl clusterService;
     private final EventBus<ClusterMessage> clusterBus;
     private final RxEventBus eventBus;
 
     @Inject
     ClusterConnectorImpl(
-        ClusterService clusterService,
+        JgroupsClusterImpl clusterService,
         EventBus<ClusterMessage> clusterBus,
         RxEventBus eventBus
     ) {
@@ -41,6 +41,15 @@ public class ClusterConnectorImpl implements ClusterConnector {
                 .sample(10, TimeUnit.SECONDS)
                 .map(HandbrakeOutput::getPercentage)
                 .subscribe(clusterService::setProgress);
+
+        eventBus.register(FfmpegOutput.class)
+                .sample(10, TimeUnit.SECONDS)
+                .map(FfmpegOutput::getPercentage)
+                .subscribe(clusterService::setProgress);
+
+        clusterService.getTaskState()
+                      .clusterTaskCollectionChanged()
+                      .subscribe(eventBus::emit);
     }
 
     private boolean isLocalHostnameEqualTo(String otherHostname) {
@@ -63,7 +72,7 @@ public class ClusterConnectorImpl implements ClusterConnector {
     }
 
     private boolean cancelTaskLocally() {
-       // return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
+        // return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
         return false;
     }
 

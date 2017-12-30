@@ -24,7 +24,8 @@ public class ClusterModule extends AbstractPropertiesModule {
 
     @Override
     protected void configure() {
-        bind(ClusterService.class).to(JgroupsClusterImpl.class).in(Singleton.class);
+        bind(ClusterService.class).to(JgroupsClusterImpl.class);
+        bind(JgroupsClusterImpl.class).in(Singleton.class);
         bind(ClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
         bind(JgroupsClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
         bind(new TypeLiteral<EventBus<ClusterMessage>>(){}).toInstance(new EventBusImpl<>());

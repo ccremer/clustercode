@@ -3,7 +3,6 @@ package net.chrigel.clustercode.cluster.impl;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
-import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.cluster.JGroupsTaskState;
 import net.chrigel.clustercode.scan.Media;
@@ -12,8 +11,6 @@ import org.jgroups.fork.ForkChannel;
 import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -92,6 +89,10 @@ class JgroupsClusterImpl
         channel = null;
     }
 
+    JGroupsTaskState getTaskState() {
+        return taskState;
+    }
+
     @Synchronized
     @Override
     public void removeTask() {
@@ -106,18 +107,11 @@ class JgroupsClusterImpl
     }
 
     @Override
-    public List<ClusterTask> getTasks() {
-        if (!isConnected()) return Collections.emptyList();
-        return taskState.getTasks();
-    }
-
-    @Override
     public void setTask(Media candidate) {
         if (!isConnected()) return;
         taskState.setTask(candidate);
     }
 
-    @Override
     public void setProgress(double percentage) {
         if (!isConnected()) return;
         taskState.setProgress(percentage);

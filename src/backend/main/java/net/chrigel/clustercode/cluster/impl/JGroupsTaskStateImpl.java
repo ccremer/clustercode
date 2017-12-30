@@ -1,12 +1,16 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import com.google.inject.Inject;
+import io.reactivex.BackpressureStrategy;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.cluster.JGroupsTaskState;
 import net.chrigel.clustercode.cluster.messages.ClusterTaskCollectionChanged;
-import net.chrigel.clustercode.event.RxEventBus;
 import net.chrigel.clustercode.scan.Media;
 import org.jgroups.Address;
 import org.jgroups.JChannel;
@@ -18,8 +22,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -27,20 +29,15 @@ import java.util.Map;
 public class JGroupsTaskStateImpl implements JGroupsTaskState {
 
     private final Clock clock;
-    private final RxEventBus eventBus;
+    private final Subject<ClusterTaskCollectionChanged> clusterTaskCollectionChanged;
     private ReplicatedHashMap<String, ClusterTask> map;
     private String hostname;
 
     @Inject
-    JGroupsTaskStateImpl(Clock clock,
-                         RxEventBus eventBus) {
+    JGroupsTaskStateImpl(Clock clock) {
         this.clock = clock;
-        this.eventBus = eventBus;
-    }
-
-    @Override
-    public List<ClusterTask> getTasks() {
-        return new ArrayList<>(map.values());
+        Subject<ClusterTaskCollectionChanged> subject = PublishSubject.create();
+        this.clusterTaskCollectionChanged = subject.toSerialized();
     }
 
     @Override
@@ -133,6 +130,13 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
     }
 
     @Override
+    public Flowable<ClusterTaskCollectionChanged> clusterTaskCollectionChanged() {
+        return clusterTaskCollectionChanged
+            .toFlowable(BackpressureStrategy.BUFFER)
+            .observeOn(Schedulers.computation());
+    }
+
+    @Override
     public void initialize(JChannel channel, String hostname) throws Exception {
         this.map = new ReplicatedHashMap<>(channel);
         this.hostname = hostname;
@@ -140,51 +144,57 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
         map.start(5000L);
         map.remove(getChannelAddress());
 
-        map.addNotifier(createNotifier());
+        map.addNotifier(new ObservableNotifier());
     }
 
     private String getChannelAddress() {
         return map.getChannel().getAddressAsUUID();
     }
 
-    private ReplicatedHashMap.Notification<String, ClusterTask> createNotifier() {
-        return new ReplicatedHashMap.Notification<String, ClusterTask>() {
-            @Override
-            public void entrySet(String key, ClusterTask value) {
-                eventBus.emit(ClusterTaskCollectionChanged
-                    .builder()
-                    .clusterTasksAdded(Collections.singletonList(value))
-                    .build());
-            }
+    class ObservableNotifier implements ReplicatedHashMap.Notification<String, ClusterTask> {
 
-            @Override
-            public void entryRemoved(String key) {
-                eventBus.emit(ClusterTaskCollectionChanged
-                    .builder()
-                    .removed(true)
-                    .build());
-            }
+        @Override
+        public void entrySet(String key, ClusterTask value) {
+            log.entry(key, value);
+            clusterTaskCollectionChanged.onNext(ClusterTaskCollectionChanged
+                .builder()
+                .tasks(map.values())
+                .build());
+        }
 
-            @Override
-            public void viewChange(View view, List<Address> mbrs_joined, List<Address> mbrs_left) {
+        @Override
+        public void entryRemoved(String key) {
+            log.entry(key);
+            clusterTaskCollectionChanged.onNext(ClusterTaskCollectionChanged
+                .builder()
+                .removed(true)
+                .tasks(map.values())
+                .build());
+        }
 
-            }
+        @Override
+        public void viewChange(View view, List<Address> mbrs_joined, List<Address> mbrs_left) {
 
-            @Override
-            public void contentsSet(Map<String, ClusterTask> new_entries) {
-                eventBus.emit(ClusterTaskCollectionChanged
-                    .builder()
-                    .clusterTasksAdded(new_entries.values())
-                    .build());
-            }
+        }
 
-            @Override
-            public void contentsCleared() {
-                eventBus.emit(ClusterTaskCollectionChanged
-                    .builder()
-                    .cleared(true)
-                    .build());
-            }
-        };
+        @Override
+        public void contentsSet(Map<String, ClusterTask> new_entries) {
+            log.entry(new_entries);
+            clusterTaskCollectionChanged.onNext(ClusterTaskCollectionChanged
+                .builder()
+                .added(new_entries.values())
+                .tasks(map.values())
+                .build());
+        }
+
+        @Override
+        public void contentsCleared() {
+            log.entry();
+            clusterTaskCollectionChanged.onNext(ClusterTaskCollectionChanged
+                .builder()
+                .cleared(true)
+                .tasks(map.values())
+                .build());
+        }
     }
 }

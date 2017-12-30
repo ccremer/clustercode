@@ -32,15 +32,6 @@ public interface ClusterService {
     boolean cancelTask(String hostname);
 
     /**
-     * Gets the task that is or was scheduled for this node. This method is useful after an application crash where
-     * the cluster knows which task was scheduled for this specific node. So this method returns the task
-     * previously scheduled for this node, otherwise empty.
-     *
-     * @return an optional describing the task.
-     */
-    List<ClusterTask> getTasks();
-
-    /**
      * Sets the cleanup which is being executed by this Java process. Replaces the old cleanup if present, only one task
      * can be active.
      * This method does nothing if not connected to the cluster.
@@ -48,13 +39,6 @@ public interface ClusterService {
      * @param candidate the candidate, not null.
      */
     void setTask(Media candidate);
-
-    /**
-     * Sets the progress of the current task. Does nothing if no task is defined.
-     *
-     * @param percentage the progress in percentage.
-     */
-    void setProgress(double percentage);
 
     /**
      * Returns true if the candidate is known across the cluster. If this Java process is the only member or not at all
@@ -78,6 +62,5 @@ public interface ClusterService {
      * @return the name, otherwise empty.
      */
     Optional<String> getName();
-
 
 }
