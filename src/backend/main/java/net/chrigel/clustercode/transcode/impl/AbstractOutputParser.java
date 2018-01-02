@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.transcode.impl;
 
 import lombok.Synchronized;
-import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.transcode.OutputParser;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 

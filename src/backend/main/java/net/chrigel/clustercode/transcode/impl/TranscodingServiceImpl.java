@@ -8,8 +8,9 @@ import io.reactivex.subjects.Subject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
-import net.chrigel.clustercode.process.ExternalProcess;
-import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.process.ExternalProcessService;
+import net.chrigel.clustercode.transcode.OutputParser;
+import net.chrigel.clustercode.process.ProcessConfiguration;
 import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
@@ -21,7 +22,6 @@ import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -36,17 +36,17 @@ class TranscodingServiceImpl implements TranscodingService {
     private final TranscoderSettings transcoderSettings;
     private final MediaScanSettings mediaScanSettings;
     private final OutputParser parser;
-    private final Provider<ExternalProcess> externalProcessProvider;
+    private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
     private RunningExternalProcess process;
     private boolean cancelRequested;
 
     @Inject
-    TranscodingServiceImpl(Provider<ExternalProcess> externalProcessProvider,
+    TranscodingServiceImpl(ExternalProcessService externalProcessService,
                            TranscoderSettings transcoderSettings,
                            MediaScanSettings mediaScanSettings,
                            OutputParser parser) {
-        this.externalProcessProvider = externalProcessProvider;
+        this.externalProcessService = externalProcessService;
         this.transcoderSettings = transcoderSettings;
         this.mediaScanSettings = mediaScanSettings;
 
@@ -63,45 +63,77 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     @Synchronized
-    Optional<Integer> doTranscode(Path source, Path tempFile, Profile profile) {
+    void doTranscode(Path tempFile, TranscodeTask task) {
+        if (process != null) return;
+
+        val source = task.getMedia().getSourcePath();
         log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
-        this.process = externalProcessProvider.get()
-                                              .withExecutablePath(transcoderSettings.getTranscoderExecutable())
-                                              .withIORedirected(transcoderSettings.isIoRedirected())
-                                              .withArguments(profile.getArguments().stream()
-                                                                    .map(s -> replaceInput(s, source))
-                                                                    .map(s -> replaceOutput(s, tempFile))
-                                                                    .collect(Collectors.toList()))
-                                              .withStderrParser(parser)
-                                              .withStdoutParser(parser)
-                                              .startInBackground();
-        return process.waitFor();
+
+        ProcessConfiguration config = ProcessConfiguration
+            .builder()
+            .executable(transcoderSettings.getTranscoderExecutable())
+            .arguments(task.getProfile()
+                           .getArguments()
+                           .stream()
+                           .map(s -> replaceInput(s, source))
+                           .map(s -> replaceOutput(s, tempFile))
+                           .collect(Collectors.toList()))
+            .stdoutObserver(observable -> observable
+                .sample(1, TimeUnit.SECONDS)
+                .subscribe(parser::parse))
+            .build();
+
+        externalProcessService
+            .start(config, this::setHandle)
+            .subscribe(
+                exitCode -> onSuccess(exitCode, tempFile, task),
+                this::onError);
+
+    }
+
+    private void onError(Throwable ex) {
+        log.error(ex.toString());
+        val event = TranscodeFinishedEvent
+            .builder()
+            .successful(false)
+            .build();
+        setHandle(null);
+        cancelRequested = false;
+        publisher.onNext(event);
+    }
+
+    private void onSuccess(Integer exitCode, Path tempFile, TranscodeTask task) {
+        val event = TranscodeFinishedEvent
+            .builder()
+            .temporaryPath(tempFile)
+            .media(task.getMedia())
+            .profile(task.getProfile())
+            .build();
+
+        event.setSuccessful(exitCode == 0);
+        setHandle(null);
+        event.setCancelled(cancelRequested);
+        cancelRequested = false;
+
+        log.info(event.isSuccessful() ? "Transcoding finished" : "Transcoding failed or cancelled.");
+        publisher.onNext(event);
+    }
+
+    @Synchronized
+    private void setHandle(RunningExternalProcess process) {
+        this.process = process;
     }
 
     private void prepareTranscode(TranscodeTask task) {
         log.entry(task);
+        val tempFile = transcoderSettings
+            .getTemporaryDir()
+            .resolve(FileUtil.getFileNameWithoutExtension(
+                task.getMedia().getSourcePath()) + getPropertyOrDefault(
+                task.getProfile(), "FORMAT", transcoderSettings.getDefaultVideoExtension())
+            );
 
-        val tempFile = transcoderSettings.getTemporaryDir().resolve(
-            FileUtil.getFileNameWithoutExtension(task.getMedia().getSourcePath()) +
-                getPropertyOrDefault(task.getProfile(), "FORMAT",
-                    transcoderSettings.getDefaultVideoExtension()));
-
-        val result = TranscodeFinishedEvent.builder()
-                                           .temporaryPath(tempFile)
-                                           .media(task.getMedia())
-                                           .profile(task.getProfile())
-                                           .build();
-
-        val source = task.getMedia().getSourcePath();
-        doTranscode(source, tempFile, task.getProfile())
-            .ifPresent(exitCode -> result.setSuccessful(exitCode == 0));
-        if (cancelRequested) {
-            result.setCancelled(true);
-            cancelRequested = false;
-        }
-        process = null;
-        log.info(result.isSuccessful() ? "Transcoding finished" : "Transcoding failed or cancelled.");
-        publisher.onNext(result);
+        doTranscode(tempFile, task);
     }
 
     @Override
@@ -130,16 +162,14 @@ class TranscodingServiceImpl implements TranscodingService {
 
     @Override
     public Flowable<TranscodeBeginEvent> transcodeBegin() {
-        return publisher.filter(TranscodeBeginEvent.class::isInstance)
-                        .cast(TranscodeBeginEvent.class)
+        return publisher.ofType(TranscodeBeginEvent.class)
                         .toFlowable(BackpressureStrategy.BUFFER)
                         .observeOn(Schedulers.computation());
     }
 
     @Override
     public Flowable<TranscodeFinishedEvent> transcodeFinished() {
-        return publisher.filter(TranscodeFinishedEvent.class::isInstance)
-                        .cast(TranscodeFinishedEvent.class)
+        return publisher.ofType(TranscodeFinishedEvent.class)
                         .toFlowable(BackpressureStrategy.BUFFER)
                         .observeOn(Schedulers.computation());
     }

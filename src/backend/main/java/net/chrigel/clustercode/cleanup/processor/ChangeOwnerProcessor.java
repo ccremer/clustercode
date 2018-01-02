@@ -5,31 +5,30 @@ import net.chrigel.clustercode.cleanup.CleanupContext;
 import net.chrigel.clustercode.cleanup.CleanupProcessor;
 import net.chrigel.clustercode.cleanup.CleanupSettings;
 import net.chrigel.clustercode.cleanup.impl.CleanupModule;
-import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.process.ExternalProcessService;
+import net.chrigel.clustercode.process.ProcessConfiguration;
 import net.chrigel.clustercode.util.InvalidConfigurationException;
 import net.chrigel.clustercode.util.Platform;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @XSlf4j
 public class ChangeOwnerProcessor implements CleanupProcessor {
 
     private final CleanupSettings cleanupSettings;
-    private final Provider<ExternalProcess> externalProcessProvider;
+    private final ExternalProcessService externalProcessService;
     private boolean enabled;
 
     @Inject
     ChangeOwnerProcessor(
         CleanupSettings cleanupSettings,
-        Provider<ExternalProcess> externalProcessProvider) {
+        ExternalProcessService externalProcessService) {
         this.cleanupSettings = cleanupSettings;
-        this.externalProcessProvider = externalProcessProvider;
+        this.externalProcessService = externalProcessService;
         cleanupSettings.getUserId().ifPresent(this::checkId);
         cleanupSettings.getGroupId().ifPresent(this::checkId);
         checkSettings();
@@ -58,17 +57,21 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
         List<String> args = buildArguments(outputFile);
 
         log.info("Changing owner of {} to {}.", outputFile, args.get(0));
-        Optional<Integer> exitCode = externalProcessProvider.get()
-            .withExecutablePath(Paths.get("/bin", "chown"))
-            .withIORedirected(true)
-            .withArguments(args)
-            .start();
 
-        exitCode.ifPresent(code -> {
-            if (code > 0) log.warn(
-                "Could not change owner of {}. Exit code of 'chown' with arguments {} was {}.",
-                outputFile, args, code);
-        });
+        ProcessConfiguration config = ProcessConfiguration
+            .builder()
+            .executable(Paths.get("/bin", "chown"))
+            .arguments(args)
+            .stdoutObserver(observable -> observable.subscribe(System.out::println))
+            .build();
+
+        externalProcessService
+            .start(config)
+            .subscribe(exitCode -> {
+                if (exitCode > 0) log.warn(
+                    "Could not change owner of {}. Exit code of 'chown' with arguments {} was {}.",
+                    outputFile, args, exitCode);
+            }, log::catching);
 
         return log.exit(context);
     }

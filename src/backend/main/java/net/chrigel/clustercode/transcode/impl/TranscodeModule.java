@@ -1,6 +1,6 @@
 package net.chrigel.clustercode.transcode.impl;
 
-import net.chrigel.clustercode.process.OutputParser;
+import net.chrigel.clustercode.transcode.OutputParser;
 import net.chrigel.clustercode.transcode.TranscoderSettings;
 import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;

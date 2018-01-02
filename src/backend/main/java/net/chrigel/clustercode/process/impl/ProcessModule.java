@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.process.impl;
 
 import com.google.inject.AbstractModule;
-import net.chrigel.clustercode.process.ExternalProcess;
+import net.chrigel.clustercode.process.ExternalProcessService;
 import net.chrigel.clustercode.process.ScriptInterpreter;
 import net.chrigel.clustercode.util.FilesystemProvider;
 import net.chrigel.clustercode.util.Platform;
@@ -12,7 +12,7 @@ public class ProcessModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(ExternalProcess.class).to(ProcessImpl.class);
+        bind(ExternalProcessService.class).to(ExternalProcessServiceImpl.class);
 
         switch (Platform.currentPlatform()) {
             case WINDOWS:

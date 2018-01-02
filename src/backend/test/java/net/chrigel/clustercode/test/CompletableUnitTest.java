@@ -1,36 +1,31 @@
 package net.chrigel.clustercode.test;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public interface CompletableUnitTest {
 
-    AtomicReference<CompletableFuture<Integer>> _countFuture = new AtomicReference<>();
-    AtomicInteger _count = new AtomicInteger();
+    AtomicReference<CountDownLatch> _latch = new AtomicReference<>(new CountDownLatch(1));
 
-    default void setupCompletable() {
-        _count.set(0);
-        _countFuture.set(new CompletableFuture<>());
+    default void completeOne() {
+        _latch.get().countDown();
     }
 
-    default void incrementCounter() {
-        _count.incrementAndGet();
-    }
-
-    default void incrementAndComplete() {
-        _countFuture.get().complete(_count.incrementAndGet());
+    default void setExpectedCountForCompletion(int count) {
+        _latch.set(new CountDownLatch(count));
     }
 
     default void waitForCompletion() {
-        waitForCompletion(1);
-    }
-
-    default void waitForCompletion(int count) {
-        assertThat(_countFuture.get().join()).isEqualTo(count);
-        assertThat(_countFuture.get()).isCompleted();
+        try {
+            _latch.get().await();
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        }
     }
 
 }

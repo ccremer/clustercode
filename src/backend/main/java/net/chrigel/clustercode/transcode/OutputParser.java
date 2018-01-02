@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.process;
+package net.chrigel.clustercode.transcode;
 
 /**
  * Represents a parser that is capable of parsing string lines from a forked subprocess.

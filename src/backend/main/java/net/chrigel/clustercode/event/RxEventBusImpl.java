@@ -30,8 +30,7 @@ public class RxEventBusImpl implements RxEventBus {
     @Override
     public <T> Observable<T> register(Class<T> eventClass) {
         return bus
-            .filter(eventClass::isInstance)
-            .cast(eventClass);
+            .ofType(eventClass);
     }
 
 
