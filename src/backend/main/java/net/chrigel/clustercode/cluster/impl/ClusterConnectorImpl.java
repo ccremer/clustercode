@@ -8,8 +8,10 @@ import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
 import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.TranscodeProgress;
 import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
+import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
 
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
@@ -37,14 +39,9 @@ public class ClusterConnectorImpl implements ClusterConnector {
         clusterBus.registerEventHandler(CancelTaskMessage.class, this::onTaskCancelViaRpc);
         clusterBus.registerEventHandler(LocalCancelTaskRequest.class, this::onTaskCancelRequestedViaApi);
 
-        eventBus.register(HandbrakeOutput.class)
+        eventBus.register(TranscodeProgress.class)
                 .sample(10, TimeUnit.SECONDS)
-                .map(HandbrakeOutput::getPercentage)
-                .subscribe(clusterService::setProgress);
-
-        eventBus.register(FfmpegOutput.class)
-                .sample(10, TimeUnit.SECONDS)
-                .map(FfmpegOutput::getPercentage)
+                .map(TranscodeProgress::getPercentage)
                 .subscribe(clusterService::setProgress);
 
         clusterService.getTaskState()
@@ -72,8 +69,7 @@ public class ClusterConnectorImpl implements ClusterConnector {
     }
 
     private boolean cancelTaskLocally() {
-        // return transcodeBus.emit(new CancelTranscodeMessage()).getAnswer(Boolean.class).orElse(false);
-        return false;
+        return eventBus.emit(new CancelTranscodeMessage()).isCancelled();
     }
 
 }

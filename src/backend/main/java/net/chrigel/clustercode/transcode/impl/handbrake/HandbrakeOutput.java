@@ -1,15 +1,15 @@
 package net.chrigel.clustercode.transcode.impl.handbrake;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 
-@Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+@Getter
+@Setter(value = AccessLevel.PACKAGE)
+@EqualsAndHashCode
+@ToString
 public class HandbrakeOutput implements TranscodeProgress {
 
     private double percentage;

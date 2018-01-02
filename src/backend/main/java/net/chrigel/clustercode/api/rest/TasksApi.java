@@ -1,18 +1,14 @@
 package net.chrigel.clustercode.api.rest;
 
 import io.swagger.annotations.*;
-import lombok.val;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.cache.TaskCache;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
-import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
 import net.chrigel.clustercode.cluster.messages.ClusterMessage;
 import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
-import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.util.OptionalFunction;
 import org.glassfish.jersey.server.JSONP;
 
 import javax.inject.Inject;
@@ -21,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Date;
 import java.text.DecimalFormat;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Path(RestApiServices.REST_API_CONTEXT_PATH + "/tasks")
@@ -33,7 +28,7 @@ public class TasksApi extends AbstractRestApi {
     private final TaskCache cache;
 
     @Inject
-    TasksApi(             EventBus<ClusterMessage> clusterBus,
+    TasksApi(EventBus<ClusterMessage> clusterBus,
              TaskCache cache) {
         this.clusterBus = clusterBus;
         this.cache = cache;

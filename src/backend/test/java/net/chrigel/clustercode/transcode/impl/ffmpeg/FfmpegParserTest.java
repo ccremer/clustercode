@@ -15,9 +15,7 @@ public class FfmpegParserTest {
 
     @Before
     public void  setup() {
-        MockitoAnnotations.initMocks(this);
-
-        this.subject = new FfmpegParser(new RxEventBusImpl());
+        this.subject = new FfmpegParser();
     }
 
     @Test

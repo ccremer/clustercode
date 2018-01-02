@@ -11,6 +11,7 @@ import java.time.Duration;
 @Getter
 @Setter(value = AccessLevel.PACKAGE)
 @EqualsAndHashCode
+@ToString
 public class FfmpegOutput implements TranscodeProgress {
 
     private double percentage;

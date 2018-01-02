@@ -1,8 +1,11 @@
 package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.TranscodeProgress;
 import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
 import javax.inject.Inject;
@@ -12,38 +15,36 @@ import java.util.regex.Pattern;
 
 @XSlf4j
 public class FfmpegParser
-        extends AbstractOutputParser {
+    extends AbstractOutputParser {
 
     /*
     frame=\s*([0-9]+)\s*fps=\s*([0-9]*\.?[0-9]*).*size=\s*([0-9]*)kB\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\s*
     ([0-9]+\.?[0-9]*)kbits\/s(?:\s?speed=)?([0-9]+\.?[0-9]*)?
      */
     private static final Pattern progressPattern = Pattern.compile("frame=\\s*([0-9]+)\\s*fps=\\s*([0-9]*\\.?[0-9]*)" +
-            ".*size=\\s*" +
-            "([0-9]*)kB\\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\\s*([0-9]+\\.?[0-9]*)kbits\\/s(?:\\s?speed=)?" +
-            "([0-9]+\\.?[0-9]*)?");
+        ".*size=\\s*" +
+        "([0-9]*)kB\\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\\s*([0-9]+\\.?[0-9]*)kbits\\/s(?:\\s?speed=)?" +
+        "([0-9]+\\.?[0-9]*)?");
     /*
     \s*Duration:\s*(\d+:\d{2}:[0-9]{2}(?:\.\d{1,3})?)
      */
     private static final Pattern durationPattern = Pattern.compile("\\s*Duration:\\s*(\\d+:\\d{2}:[0-9]{2}(?:\\" +
-            ".\\d{1,3})?)");
-    private final RxEventBus eventBus;
+        ".\\d{1,3})?)");
 
     private boolean foundDuration = false;
-    private FfmpegOutput result = new FfmpegOutput();
+    private final PublishSubject<TranscodeProgress> publishSubject = PublishSubject.create();
 
-    @Inject
-    FfmpegParser(RxEventBus eventBus){
-        this.eventBus = eventBus;
+    @Override
+    public Observable<TranscodeProgress> onProgressParsed() {
+        return publishSubject;
     }
 
     @Override
-    public void doParse(String line) {
+    public void parse(String line) {
         // sample: frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s speed=1.36x
 
         log.trace("Matching line: {}", line);
 
-        if (!foundDuration) findDuration(line);
         val matcher = progressPattern.matcher(line);
         if (!matcher.find()) return;
         val frame = matcher.group(1);
@@ -54,6 +55,8 @@ public class FfmpegParser
         String speed = "0";
         if (matcher.groupCount() > 6) speed = matcher.group(6);
 
+        FfmpegOutput result = new FfmpegOutput();
+        if (!foundDuration) findDuration(result, line);
 
         result.setBitrate(getDoubleOrDefault(bitrate, 0d));
         result.setFps(getDoubleOrDefault(fps, 0d));
@@ -61,11 +64,12 @@ public class FfmpegParser
         result.setFileSize(calculateFileSize(size));
         result.setSpeed(getDoubleOrDefault(speed, 0d));
         result.setFrame(getLongOrDefault(frame, 0L));
-        result.setPercentage(calculatePercentage());
-        eventBus.emit(result);
+        result.setPercentage(calculatePercentage(result));
+
+        publishSubject.onNext(result);
     }
 
-    private void findDuration(String line) {
+    private void findDuration(FfmpegOutput result, String line) {
         val matcher = durationPattern.matcher(line);
 
         if (!matcher.find()) return;
@@ -90,24 +94,13 @@ public class FfmpegParser
         }
     }
 
-    private double calculatePercentage() {
+    private double calculatePercentage(FfmpegOutput result) {
 
         val duration = result.getDuration().toMillis();
         val current = result.getTime().toMillis();
 
         if (current <= 0 || duration == 0) return 0d;
         return 100d / duration * current;
-    }
-
-    @Override
-    protected void doStart() {
-        log.debug("Parsing from process output...");
-    }
-
-    @Override
-    protected void doStop() {
-        log.debug("Stopping parser.");
-        foundDuration = false;
     }
 
     private double calculateFileSize(String value) {

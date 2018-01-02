@@ -10,4 +10,5 @@ public class LocalCancelTaskRequest implements ClusterMessage {
 
     private String hostname;
 
+
 }

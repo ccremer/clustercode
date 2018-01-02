@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.transcode;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import net.chrigel.clustercode.transcode.impl.Transcoder;
 import net.chrigel.clustercode.transcode.messages.TranscodeBeginEvent;
 import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
@@ -37,8 +38,9 @@ public interface TranscodingService {
      */
     boolean isActive();
 
-    Flowable<TranscodeBeginEvent> transcodeBegin();
+    Flowable<TranscodeBeginEvent> onTranscodeBegin();
 
-    Flowable<TranscodeFinishedEvent> transcodeFinished();
+    Flowable<TranscodeFinishedEvent> onTranscodeFinished();
 
+    Observable<TranscodeProgress> onProgressUpdated();
 }

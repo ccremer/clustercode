@@ -2,6 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
@@ -9,21 +10,17 @@ import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
 import net.chrigel.clustercode.process.ExternalProcessService;
-import net.chrigel.clustercode.transcode.OutputParser;
 import net.chrigel.clustercode.process.ProcessConfiguration;
 import net.chrigel.clustercode.process.RunningExternalProcess;
 import net.chrigel.clustercode.scan.MediaScanSettings;
 import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.transcode.TranscodeTask;
-import net.chrigel.clustercode.transcode.TranscoderSettings;
-import net.chrigel.clustercode.transcode.TranscodingService;
+import net.chrigel.clustercode.transcode.*;
 import net.chrigel.clustercode.transcode.messages.TranscodeBeginEvent;
 import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -38,6 +35,7 @@ class TranscodingServiceImpl implements TranscodingService {
     private final OutputParser parser;
     private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
+
     private RunningExternalProcess process;
     private boolean cancelRequested;
 
@@ -54,16 +52,15 @@ class TranscodingServiceImpl implements TranscodingService {
 
         this.publisher = PublishSubject.create().toSerialized();
 
-        publisher.filter(TranscodeTask.class::isInstance)
+        publisher.ofType(TranscodeTask.class)
                  .skipWhile(o -> isActive())
-                 .cast(TranscodeTask.class)
                  .observeOn(Schedulers.computation())
                  .subscribeOn(Schedulers.io())
                  .subscribe(this::prepareTranscode);
     }
 
     @Synchronized
-    void doTranscode(Path tempFile, TranscodeTask task) {
+    private void doTranscode(Path tempFile, TranscodeTask task) {
         if (process != null) return;
 
         val source = task.getMedia().getSourcePath();
@@ -79,6 +76,7 @@ class TranscodingServiceImpl implements TranscodingService {
                            .map(s -> replaceOutput(s, tempFile))
                            .collect(Collectors.toList()))
             .stdoutObserver(observable -> observable
+                .observeOn(Schedulers.computation())
                 .sample(1, TimeUnit.SECONDS)
                 .subscribe(parser::parse))
             .build();
@@ -89,6 +87,32 @@ class TranscodingServiceImpl implements TranscodingService {
                 exitCode -> onSuccess(exitCode, tempFile, task),
                 this::onError);
 
+        publisher.onNext(TranscodeBeginEvent
+            .builder()
+            .task(task)
+            .build());
+    }
+
+    private void onSuccess(Integer exitCode, Path tempFile, TranscodeTask task) {
+        log.entry(exitCode, tempFile, task);
+        val event = TranscodeFinishedEvent
+            .builder()
+            .temporaryPath(tempFile)
+            .media(task.getMedia())
+            .profile(task.getProfile())
+            .successful(exitCode == 0)
+            .cancelled(cancelRequested)
+            .build();
+
+        setHandle(null);
+        cancelRequested = false;
+
+        if (event.isSuccessful()) log.info("Transcode finished.");
+        else {
+            if (event.isCancelled()) log.info("Transcode cancelled.");
+            else log.info("Transcode failed.");
+        }
+        publisher.onNext(event);
     }
 
     private void onError(Throwable ex) {
@@ -99,23 +123,6 @@ class TranscodingServiceImpl implements TranscodingService {
             .build();
         setHandle(null);
         cancelRequested = false;
-        publisher.onNext(event);
-    }
-
-    private void onSuccess(Integer exitCode, Path tempFile, TranscodeTask task) {
-        val event = TranscodeFinishedEvent
-            .builder()
-            .temporaryPath(tempFile)
-            .media(task.getMedia())
-            .profile(task.getProfile())
-            .build();
-
-        event.setSuccessful(exitCode == 0);
-        setHandle(null);
-        event.setCancelled(cancelRequested);
-        cancelRequested = false;
-
-        log.info(event.isSuccessful() ? "Transcoding finished" : "Transcoding failed or cancelled.");
         publisher.onNext(event);
     }
 
@@ -161,17 +168,27 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     @Override
-    public Flowable<TranscodeBeginEvent> transcodeBegin() {
-        return publisher.ofType(TranscodeBeginEvent.class)
-                        .toFlowable(BackpressureStrategy.BUFFER)
-                        .observeOn(Schedulers.computation());
+    public Flowable<TranscodeBeginEvent> onTranscodeBegin() {
+        return publisher
+            .subscribeOn(Schedulers.computation())
+            .observeOn(Schedulers.computation())
+            .ofType(TranscodeBeginEvent.class)
+            .toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
-    public Flowable<TranscodeFinishedEvent> transcodeFinished() {
-        return publisher.ofType(TranscodeFinishedEvent.class)
-                        .toFlowable(BackpressureStrategy.BUFFER)
-                        .observeOn(Schedulers.computation());
+    public Flowable<TranscodeFinishedEvent> onTranscodeFinished() {
+        return publisher
+            .subscribeOn(Schedulers.computation())
+            .observeOn(Schedulers.computation())
+            .ofType(TranscodeFinishedEvent.class)
+            .toFlowable(BackpressureStrategy.BUFFER);
+    }
+
+    @Override
+    public Observable<TranscodeProgress> onProgressUpdated() {
+        return parser
+            .onProgressParsed();
     }
 
     private String getPropertyOrDefault(Profile profile, String key, String defaultValue) {

@@ -44,7 +44,7 @@ class RunningProcessImpl implements RunningExternalProcess {
     @Override
     public boolean destroyNowWithTimeout(long timeout, TimeUnit unit) {
         try {
-            log.warn("Waiting for process to destroy with timeout...");
+            log.warn("Waiting for process to destroy within {} {}...", timeout, unit.toString().toLowerCase());
             return process.destroyForcibly().waitFor(timeout, unit);
         } catch (InterruptedException e) {
             log.throwing(e);
