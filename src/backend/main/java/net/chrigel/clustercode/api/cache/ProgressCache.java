@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.TranscoderSettings;
+import net.chrigel.clustercode.transcode.impl.Transcoder;
 import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
 import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
@@ -14,13 +16,16 @@ import java.util.Optional;
 @XSlf4j
 public class ProgressCache {
 
+    private final TranscoderSettings settings;
     private FfmpegOutput ffmpegOutput;
     private HandbrakeOutput handbrakeOutput;
     @Getter
     private double percentage = -1;
 
     @Inject
-    ProgressCache(RxEventBus eventBus) {
+    ProgressCache(RxEventBus eventBus,
+                  TranscoderSettings settings) {
+        this.settings = settings;
 
         eventBus.register(FfmpegOutput.class, this::onFfmpegOutputUpdated);
         eventBus.register(HandbrakeOutput.class, this::onHandbrakeOutputUpdated);
@@ -35,14 +40,12 @@ public class ProgressCache {
         this.handbrakeOutput = null;
     }
 
-    @Synchronized
     private void onHandbrakeOutputUpdated(HandbrakeOutput output) {
         log.entry(output);
         this.handbrakeOutput = output;
         this.percentage = output.getPercentage();
     }
 
-    @Synchronized
     private void onFfmpegOutputUpdated(FfmpegOutput output) {
         log.entry(output);
         this.ffmpegOutput = output;
@@ -55,5 +58,14 @@ public class ProgressCache {
 
     public Optional<HandbrakeOutput> getHandbrakeOutput() {
         return Optional.ofNullable(handbrakeOutput);
+    }
+
+    /**
+     * Gets the type of the locally configured transcoder.
+     *
+     * @return the enum type.
+     */
+    public Transcoder getTranscoder() {
+        return settings.getTranscoderType();
     }
 }

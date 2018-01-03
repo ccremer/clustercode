@@ -5,9 +5,8 @@ import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
-import net.chrigel.clustercode.transcode.TranscodingService;
-import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.transcode.TranscodeTask;
+import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 
 import javax.inject.Inject;
 import java.util.concurrent.CompletableFuture;
@@ -15,12 +14,12 @@ import java.util.concurrent.ExecutionException;
 
 public class TranscodeAction extends Action {
 
-    private final TranscodingService service;
+    private final RxEventBus eventBus;
     private CompletableFuture<TranscodeFinishedEvent> future;
 
     @Inject
-    TranscodeAction(RxEventBus eventBus, TranscodingService service) {
-        this.service = service;
+    TranscodeAction(RxEventBus eventBus) {
+        this.eventBus = eventBus;
 
         eventBus.register(TranscodeFinishedEvent.class, this::onTranscodeFinished);
     }
@@ -35,7 +34,7 @@ public class TranscodeAction extends Action {
 
         future = new CompletableFuture<>();
 
-        service.transcode(TranscodeTask
+        eventBus.emit(TranscodeTask
             .builder()
             .media(context.getSelectedMedia())
             .profile(context.getSelectedProfile())

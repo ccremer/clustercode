@@ -10,8 +10,6 @@ import net.chrigel.clustercode.api.cache.ProgressCache;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
-import net.chrigel.clustercode.transcode.TranscodeProgress;
-import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.transcode.impl.Transcoder;
 import org.glassfish.jersey.server.JSONP;
 
@@ -26,17 +24,14 @@ import javax.ws.rs.core.Response;
 @Api(description = "The progress service API")
 public class ProgressApi extends AbstractRestApi {
 
-    private final TranscodingService transcodingService;
     private ProgressReportAdapter<FfmpegProgressReport> ffmpegAdapter;
     private ProgressReportAdapter<HandbrakeProgressReport> handbrakeAdapter;
     private final ProgressCache cache;
 
     @Inject
-    ProgressApi(TranscodingService transcodingService,
-                ProgressReportAdapter<FfmpegProgressReport> ffmpegAdapter,
+    ProgressApi(ProgressReportAdapter<FfmpegProgressReport> ffmpegAdapter,
                 ProgressReportAdapter<HandbrakeProgressReport> handbrakeAdapter,
                 ProgressCache cache) {
-        this.transcodingService = transcodingService;
         this.ffmpegAdapter = ffmpegAdapter;
         this.handbrakeAdapter = handbrakeAdapter;
         this.cache = cache;
@@ -87,7 +82,7 @@ public class ProgressApi extends AbstractRestApi {
             message = "Unexpected error",
             response = ApiError.class)})
     public Response getFfmpegProgress() {
-        if (transcodingService.getTranscoder() != Transcoder.FFMPEG)
+        if (cache.getTranscoder() != Transcoder.FFMPEG)
             return clientError("This transcoder is not available on the current node.");
         return createResponse(() ->
             cache.getFfmpegOutput()
@@ -119,7 +114,7 @@ public class ProgressApi extends AbstractRestApi {
             message = "Unexpected error",
             response = ApiError.class)})
     public Response getHandbrakeProgress() {
-        if (transcodingService.getTranscoder() != Transcoder.HANDBRAKE)
+        if (cache.getTranscoder() != Transcoder.HANDBRAKE)
             return clientError("This transcoder is not available on the current node.");
         return createResponse(() ->
             cache.getHandbrakeOutput()

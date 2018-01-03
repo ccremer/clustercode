@@ -59,6 +59,10 @@ class TranscodingServiceImpl implements TranscodingService {
                  .subscribe(this::prepareTranscode);
     }
 
+    private boolean isActive() {
+        return process != null;
+    }
+
     @Synchronized
     private void doTranscode(Path tempFile, TranscodeTask task) {
         if (process != null) return;
@@ -149,22 +153,12 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     @Override
-    public Transcoder getTranscoder() {
-        return transcoderSettings.getTranscoderType();
-    }
-
-    @Override
     @Synchronized
     public boolean cancelTranscode() {
         if (process == null) return true;
         log.debug("Cancelling task...");
         this.cancelRequested = true;
         return process.destroyNowWithTimeout(5, TimeUnit.SECONDS);
-    }
-
-    @Override
-    public boolean isActive() {
-        return process != null;
     }
 
     @Override

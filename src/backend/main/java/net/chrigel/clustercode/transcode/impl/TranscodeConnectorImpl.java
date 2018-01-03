@@ -2,6 +2,7 @@ package net.chrigel.clustercode.transcode.impl;
 
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.event.RxEventBus;
+import net.chrigel.clustercode.transcode.TranscodeTask;
 import net.chrigel.clustercode.transcode.TranscodingService;
 import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
 
@@ -19,6 +20,7 @@ public class TranscodeConnectorImpl {
     ) {
         this.transcodingService = transcodingService;
         eventBus.register(CancelTranscodeMessage.class, this::onCancelTranscodeTask);
+        eventBus.register(TranscodeTask.class, transcodingService::transcode);
 
         transcodingService.onProgressUpdated()
                           .subscribe(eventBus::emit);

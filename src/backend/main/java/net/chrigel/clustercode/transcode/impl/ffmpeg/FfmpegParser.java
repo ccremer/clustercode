@@ -4,11 +4,9 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.PublishSubject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
-import net.chrigel.clustercode.event.RxEventBus;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
 import net.chrigel.clustercode.transcode.impl.AbstractOutputParser;
 
-import javax.inject.Inject;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.regex.Pattern;
