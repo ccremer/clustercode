@@ -1,8 +1,9 @@
 package net.chrigel.clustercode.cluster;
 
+import io.reactivex.Flowable;
+import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
 import net.chrigel.clustercode.scan.Media;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ClusterService {
@@ -17,6 +18,8 @@ public interface ClusterService {
      * Leaves the cluster, if it was connected.
      */
     void leaveCluster();
+
+    JGroupsTaskState getTaskState();
 
     /**
      * Removes the currently active task from the cluster, if there was one set.
@@ -62,5 +65,7 @@ public interface ClusterService {
      * @return the name, otherwise empty.
      */
     Optional<String> getName();
+
+    Flowable<CancelTaskMessage> onCancelTaskRequested();
 
 }

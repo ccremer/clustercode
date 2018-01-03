@@ -9,8 +9,6 @@ import net.chrigel.clustercode.event.Event;
 import net.chrigel.clustercode.event.EventBus;
 import net.chrigel.clustercode.event.RxEventBus;
 import net.chrigel.clustercode.transcode.TranscodeProgress;
-import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
-import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
 import net.chrigel.clustercode.transcode.messages.CancelTranscodeMessage;
 
 import javax.inject.Inject;

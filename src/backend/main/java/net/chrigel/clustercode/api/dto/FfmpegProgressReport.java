@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.chrigel.clustercode.api.ProgressReport;
 
 @Data
 @AllArgsConstructor
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @ApiModel(
         description = "A progress report specifically for ffmpeg based cluster members. All properties return -1 if" +
         " no conversion is currently active.")
-public class FfmpegProgressReport {
+public class FfmpegProgressReport implements ProgressReport {
 
     @ApiModelProperty(
             value = "The current bitrate of the conversion in kbit/s.",

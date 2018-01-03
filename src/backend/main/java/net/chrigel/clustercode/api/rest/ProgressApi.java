@@ -4,7 +4,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import net.chrigel.clustercode.api.ProgressReportAdapter;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.cache.ProgressCache;
 import net.chrigel.clustercode.api.dto.ApiError;
@@ -24,16 +23,10 @@ import javax.ws.rs.core.Response;
 @Api(description = "The progress service API")
 public class ProgressApi extends AbstractRestApi {
 
-    private ProgressReportAdapter<FfmpegProgressReport> ffmpegAdapter;
-    private ProgressReportAdapter<HandbrakeProgressReport> handbrakeAdapter;
     private final ProgressCache cache;
 
     @Inject
-    ProgressApi(ProgressReportAdapter<FfmpegProgressReport> ffmpegAdapter,
-                ProgressReportAdapter<HandbrakeProgressReport> handbrakeAdapter,
-                ProgressCache cache) {
-        this.ffmpegAdapter = ffmpegAdapter;
-        this.handbrakeAdapter = handbrakeAdapter;
+    ProgressApi(                ProgressCache cache) {
         this.cache = cache;
     }
 
@@ -84,10 +77,7 @@ public class ProgressApi extends AbstractRestApi {
     public Response getFfmpegProgress() {
         if (cache.getTranscoder() != Transcoder.FFMPEG)
             return clientError("This transcoder is not available on the current node.");
-        return createResponse(() ->
-            cache.getFfmpegOutput()
-                 .map(ffmpegAdapter::apply)
-                 .orElse(ffmpegAdapter.getReportForInactiveEncoding()));
+        return createResponse(cache::getLatestProgressOutput);
     }
 
     @Path("handbrake")
@@ -116,10 +106,7 @@ public class ProgressApi extends AbstractRestApi {
     public Response getHandbrakeProgress() {
         if (cache.getTranscoder() != Transcoder.HANDBRAKE)
             return clientError("This transcoder is not available on the current node.");
-        return createResponse(() ->
-            cache.getHandbrakeOutput()
-                 .map(handbrakeAdapter::apply)
-                 .orElse(handbrakeAdapter.getReportForInactiveEncoding()));
+        return createResponse(cache::getLatestProgressOutput);
     }
 }
 

@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.api.cache;
 
 import com.google.inject.Inject;
+import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.ClusterTask;
@@ -21,6 +22,7 @@ public class TaskCache {
                 .subscribe(this::onTaskCollectionChanged);
     }
 
+    @Synchronized
     private void onTaskCollectionChanged(ClusterTaskCollectionChanged event) {
         log.debug("Task collection changed: {}", event);
         this.clusterTasks = event.getTasks();

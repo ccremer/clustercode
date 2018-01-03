@@ -4,12 +4,9 @@ import net.chrigel.clustercode.transcode.TranscodeProgress;
 
 import java.util.function.Function;
 
-public interface ProgressReportAdapter<R>
-        extends Function<TranscodeProgress, R> {
+public interface ProgressReportAdapter
+    extends Function<TranscodeProgress, ProgressReport> {
 
-    R getReportForInactiveEncoding();
-
-    @Override
-    R apply(TranscodeProgress output);
+    ProgressReport getReportForInactiveEncoding();
 
 }

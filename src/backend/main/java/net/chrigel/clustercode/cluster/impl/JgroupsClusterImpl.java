@@ -1,10 +1,12 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import io.reactivex.Flowable;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import net.chrigel.clustercode.cluster.ClusterService;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
 import net.chrigel.clustercode.cluster.JGroupsTaskState;
+import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
 import net.chrigel.clustercode.scan.Media;
 import org.jgroups.JChannel;
 import org.jgroups.fork.ForkChannel;
@@ -89,7 +91,8 @@ class JgroupsClusterImpl
         channel = null;
     }
 
-    JGroupsTaskState getTaskState() {
+    @Override
+    public JGroupsTaskState getTaskState() {
         return taskState;
     }
 
@@ -132,6 +135,11 @@ class JgroupsClusterImpl
     public Optional<String> getName() {
         if (!isConnected()) return Optional.empty();
         return Optional.ofNullable(channel.getAddressAsString());
+    }
+
+    @Override
+    public Flowable<CancelTaskMessage> onCancelTaskRequested() {
+        return null;
     }
 
 }

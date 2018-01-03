@@ -4,6 +4,7 @@ import com.google.inject.TypeLiteral;
 import com.owlike.genson.ext.jaxrs.GensonJsonConverter;
 import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
+import net.chrigel.clustercode.api.ProgressReport;
 import net.chrigel.clustercode.api.ProgressReportAdapter;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.StateMachineMonitor;
@@ -11,9 +12,16 @@ import net.chrigel.clustercode.api.cache.ProgressCache;
 import net.chrigel.clustercode.api.cache.TaskCache;
 import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
+import net.chrigel.clustercode.transcode.OutputParser;
+import net.chrigel.clustercode.transcode.TranscodeProgress;
+import net.chrigel.clustercode.transcode.impl.TranscodeModule;
+import net.chrigel.clustercode.transcode.impl.Transcoder;
+import net.chrigel.clustercode.transcode.impl.ffmpeg.FfmpegOutput;
+import net.chrigel.clustercode.transcode.impl.handbrake.HandbrakeOutput;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 import javax.inject.Singleton;
+import java.util.Locale;
 import java.util.Properties;
 
 public class ApiModule extends AbstractPropertiesModule {
@@ -40,11 +48,12 @@ public class ApiModule extends AbstractPropertiesModule {
             installJersey(Integer.valueOf(restPort));
         }
 
-        bind(new TypeLiteral<ProgressReportAdapter<FfmpegProgressReport>>() {
-        }).to(FfmpegProgressAdapter.class);
 
-        bind(new TypeLiteral<ProgressReportAdapter<HandbrakeProgressReport>>() {
-        }).to(HandbrakeProgressAdapter.class);
+        String type = getEnvironmentVariableOrProperty(properties, TranscodeModule.TRANSCODE_TYPE_KEY)
+            .toUpperCase(Locale.ENGLISH);
+
+        bind(new TypeLiteral<ProgressReportAdapter>() {
+        }).to(ProgressReportAdapters.valueOf(type).getImplementingClass());
 
         bind(ProgressCache.class).asEagerSingleton();
         bind(TaskCache.class).asEagerSingleton();
@@ -52,7 +61,8 @@ public class ApiModule extends AbstractPropertiesModule {
 
     private void installJersey(int port) {
 
-        JerseyConfiguration configuration = JerseyConfiguration.builder()
+        JerseyConfiguration configuration = JerseyConfiguration
+            .builder()
             .addPackage("net.chrigel.clustercode.api")
             .addPort(port)
             .withContextPath("/api/v1")

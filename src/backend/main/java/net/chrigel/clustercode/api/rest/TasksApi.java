@@ -64,13 +64,15 @@ public class TasksApi extends AbstractRestApi {
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Stopped the task successfully."),
         @ApiResponse(code = 409, message = "The task has not been found."),
-        @ApiResponse(code = 412, message = "The parameters were fully and correctly specified"),
+        @ApiResponse(code = 412, message = "The parameters were not fully or correctly specified"),
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)
     })
     public Response stopTask(
         @QueryParam("hostname")
-        @ApiParam(value = "host name of the node, as returned by /tasks. If this parameter is omitted, then the node " +
-            "of the current API endpoint will cancel its task.")
+        @ApiParam(
+            value = "host name of the node, as returned by /tasks. If this parameter is omitted, then the node " +
+                "of the current API endpoint will cancel its task.",
+            required = true)
             String hostname
     ) {
         log.debug("Hostname: {}", hostname);

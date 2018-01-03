@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import net.chrigel.clustercode.api.ProgressReport;
 
 @Data
 @AllArgsConstructor
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @ApiModel(
         description = "A progress report specifically for Handbrake based cluster members.")
-public class HandbrakeProgressReport {
+public class HandbrakeProgressReport implements ProgressReport {
 
     @ApiModelProperty(
             value = "The average frames per second in this conversion task so far.",
