@@ -1,7 +1,7 @@
 package net.chrigel.clustercode.cluster;
 
 import io.reactivex.Flowable;
-import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
+import net.chrigel.clustercode.cluster.messages.CancelTaskRpcRequest;
 import net.chrigel.clustercode.scan.Media;
 
 import java.util.Optional;
@@ -66,6 +66,6 @@ public interface ClusterService {
      */
     Optional<String> getName();
 
-    Flowable<CancelTaskMessage> onCancelTaskRequested();
+    Flowable<CancelTaskRpcRequest> onCancelTaskRequested();
 
 }

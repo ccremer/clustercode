@@ -18,6 +18,9 @@
         <Logger name="org.jgroups.protocols.pbcast.GMS" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="org.jgroups" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Logger name="org.eclipse.jetty" level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>

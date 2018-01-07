@@ -26,7 +26,7 @@ public class ProgressApi extends AbstractRestApi {
     private final ProgressCache cache;
 
     @Inject
-    ProgressApi(                ProgressCache cache) {
+    ProgressApi(ProgressCache cache) {
         this.cache = cache;
     }
 

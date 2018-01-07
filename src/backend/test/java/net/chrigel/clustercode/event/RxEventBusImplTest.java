@@ -1,5 +1,6 @@
 package net.chrigel.clustercode.event;
 
+import net.chrigel.clustercode.test.CompletableUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-public class RxEventBusImplTest {
+public class RxEventBusImplTest implements CompletableUnitTest {
 
     private RxEventBusImpl subject;
 
@@ -19,18 +20,17 @@ public class RxEventBusImplTest {
         subject = new RxEventBusImpl();
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void shouldNotifySubscriber() {
         String message = "hello";
-        AtomicBoolean called = new AtomicBoolean();
 
         subject.register(String.class, value -> {
             assertThat(value).isEqualTo(message);
-            called.set(true);
+            completeOne();
         });
         subject.emit(message);
 
-        assertThat(called).isTrue();
+        waitForCompletion();
     }
 
     @Test
@@ -44,21 +44,20 @@ public class RxEventBusImplTest {
 
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void register_ShouldFilter_AndNotifySubscriber() {
         String message = "hello";
         Object ignore = new Object();
-        AtomicInteger called = new AtomicInteger();
 
         subject.register(String.class, value -> {
             assertThat(value).isEqualTo(message);
-            called.incrementAndGet();
+            completeOne();
         });
 
         subject.emit(message);
         subject.emit(ignore);
 
-        assertThat(called).hasValue(1);
+        waitForCompletion();
     }
 
     @Test

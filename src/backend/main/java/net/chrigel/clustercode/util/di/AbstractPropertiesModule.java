@@ -39,8 +39,8 @@ public abstract class AbstractPropertiesModule extends AbstractModule {
                 .stream()
                 .filter(entry -> expected.contains(entry.getKey()))
                 .collect(Collectors.toMap(
-                        entry -> entry.getKey(),
-                        entry -> entry.getValue()))));
+                    Map.Entry::getKey,
+                    Map.Entry::getValue))));
     }
 
     /**

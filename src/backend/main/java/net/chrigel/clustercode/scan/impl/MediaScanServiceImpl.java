@@ -6,7 +6,6 @@ import net.chrigel.clustercode.scan.FileScanner;
 import net.chrigel.clustercode.scan.Media;
 import net.chrigel.clustercode.scan.MediaScanService;
 import net.chrigel.clustercode.scan.MediaScanSettings;
-import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
 import javax.inject.Provider;

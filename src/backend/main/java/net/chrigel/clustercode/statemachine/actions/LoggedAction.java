@@ -4,6 +4,7 @@ import net.chrigel.clustercode.statemachine.Action;
 import net.chrigel.clustercode.statemachine.StateContext;
 import net.chrigel.clustercode.statemachine.states.State;
 import net.chrigel.clustercode.statemachine.states.StateEvent;
+import org.slf4j.ext.LoggerWrapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -57,11 +58,11 @@ public class LoggedAction extends Action {
 
     private enum Loggers {
 
-        TRACE((logger, s) -> logger.trace(s)),
-        DEBUG((logger, s) -> logger.debug(s)),
-        INFO((logger, s) -> logger.info(s)),
-        WARN((logger, s) -> logger.warn(s)),
-        ERROR((logger, s) -> logger.error(s));
+        TRACE(LoggerWrapper::trace),
+        DEBUG(LoggerWrapper::debug),
+        INFO(LoggerWrapper::info),
+        WARN(LoggerWrapper::warn),
+        ERROR(LoggerWrapper::error);
 
         private final BiConsumer<XLogger, String> consumer;
 

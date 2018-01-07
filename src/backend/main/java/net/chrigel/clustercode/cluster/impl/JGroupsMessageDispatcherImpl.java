@@ -1,14 +1,12 @@
 package net.chrigel.clustercode.cluster.impl;
 
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.XSlf4j;
-import lombok.val;
 import net.chrigel.clustercode.cluster.JGroupsMessageDispatcher;
-import net.chrigel.clustercode.cluster.messages.CancelTaskMessage;
+import net.chrigel.clustercode.cluster.messages.CancelTaskRpcRequest;
 import net.chrigel.clustercode.cluster.messages.CancelTaskRpcResponse;
-import net.chrigel.clustercode.cluster.messages.ClusterMessage;
-import net.chrigel.clustercode.cluster.messages.LocalCancelTaskRequest;
-import net.chrigel.clustercode.event.Event;
-import net.chrigel.clustercode.event.EventBus;
 import org.jgroups.JChannel;
 import org.jgroups.blocks.MethodCall;
 import org.jgroups.blocks.RequestOptions;
@@ -16,7 +14,6 @@ import org.jgroups.blocks.ResponseMode;
 import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.RspList;
 
-import javax.inject.Inject;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("WeakerAccess")
@@ -24,31 +21,20 @@ import java.util.stream.Collectors;
 public class JGroupsMessageDispatcherImpl
     implements JGroupsMessageDispatcher {
 
-    private final EventBus<ClusterMessage> localBus;
+    private final Subject<Object> publisher =PublishSubject.create().toSerialized();
     private RpcDispatcher rpcDispatcher;
-    private String localHostname;
-
-    @Inject
-    JGroupsMessageDispatcherImpl(EventBus<ClusterMessage> localEventBus) {
-        localBus = localEventBus;
-    }
 
     public CancelTaskRpcResponse cancelTaskRpc(String hostname) {
-        log.debug("Received hostname: {}", hostname);
-        boolean hostnameMatches = hostnameMatchesLocalName(hostname);
-        val response = CancelTaskRpcResponse.builder()
-                                            .cancelled(hostnameMatches)
-                                            .build();
-        if (hostnameMatches) cancelTaskLocally(hostname);
-        return response;
-    }
-
-    private boolean hostnameMatchesLocalName(String hostname) {
-        return rpcDispatcher.getChannel().getAddressAsString().equals(hostname);
-    }
-
-    private void cancelTaskLocally(String hostname) {
-        localBus.emit(new CancelTaskMessage(hostname));
+        log.entry(hostname);
+        CancelTaskRpcRequest request = CancelTaskRpcRequest
+            .builder()
+            .hostname(hostname)
+            .build();
+        publisher.onNext(request);
+        return log.exit(CancelTaskRpcResponse
+            .builder()
+            .cancelled(request.isCancelled())
+            .build());
     }
 
     @Override
@@ -77,8 +63,12 @@ public class JGroupsMessageDispatcherImpl
     }
 
     @Override
+    public Observable<CancelTaskRpcRequest> onRpcTaskCancelled() {
+        return publisher.ofType(CancelTaskRpcRequest.class);
+    }
+
+    @Override
     public void initialize(JChannel channel, String localHostname) throws Exception {
         this.rpcDispatcher = new RpcDispatcher(channel, this);
-        this.localHostname = localHostname;
     }
 }

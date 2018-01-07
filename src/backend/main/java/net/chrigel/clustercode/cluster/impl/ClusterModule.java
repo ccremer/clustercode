@@ -1,11 +1,7 @@
 package net.chrigel.clustercode.cluster.impl;
 
 import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
 import net.chrigel.clustercode.cluster.*;
-import net.chrigel.clustercode.cluster.messages.ClusterMessage;
-import net.chrigel.clustercode.event.EventBus;
-import net.chrigel.clustercode.event.EventBusImpl;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
 @SuppressWarnings("WeakerAccess")
@@ -28,7 +24,6 @@ public class ClusterModule extends AbstractPropertiesModule {
         bind(JgroupsClusterImpl.class).in(Singleton.class);
         bind(ClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
         bind(JgroupsClusterSettings.class).to(JgroupClusterSettingsImpl.class).in(Singleton.class);
-        bind(new TypeLiteral<EventBus<ClusterMessage>>(){}).toInstance(new EventBusImpl<>());
         bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
         bind(JGroupsTaskState.class).to(JGroupsTaskStateImpl.class);
 
