@@ -7,8 +7,10 @@ import io.logz.guice.jersey.configuration.JerseyConfiguration;
 import net.chrigel.clustercode.api.ProgressReportAdapter;
 import net.chrigel.clustercode.api.RestApiServices;
 import net.chrigel.clustercode.api.StateMachineMonitor;
-import net.chrigel.clustercode.api.cache.ProgressCache;
-import net.chrigel.clustercode.api.cache.TaskCache;
+import net.chrigel.clustercode.api.hook.ProgressHook;
+import net.chrigel.clustercode.api.hook.ProgressHookImpl;
+import net.chrigel.clustercode.api.hook.TaskHook;
+import net.chrigel.clustercode.api.hook.TaskHookImpl;
 import net.chrigel.clustercode.transcode.impl.TranscodeModule;
 import net.chrigel.clustercode.util.di.AbstractPropertiesModule;
 
@@ -47,8 +49,8 @@ public class ApiModule extends AbstractPropertiesModule {
         bind(new TypeLiteral<ProgressReportAdapter>() {
         }).to(ProgressReportAdapters.valueOf(type).getImplementingClass());
 
-        bind(ProgressCache.class).asEagerSingleton();
-        bind(TaskCache.class).asEagerSingleton();
+        bind(ProgressHook.class).to(ProgressHookImpl.class).asEagerSingleton();
+        bind(TaskHook.class).to(TaskHookImpl.class).asEagerSingleton();
     }
 
     private void installJersey(int port) {

@@ -5,7 +5,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import net.chrigel.clustercode.api.RestApiServices;
-import net.chrigel.clustercode.api.cache.ProgressCache;
+import net.chrigel.clustercode.api.hook.ProgressHook;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.FfmpegProgressReport;
 import net.chrigel.clustercode.api.dto.HandbrakeProgressReport;
@@ -23,10 +23,10 @@ import javax.ws.rs.core.Response;
 @Api(description = "The progress service API")
 public class ProgressApi extends AbstractRestApi {
 
-    private final ProgressCache cache;
+    private final ProgressHook cache;
 
     @Inject
-    ProgressApi(ProgressCache cache) {
+    ProgressApi(ProgressHook cache) {
         this.cache = cache;
     }
 

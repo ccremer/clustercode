@@ -152,6 +152,20 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
         waitForCompletion();
     }
 
+    @Test(timeout = 1000)
+    public void transcode_ShouldFireEvent_IfTranscodingBegins() {
+        when(process.start(any(), any())).thenReturn(Single.just(0));
+
+        subject.onTranscodeBegin()
+               .subscribe(result -> {
+                   assertThat(result.getTask()).isEqualTo(task);
+                   completeOne();
+               });
+        subject.transcode(task);
+
+        waitForCompletion();
+    }
+
     @Test(timeout = 2000)
     public void cancel_ShouldCancelJob() {
         setExpectedCountForCompletion(2);

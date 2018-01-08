@@ -2,7 +2,7 @@ package net.chrigel.clustercode.api.rest;
 
 import io.swagger.annotations.*;
 import net.chrigel.clustercode.api.RestApiServices;
-import net.chrigel.clustercode.api.cache.TaskCache;
+import net.chrigel.clustercode.api.hook.TaskHook;
 import net.chrigel.clustercode.api.dto.ApiError;
 import net.chrigel.clustercode.api.dto.Task;
 import net.chrigel.clustercode.cluster.ClusterTask;
@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 public class TasksApi extends AbstractRestApi {
 
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");
-    private final TaskCache cache;
+    private final TaskHook taskHook;
 
     @Inject
-    TasksApi(TaskCache cache) {
-        this.cache = cache;
+    TasksApi(TaskHook taskHook) {
+        this.taskHook = taskHook;
     }
 
     @GET
@@ -40,10 +40,11 @@ public class TasksApi extends AbstractRestApi {
             "List"),
         @ApiResponse(code = 500, message = "Unexpected error", response = ApiError.class)})
     public Response getTasks() {
-        return createResponse(() -> cache.getClusterTasks()
-                                         .stream()
-                                         .map(this::convertToDto)
-                                         .collect(Collectors.toList()));
+        return createResponse(() -> taskHook
+            .getClusterTasks()
+            .stream()
+            .map(this::convertToDto)
+            .collect(Collectors.toList()));
     }
 
     @DELETE
@@ -72,7 +73,7 @@ public class TasksApi extends AbstractRestApi {
         log.debug("Hostname: {}", hostname);
         if (hostname == null) return Response.status(Response.Status.PRECONDITION_FAILED).build();
         try {
-            boolean cancelled = cache.cancelTask(hostname);
+            boolean cancelled = taskHook.cancelTask(hostname);
             if (cancelled) return Response.ok().build();
             return Response.status(Response.Status.CONFLICT).build();
         } catch (Exception ex) {

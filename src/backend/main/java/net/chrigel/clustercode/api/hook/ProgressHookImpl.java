@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.api.cache;
+package net.chrigel.clustercode.api.hook;
 
 import com.google.inject.Inject;
 import lombok.Synchronized;
@@ -12,7 +12,7 @@ import net.chrigel.clustercode.transcode.impl.Transcoder;
 import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 
 @XSlf4j
-public class ProgressCache {
+public class ProgressHookImpl implements ProgressHook {
 
     private final ProgressReportAdapter progressAdapter;
 
@@ -20,9 +20,9 @@ public class ProgressCache {
     private TranscodeProgress latestProgressOutput;
 
     @Inject
-    ProgressCache(RxEventBus eventBus,
-                  ProgressReportAdapter progressAdapter,
-                  TranscoderSettings settings) {
+    ProgressHookImpl(RxEventBus eventBus,
+                     ProgressReportAdapter progressAdapter,
+                     TranscoderSettings settings) {
         this.progressAdapter = progressAdapter;
         this.settings = settings;
 
@@ -43,11 +43,13 @@ public class ProgressCache {
         this.latestProgressOutput = null;
     }
 
+    @Override
     public ProgressReport getLatestProgressOutput() {
         if (latestProgressOutput == null) return progressAdapter.getReportForInactiveEncoding();
         return progressAdapter.apply(latestProgressOutput);
     }
 
+    @Override
     public double getPercentage() {
         if (latestProgressOutput == null) return -1d;
         return latestProgressOutput.getPercentage();
@@ -58,6 +60,7 @@ public class ProgressCache {
      *
      * @return the enum type.
      */
+    @Override
     public Transcoder getTranscoder() {
         return settings.getTranscoderType();
     }
