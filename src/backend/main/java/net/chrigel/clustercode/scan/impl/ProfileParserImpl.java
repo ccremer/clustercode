@@ -8,6 +8,7 @@ import org.slf4j.ext.XLogger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 class ProfileParserImpl implements ProfileParser {
 
     public static final Pattern FORMAT_PATTERN = Pattern.compile("%\\{([a-zA-Z]+)=(.*)\\}");
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
 
     @Override
     public Optional<Profile> parseFile(Path path) {
@@ -34,7 +36,7 @@ class ProfileParserImpl implements ProfileParser {
                     Profile.builder()
                             .arguments(lines.stream()
                                     .filter(this::isNotFieldLine)
-                                    .flatMap(this::separateWhitespace)
+                                    .flatMap(this::separateWhitespaceToStream)
                                     .collect(Collectors.toList()))
                             .fields(lines.stream()
                                     .filter(this::isFieldLine)
@@ -95,14 +97,22 @@ class ProfileParserImpl implements ProfileParser {
         return !isCommentLine(s);
     }
 
+
     /**
-     * Separates any white spaces in the given string.
+     * Separates any white spaces in the given string, unless quoted in double quotes (which get removed).
      *
      * @param s the string, not null.
-     * @return a stream of the split substrings.
+     * @return a stream of the split substrings (escaping not supported).
      */
-    Stream<? extends String> separateWhitespace(String s) {
-        return Stream.of(s.split(" "));
+    List<String> separateWhitespace(String s) {
+        List<String> items = new ArrayList<>();
+        Matcher m = WHITESPACE_PATTERN.matcher(s);
+        while (m.find()) items.add(m.group(1).replace("\"", ""));
+        return items;
+    }
+
+    private Stream<? extends String> separateWhitespaceToStream(String s) {
+        return separateWhitespace(s).stream();
     }
 
     /**
