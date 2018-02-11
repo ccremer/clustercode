@@ -37,7 +37,7 @@ services:
     cpu_shares: 512
     ports:
       - "7600:7600/tcp"
-      - "8080"
+      - "8080:8080"
     volumes:
       - "/path/to/input:/input"
       - "/path/to/output:/output"
@@ -93,15 +93,17 @@ in order to have them persistent.
 
 ## Project status
 
-Sporadic Maintenance as of October 2017. University and stuff...
+Sporadic Maintenance as of February 2018.
 
 ## Future Plans
 
 - [x] Monitoring with a REST API.
-- [ ] More control with REST
 - [x] [netdata](https://my-netdata.io/) plugin for progress monitoring.
 - [x] Smooth-ier Windows deployment.
 - [x] Web-Admin
+- [ ] Remove the state-machine library, replace it with RxJava.
+- [ ] Separate the docker image into base, backend and frontend images.
+- [ ] More node control features in Web-Admin.
 
 ## Docker Tags
 

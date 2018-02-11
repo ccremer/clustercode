@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.atIndex;
 
 public class ProfileParserImplTest implements FileBasedUnitTest {
 
@@ -58,9 +59,9 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
         Map<String, String> results = subject.parseFile(testFile).get().getFields();
 
         assertThat(results)
-                .containsKeys("FIELD", "KEY")
-                .containsValues("value", "other")
-                .hasSize(2);
+            .containsKeys("FIELD", "KEY")
+            .containsValues("value", "other")
+            .hasSize(2);
     }
 
     @Test
@@ -138,4 +139,27 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
         assertThat(subject.extractValue(testLine)).isEqualTo("");
     }
 
+    @Test
+    public void separateWhitespace_ShouldReturnTwoElements() throws Exception {
+        String testLine = "one two";
+        assertThat(subject.separateWhitespace(testLine))
+            .contains("one", atIndex(0))
+            .contains("two", atIndex(1))
+            .hasSize(2);
+    }
+
+    @Test
+    public void separateWhitespace_ShouldReturnOneElement_IfNoWhitespace() throws Exception {
+        String testLine = "one";
+        assertThat(subject.separateWhitespace(testLine))
+            .contains("one", atIndex(0))
+            .hasSize(1);
+    }
+    @Test
+    public void separateWhitespace_ShouldReturnOneElement_IfWhitespaceIsQuoted() throws Exception {
+        String testLine = "\"one two \"";
+        assertThat(subject.separateWhitespace(testLine))
+            .contains("one two ", atIndex(0))
+            .hasSize(1);
+    }
 }
