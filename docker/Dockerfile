@@ -32,7 +32,7 @@ RUN \
     echo "#### Installing alpine packages" && \
     apk update && \
     apk upgrade && \
-    apk add --no-cache ffmpeg nginx supervisor openssl tree nodejs-current-npm unzip && \
+    apk add --no-cache ffmpeg nginx supervisor openssl tree nodejs-npm unzip && \
     mkdir /run/nginx && \
     echo "#### Installing Gradle" && \
     wget -O gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" && \
@@ -52,10 +52,10 @@ RUN \
     mv docker/docker-entrypoint.sh . && \
     mv docker/supervisord.conf . && \
     echo "#### Cleaning up" && \
-    apk del nodejs-current-npm unzip && \
+    apk del nodejs-npm unzip && \
     rm -r ~/.npm && \
     rm -r node_modules && \
-    rm -r package.json && \
+    rm -r package*.json && \
     rm -r .postcssrc.js && \
     rm -r .babelrc && \
     rm -r webpack* && \
