@@ -106,7 +106,7 @@ class ProfileParserImpl implements ProfileParser {
     List<String> separateWhitespace(String s) {
         List<String> items = new ArrayList<>();
         Matcher m = WHITESPACE_PATTERN.matcher(s);
-        while (m.find()) items.add(m.group(1).replace("\"", ""));
+        while (m.find()) items.add(m.group(1));
         return items;
     }
 

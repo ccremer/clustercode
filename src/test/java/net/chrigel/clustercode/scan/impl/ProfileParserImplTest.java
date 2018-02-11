@@ -162,4 +162,13 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
             .contains("one two ", atIndex(0))
             .hasSize(1);
     }
+
+    @Test
+    public void separateWhitespace_ShouldReturnTwoElement_IfWhitespaceIsQuoted_AnotherNot() throws Exception {
+        String testLine = "title=\"one two \" three";
+        assertThat(subject.separateWhitespace(testLine))
+            .contains("title=\"one two \"", atIndex(0))
+            .contains("three", atIndex(1))
+            .hasSize(2);
+    }
 }
