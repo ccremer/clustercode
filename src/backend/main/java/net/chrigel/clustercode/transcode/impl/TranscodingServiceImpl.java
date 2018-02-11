@@ -20,6 +20,7 @@ import net.chrigel.clustercode.transcode.messages.TranscodeFinishedEvent;
 import net.chrigel.clustercode.util.FileUtil;
 
 import javax.inject.Inject;
+import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -32,7 +33,7 @@ class TranscodingServiceImpl implements TranscodingService {
 
     private final TranscoderSettings transcoderSettings;
     private final MediaScanSettings mediaScanSettings;
-    private final OutputParser parser;
+    private final Provider<OutputParser> parserProvider;
     private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
 
@@ -43,12 +44,12 @@ class TranscodingServiceImpl implements TranscodingService {
     TranscodingServiceImpl(ExternalProcessService externalProcessService,
                            TranscoderSettings transcoderSettings,
                            MediaScanSettings mediaScanSettings,
-                           OutputParser parser) {
+                           Provider<OutputParser> parserProvider) {
         this.externalProcessService = externalProcessService;
         this.transcoderSettings = transcoderSettings;
         this.mediaScanSettings = mediaScanSettings;
 
-        this.parser = parser;
+        this.parserProvider = parserProvider;
 
         this.publisher = PublishSubject.create().toSerialized();
 
@@ -82,7 +83,7 @@ class TranscodingServiceImpl implements TranscodingService {
             .stdoutObserver(observable -> observable
                 .observeOn(Schedulers.computation())
                 .sample(1, TimeUnit.SECONDS)
-                .subscribe(parser::parse))
+                .subscribe(parserProvider.get()::parse))
             .build();
 
         externalProcessService
@@ -181,7 +182,7 @@ class TranscodingServiceImpl implements TranscodingService {
 
     @Override
     public Observable<TranscodeProgress> onProgressUpdated() {
-        return parser
+        return parserProvider
             .onProgressParsed();
     }
 

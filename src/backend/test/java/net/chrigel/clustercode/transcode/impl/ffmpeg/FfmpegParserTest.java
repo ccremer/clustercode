@@ -1,26 +1,45 @@
 package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import net.chrigel.clustercode.event.RxEventBusImpl;
+import net.chrigel.clustercode.test.CompletableUnitTest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
+import java.time.temporal.TemporalUnit;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FfmpegParserTest {
+public class FfmpegParserTest implements CompletableUnitTest {
 
     private FfmpegParser subject;
 
     @Before
-    public void  setup() {
+    public void setup() {
         this.subject = new FfmpegParser();
     }
 
+    @Ignore
     @Test
-    public void doParse() throws Exception {
+    public void parse_ShouldParseLine_AndNotifyObservers() throws Exception {
+        String line = "frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s speed=1.36x";
 
+        subject.onProgressParsed()
+               .cast(FfmpegOutput.class)
+               .subscribe(p -> {
+                   assertThat(p.getFrame()).isEqualTo(81624);
+                   assertThat(p.getBitrate()).isEqualTo(2882.4);
+                   assertThat(p.getSpeed()).isEqualTo(1.36);
+                   assertThat(p.getFps()).isEqualTo(33);
+                   completeOne();
+               });
+
+        subject.parse(line);
+
+        waitForCompletion();
     }
 
     @Test

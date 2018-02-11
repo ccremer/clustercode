@@ -1,6 +1,7 @@
 package net.chrigel.clustercode.transcode.impl.ffmpeg;
 
 import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
@@ -34,7 +35,9 @@ public class FfmpegParser
 
     @Override
     public Observable<TranscodeProgress> onProgressParsed() {
-        return publishSubject;
+        return publishSubject
+            .observeOn(Schedulers.computation())
+            .ofType(TranscodeProgress.class);
     }
 
     @Override
