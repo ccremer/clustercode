@@ -21,7 +21,8 @@ import java.util.stream.Stream;
 class ProfileParserImpl implements ProfileParser {
 
     public static final Pattern FORMAT_PATTERN = Pattern.compile("%\\{([a-zA-Z]+)=(.*)\\}");
-    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("([^\"]\\S*|\".+?\")\\s*");
+    // (\S*?"[^"]*"|[^" ]+)\s??
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("(\\S*?\"[^\"]*\"|[^\" ]+)\\s??");
 
     @Override
     public Optional<Profile> parseFile(Path path) {
