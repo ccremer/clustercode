@@ -52,36 +52,6 @@ services:
 The external IP address is needed so that other nodes will be available to
 contact the local node. Use the physical address of the docker host.
 
-### Docker Compose, Swarm mode
-
-**This is untested**, as I don't have a Swarm. Just make sure to limit the CPU
-resources somehow, so that other containers still work reliably. I'm assuming that
-encoding is a low-priority service that takes forever anyway.
-```
-version: "3.2"
-services:
-  clustercode:
-    image: braindoctor/clustercode:stable
-    ports:
-      - "7600:7600/tcp"
-      - "7600:7600/udp"
-    volumes:
-      - "/path/to/input:/input"
-      - "/path/to/output:/output"
-      - "/path/to/profiles:/profiles"
-# If you need modifications to the xml files, persist them:
-#      - "/path/to/config:/usr/src/clustercode/config"
-    deploy:
-      restart_policy:
-        condition: any
-        max_attempts: 3
-        window: 30s
-        delay: 3s
-      resources:
-        limits:
-          cpus: "3"
-```
-
 ## Configuration
 
 When you first start the container using docker compose, it will create a default configuration
@@ -93,7 +63,7 @@ in order to have them persistent.
 
 ## Project status
 
-Sporadic Maintenance as of October 2017. University and stuff...
+No Maintenance as of March 2018. I have other priorities with the limited time I have atm :/
 
 ## Future Plans
 
