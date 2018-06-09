@@ -159,7 +159,7 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     public void separateWhitespace_ShouldReturnOneElement_IfWhitespaceIsQuoted() throws Exception {
         String testLine = "\"one two \"";
         assertThat(subject.separateWhitespace(testLine))
-            .contains("one two ", atIndex(0))
+            .contains("\"one two \"", atIndex(0))
             .hasSize(1);
     }
 }
