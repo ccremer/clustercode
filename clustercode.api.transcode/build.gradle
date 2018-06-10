@@ -1,0 +1,9 @@
+version '1.0.0'
+
+dependencies {
+    compile project(":clustercode.impl.util")
+    compile project(":clustercode.api.domain")
+    compile project(":clustercode.api.config")
+    compile "${dep_rxjava}"
+    compile "${dep_owner}"
+}

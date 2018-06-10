@@ -1,0 +1,8 @@
+version '1.0.1'
+
+dependencies {
+    compile project(":clustercode.api.transcode")
+    compile project(":clustercode.api.process")
+    compile "${dep_inject}"
+    //compile "${dep_rxjava}"
+}
