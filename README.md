@@ -63,15 +63,13 @@ in order to have them persistent.
 
 ## Project status
 
-No Maintenance as of March 2018. I have other priorities with the limited time I have atm :/
+Development has slowly resumed in June 2018. Version 1.4.0 will probably not contain new features, but will be an internal
+refactoring that is long overdue. I intend to modularize the design using Gradle subprojects. Maybe even switch to Java 9,
+but definitely separate the Docker images into multi-stage base and gui images.
 
 ## Future Plans
 
-- [x] Monitoring with a REST API.
-- [ ] More control with REST
-- [x] [netdata](https://my-netdata.io/) plugin for progress monitoring.
-- [x] Smooth-ier Windows deployment.
-- [x] Web-Admin
+Head over here: https://github.com/ccremer/clustercode/projects
 
 ## Docker Tags
 
