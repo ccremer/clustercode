@@ -1,0 +1,6 @@
+version '1.0.0'
+
+dependencies {
+    compile "${dep_rxjava}"
+    testCompile project(":clustercode.test.util").sourceSets.test.output
+}

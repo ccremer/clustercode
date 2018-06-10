@@ -1,0 +1,6 @@
+version '1.0.0'
+
+dependencies {
+    compile "${dep_owner}"
+    compile project(":clustercode.impl.util")
+}
