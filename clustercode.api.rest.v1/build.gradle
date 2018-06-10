@@ -1,0 +1,14 @@
+version '1.4.0'
+
+dependencies {
+    compile project(":clustercode.api.transcode")
+    compile project(":clustercode.api.cluster")
+    compile project(":clustercode.api.event")
+
+    compileOnly "io.swagger:swagger-annotations:1.5.+"
+
+    // REST dependencies
+    compile "io.logz:guice-jersey:1.0.+"
+    compile "com.owlike:genson:1.+"
+
+}
