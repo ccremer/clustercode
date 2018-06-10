@@ -3,11 +3,11 @@ plugins {
     id "java"
     id "idea"
     id "jacoco"
-    id "com.moowork.node" version "1.2.0"
     id "com.benjaminsproule.swagger" version "0.1.2"
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
-group "net.chrigel"
+group "clustercode"
 version "1.4.0"
 
 sourceCompatibility = 1.8
@@ -17,38 +17,64 @@ repositories {
     mavenCentral()
 }
 
-sourceSets {
-    main {
-        java { srcDirs = ["src/backend/main/java"] }
-        resources { srcDirs = ["src/backend/main/resources"] }
-    }
-    test {
-        java { srcDirs = ["src/backend/test/java"] }
-        resources { srcDirs = ["src/backend/test/resources"] }
-    }
-}
-
 testSets {
-    integrationTest { dirName = 'backend/integration-test' }
+    integrationTest { dirName = 'integration-test' }
 }
 
 ext {
     guiceVersion = "4.1.0"
     log4jVersion = "2.8.+"
     jacksonVersion = "2.9.+"
+    dep_owner = "org.aeonbits.owner:owner:1.0.10"
+    dep_rxjava = "io.reactivex.rxjava2:rxjava:2.1.+"
+    dep_jgroups = "org.jgroups:jgroups:4.0.+"
+    dep_inject = "javax.inject:javax.inject:1"
 }
 
 allprojects {
+    idea {
+        module {
+            inheritOutputDirs = false
+            outputDir = compileJava.destinationDir
+            testOutputDir = compileTestJava.destinationDir
+        }
+    }
+}
+
+subprojects {
+    group = 'clustercode'
+    version = '1.0'
+
+    targetCompatibility = 1.8
+    sourceCompatibility = 1.8
+
+    apply plugin: "java"
+
+    repositories {
+        mavenCentral()
+    }
+
     gradle.projectsEvaluated {
         tasks.withType(JavaCompile) {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
         }
     }
-    idea {
-        module {
-            outputDir file('build/classes/main')
-            testOutputDir file('build/classes/test')
-        }
+
+    dependencies {
+        compileOnly "org.projectlombok:lombok:1.16.+"
+
+        // logging
+        compile "org.slf4j:slf4j-ext:1.7.+"
+        runtime "org.apache.logging.log4j:log4j-api:${log4jVersion}"
+        runtime "org.apache.logging.log4j:log4j-core:${log4jVersion}"
+        runtime "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+
+        // testing
+        testRuntime "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+        testCompile "junit:junit:4.12"
+        testCompile "org.mockito:mockito-all:2.0.+"
+        testCompile "com.google.jimfs:jimfs:1.+"
+        testCompile "org.assertj:assertj-core:3.8.0"
     }
 }
 
@@ -73,11 +99,6 @@ dependencies {
     // DI frameworks
     compile "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
 
-    // logging
-    compile "org.slf4j:slf4j-ext:1.7.+"
-    runtime "org.apache.logging.log4j:log4j-api:${log4jVersion}"
-    runtime "org.apache.logging.log4j:log4j-core:${log4jVersion}"
-    runtime "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
 
     // testing
     testCompile "junit:junit:4.12"
@@ -86,6 +107,8 @@ dependencies {
     testCompile "org.assertj:assertj-core:3.8.0"
 
     integrationTestCompile sourceSets.test.output
+    compile project(":clustercode.api.domain")
+    compile project(":clustercode.impl.constraint")
 
 }
 
@@ -104,6 +127,12 @@ swagger {
         templatePath = "${project.rootDir}/src/swagger/strapdown.html.hbs"
         outputPath = "${project.buildDir}/swagger/swagger.html"
         swaggerDirectory = "${project.buildDir}/swagger"
+    }
+}
+
+shadowJar {
+    dependencies {
+        exclude(project(":clustercode.test.util"))
     }
 }
 
@@ -136,32 +165,17 @@ task windowsZip(type: Zip) {
     classifier "win"
 }
 
-task adminBuild(type: NpmTask) {
-    args = ["run", "build"]
-}
-
-task adminZip(type: Zip) {
-    from("dist") { into "clustercode-admin" }
-    from("build/swagger") { into "clustercode-admin/static" }
-    baseName "clustercode-admin"
-}
-
 task githubRelease()
 
 fullBuild.dependsOn test
 
 windowsZip.dependsOn fullBuild
-windowsZip.dependsOn adminBuild
 windowsZip.dependsOn generateSwaggerDocumentation
 
 check.dependsOn integrationTest
 integrationTest.mustRunAfter test
 
-adminZip.dependsOn adminBuild
-adminZip.dependsOn generateSwaggerDocumentation
-
 githubRelease.dependsOn windowsZip
-githubRelease.dependsOn adminZip
 
 jacoco {
     reportsDir file("${project.buildDir}/reports/jacoco")

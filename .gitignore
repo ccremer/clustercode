@@ -33,6 +33,7 @@ desktop.ini
 .idea/modules/*_*.iml
 .idea/compiler.xml
 .idea/modules.xml
+.idea/gradle.xml
 
 # project
 /config/
