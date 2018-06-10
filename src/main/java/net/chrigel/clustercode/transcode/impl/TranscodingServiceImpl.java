@@ -183,6 +183,7 @@ class TranscodingServiceImpl implements TranscodingService {
     @Override
     public Observable<TranscodeProgress> onProgressUpdated() {
         return parserProvider
+                .get()
             .onProgressParsed();
     }
 
