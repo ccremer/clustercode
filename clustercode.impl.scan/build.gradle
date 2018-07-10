@@ -1,0 +1,11 @@
+version '1.0.0'
+
+dependencies {
+    compile project(":${proj_api_scan}")
+    compile project(":${proj_api_cluster}")
+    compile project(":${proj_api_config}")
+    compile "${dep_inject}"
+    compile "${dep_owner}"
+
+    testCompile project(":${proj_test_util}").sourceSets.test.output
+}
