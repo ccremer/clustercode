@@ -1,6 +1,5 @@
-package clustercode.impl.cluster;
+package clustercode.impl.cluster.jgroups;
 
-import clustercode.api.cluster.ClusterConnector;
 import clustercode.api.cluster.messages.CancelTaskApiRequest;
 import clustercode.api.event.RxEventBus;
 import clustercode.api.transcode.TranscodeProgress;
@@ -11,13 +10,13 @@ import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
 @XSlf4j
-public class ClusterConnectorImpl implements ClusterConnector {
+public class ClusterActivator {
 
     private final JgroupsClusterImpl clusterService;
     private final RxEventBus eventBus;
 
     @Inject
-    ClusterConnectorImpl(
+    ClusterActivator(
         JgroupsClusterImpl clusterService,
         RxEventBus eventBus
     ) {

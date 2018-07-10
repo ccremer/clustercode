@@ -1,5 +1,9 @@
-package clustercode.impl.cluster;
+package clustercode.impl.cluster.jgroups;
 
+import clustercode.api.cluster.ClusterTask;
+import clustercode.api.cluster.JGroupsTaskState;
+import clustercode.api.cluster.messages.ClusterTaskCollectionChanged;
+import clustercode.api.domain.Media;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
@@ -7,10 +11,6 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
-import clustercode.api.cluster.ClusterTask;
-import clustercode.api.cluster.JGroupsTaskState;
-import clustercode.api.cluster.messages.ClusterTaskCollectionChanged;
-import clustercode.api.domain.Media;
 import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.View;

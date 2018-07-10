@@ -1,4 +1,4 @@
-package clustercode.impl.cluster;
+package clustercode.impl.cluster.jgroups;
 
 import clustercode.api.cluster.JGroupsMessageDispatcher;
 import clustercode.api.cluster.messages.CancelTaskRpcRequest;

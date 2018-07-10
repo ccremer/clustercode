@@ -1,4 +1,4 @@
-package clustercode.impl.cluster;
+package clustercode.impl.cluster.jgroups;
 
 import clustercode.api.cluster.ClusterService;
 import clustercode.api.cluster.JGroupsMessageDispatcher;
@@ -23,17 +23,17 @@ import java.util.concurrent.TimeUnit;
 public class JgroupsClusterImpl
     implements ClusterService {
 
-    private final JgroupsClusterSettings settings;
+    private final JgroupsClusterConfig config;
     private final JGroupsMessageDispatcher messageDispatcher;
     private final JGroupsTaskState taskState;
     private JChannel channel;
     private ScheduledExecutorService executor;
 
     @Inject
-    JgroupsClusterImpl(JgroupsClusterSettings settings,
+    JgroupsClusterImpl(JgroupsClusterConfig config,
                        JGroupsMessageDispatcher messageDispatcher,
                        JGroupsTaskState taskState) {
-        this.settings = settings;
+        this.config = config;
         this.messageDispatcher = messageDispatcher;
         this.taskState = taskState;
     }
@@ -42,21 +42,21 @@ public class JgroupsClusterImpl
     @Override
     public void joinCluster() {
         if (isConnected()) {
-            log.info("Already joined the cluster {}.", settings.cluster_name());
+            log.info("Already joined the cluster {}.", config.cluster_name());
             return;
         }
         try {
-            log.debug("Joining cluster {}...", settings.cluster_name());
-            this.channel = new JChannel(settings.jgroups_config_file());
-            channel.setName(settings.hostname());
-            channel.connect(settings.cluster_name());
+            log.debug("Joining cluster {}...", config.cluster_name());
+            this.channel = new JChannel(config.jgroups_config_file());
+            channel.setName(config.hostname());
+            channel.connect(config.cluster_name());
 
             ForkChannel taskChannel = new ForkChannel(channel, "tasks", "tasks_ch");
-            taskChannel.connect(settings.cluster_name());
+            taskChannel.connect(config.cluster_name());
             taskState.initialize(taskChannel, channel.getAddressAsString());
 
             ForkChannel rpcChannel = new ForkChannel(channel, "rpc", "rpc_ch");
-            rpcChannel.connect(settings.cluster_name());
+            rpcChannel.connect(config.cluster_name());
             messageDispatcher.initialize(rpcChannel, channel.getAddressAsString());
 
             if (executor != null) executor.shutdown();

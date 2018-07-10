@@ -1,8 +1,8 @@
-package clustercode.impl.cluster;
+package clustercode.impl.cluster.jgroups;
 
 import org.aeonbits.owner.Config;
 
-public interface JgroupsClusterSettings extends Config {
+public interface JgroupsClusterConfig extends Config {
 
     /**
      * Gets the cluster name.
@@ -66,4 +66,14 @@ public interface JgroupsClusterSettings extends Config {
     @DefaultValue("7600")
     int getBindingPort();
 
+
+    /**
+     * Indicates whether this current java process is an arbiter node. An arbiter node does not participate in the
+     * cluster scheduling and transcoding process, but is just there to provide a cluster quorum.
+     *
+     * @return true if arbiter enabled, otherwise false.
+     */
+    @Key("CC_ARBITER_NODE")
+    @DefaultValue("false")
+    boolean arbiter_enabled();
 }
