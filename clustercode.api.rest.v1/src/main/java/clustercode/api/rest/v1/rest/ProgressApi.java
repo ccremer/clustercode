@@ -1,6 +1,6 @@
 package clustercode.api.rest.v1.rest;
 
-import clustercode.api.rest.v1.RestApiServices;
+import clustercode.api.rest.v1.RestServicesActivator;
 import clustercode.api.rest.v1.dto.ApiError;
 import clustercode.api.rest.v1.dto.FfmpegProgressReport;
 import clustercode.api.rest.v1.dto.HandbrakeProgressReport;
@@ -19,7 +19,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path(RestApiServices.REST_API_CONTEXT_PATH + "/progress")
+@Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/progress")
 @Api(description = "The progress service API")
 public class ProgressApi extends AbstractRestApi {
 

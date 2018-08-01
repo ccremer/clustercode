@@ -1,6 +1,7 @@
-package clustercode.api.transcode;
+package clustercode.impl.transcode;
 
-import clustercode.api.config.PathConverter;
+import clustercode.api.config.converter.PathConverter;
+import clustercode.api.transcode.Transcoder;
 import org.aeonbits.owner.Config;
 
 import java.nio.file.Path;
@@ -15,7 +16,7 @@ public interface TranscoderConfig extends Config {
     @Key("CC_TRANSCODE_CLI")
     @DefaultValue("/usr/bin/ffmpeg")
     @ConverterClass(PathConverter.class)
-    Path getTranscoderExecutable();
+    Path transcoder_executable();
 
     /**
      * Indicates whether the output of the subprocess should be included in this process' output stream (true) or not.
@@ -33,7 +34,7 @@ public interface TranscoderConfig extends Config {
      */
     @Key("CC_TRANSCODE_TEMP_DIR")
     @DefaultValue("/var/tmp/clustercode")
-    Path getTemporaryDir();
+    Path temporary_dir();
 
     /**
      * Gets the default video extension with leading "." (e.g. ".mkv").
@@ -42,7 +43,7 @@ public interface TranscoderConfig extends Config {
      */
     @Key("CC_TRANSCODE_DEFAULT_FORMAT")
     @DefaultValue(".mkv")
-    String getDefaultVideoExtension();
+    String default_video_extension();
 
     /**
      * Gets the type of transcoder.
@@ -51,7 +52,7 @@ public interface TranscoderConfig extends Config {
      */
     @Key("CC_TRANSCODE_TYPE")
     @DefaultValue("FFMPEG")
-    Transcoder getTranscoderType();
+    Transcoder transcoder_type();
 
     @Key("CC_MEDIA_INPUT_DIR")
     @DefaultValue("/input")

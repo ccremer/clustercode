@@ -1,4 +1,4 @@
-package clustercode.api.config;
+package clustercode.api.config.converter;
 
 import clustercode.impl.util.FilesystemProvider;
 import org.aeonbits.owner.Converter;

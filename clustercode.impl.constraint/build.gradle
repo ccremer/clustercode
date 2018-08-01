@@ -1,9 +1,11 @@
 version '1.0.0'
 
 dependencies {
-    compile project(":clustercode.api.domain")
-    compile project(":clustercode.impl.util")
-    compile project(":clustercode.api.config")
+    compile project(":${proj_api_domain}")
+    compile project(":${proj_api_config}")
+    compile project(":${proj_impl_util}")
     compile "${dep_owner}"
     compile "${dep_inject}"
+
+    testCompile project(":${proj_test_util}").sourceSets.test.output
 }

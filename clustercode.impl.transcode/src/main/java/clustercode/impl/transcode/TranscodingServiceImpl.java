@@ -1,12 +1,16 @@
 package clustercode.impl.transcode;
 
 import clustercode.api.domain.Profile;
+import clustercode.api.domain.TranscodeTask;
+import clustercode.api.event.messages.TranscodeBeginEvent;
+import clustercode.api.event.messages.TranscodeFinishedEvent;
 import clustercode.api.process.ExternalProcessService;
 import clustercode.api.process.ProcessConfiguration;
 import clustercode.api.process.RunningExternalProcess;
-import clustercode.api.transcode.*;
-import clustercode.api.transcode.messages.TranscodeBeginEvent;
-import clustercode.api.transcode.messages.TranscodeFinishedEvent;
+import clustercode.api.transcode.OutputParser;
+import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.Transcoder;
+import clustercode.api.transcode.TranscodingService;
 import clustercode.impl.util.FileUtil;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
@@ -25,12 +29,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @XSlf4j
-class TranscodingServiceImpl implements TranscodingService {
+public class TranscodingServiceImpl implements TranscodingService {
 
     public static final String OUTPUT_PLACEHOLDER = "${OUTPUT}";
     public static final String INPUT_PLACEHOLDER = "${INPUT}";
 
-    private final TranscoderConfig transcoderSettings;
+    private final TranscoderConfig transcoderConfig;
     private final Provider<OutputParser> parserProvider;
     private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
@@ -40,10 +44,10 @@ class TranscodingServiceImpl implements TranscodingService {
 
     @Inject
     TranscodingServiceImpl(ExternalProcessService externalProcessService,
-                           TranscoderConfig transcoderSettings,
+                           TranscoderConfig transcoderConfig,
                            Provider<OutputParser> parserProvider) {
         this.externalProcessService = externalProcessService;
-        this.transcoderSettings = transcoderSettings;
+        this.transcoderConfig = transcoderConfig;
 
         this.parserProvider = parserProvider;
 
@@ -69,7 +73,7 @@ class TranscodingServiceImpl implements TranscodingService {
 
         ProcessConfiguration config = ProcessConfiguration
             .builder()
-            .executable(transcoderSettings.getTranscoderExecutable())
+            .executable(transcoderConfig.transcoder_executable())
             .arguments(task.getProfile()
                            .getArguments()
                            .stream()
@@ -134,11 +138,11 @@ class TranscodingServiceImpl implements TranscodingService {
 
     private void prepareTranscode(TranscodeTask task) {
         log.entry(task);
-        val tempFile = transcoderSettings
-            .getTemporaryDir()
+        val tempFile = transcoderConfig
+            .temporary_dir()
             .resolve(FileUtil.getFileNameWithoutExtension(
                 task.getMedia().getSourcePath()) + getPropertyOrDefault(
-                task.getProfile(), "FORMAT", transcoderSettings.getDefaultVideoExtension())
+                task.getProfile(), "FORMAT", transcoderConfig.default_video_extension())
             );
 
         doTranscode(tempFile, task);
@@ -183,6 +187,11 @@ class TranscodingServiceImpl implements TranscodingService {
             .onProgressParsed();
     }
 
+    @Override
+    public Transcoder getTranscoder() {
+        return transcoderConfig.transcoder_type();
+    }
+
     private String getPropertyOrDefault(Profile profile, String key, String defaultValue) {
         return profile.getFields().getOrDefault(key, defaultValue);
     }
@@ -192,7 +201,7 @@ class TranscodingServiceImpl implements TranscodingService {
     }
 
     String replaceInput(String s, Path path) {
-        return s.replace(INPUT_PLACEHOLDER, transcoderSettings.base_input_dir().resolve(path).toString());
+        return s.replace(INPUT_PLACEHOLDER, transcoderConfig.base_input_dir().resolve(path).toString());
     }
 
 }

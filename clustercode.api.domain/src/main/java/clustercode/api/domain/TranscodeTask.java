@@ -1,4 +1,4 @@
-package clustercode.api.event;
+package clustercode.api.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

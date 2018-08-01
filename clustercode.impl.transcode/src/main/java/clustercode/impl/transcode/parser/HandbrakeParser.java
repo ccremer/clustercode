@@ -1,5 +1,6 @@
 package clustercode.impl.transcode.parser;
 
+import clustercode.api.transcode.TranscodeProgress;
 import clustercode.api.transcode.output.HandbrakeOutput;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -7,7 +8,6 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
-import clustercode.api.transcode.TranscodeProgress;
 
 import java.util.regex.Pattern;
 

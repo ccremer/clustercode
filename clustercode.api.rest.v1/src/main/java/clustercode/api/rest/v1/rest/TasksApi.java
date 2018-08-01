@@ -1,7 +1,7 @@
 package clustercode.api.rest.v1.rest;
 
 import clustercode.api.cluster.ClusterTask;
-import clustercode.api.rest.v1.RestApiServices;
+import clustercode.api.rest.v1.RestServicesActivator;
 import clustercode.api.rest.v1.dto.ApiError;
 import clustercode.api.rest.v1.dto.Task;
 import clustercode.api.rest.v1.hook.TaskHook;
@@ -15,7 +15,7 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
-@Path(RestApiServices.REST_API_CONTEXT_PATH + "/tasks")
+@Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/tasks")
 @Api(description = "the tasks API")
 public class TasksApi extends AbstractRestApi {
 

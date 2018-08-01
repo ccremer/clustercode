@@ -2,5 +2,9 @@ version '1.0.0'
 
 dependencies {
     compile "${dep_owner}"
-    compile project(":clustercode.impl.util")
+    compile project(":${proj_impl_util}")
+}
+
+test {
+    environment "test.environment", "fromEnv"
 }

@@ -1,7 +1,8 @@
 package clustercode.api.transcode;
 
-import clustercode.api.transcode.messages.TranscodeBeginEvent;
-import clustercode.api.transcode.messages.TranscodeFinishedEvent;
+import clustercode.api.domain.TranscodeTask;
+import clustercode.api.event.messages.TranscodeBeginEvent;
+import clustercode.api.event.messages.TranscodeFinishedEvent;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
@@ -26,4 +27,6 @@ public interface TranscodingService {
     Flowable<TranscodeFinishedEvent> onTranscodeFinished();
 
     Observable<TranscodeProgress> onProgressUpdated();
+
+    Transcoder getTranscoder();
 }

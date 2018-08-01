@@ -1,8 +1,10 @@
 version '1.0.1'
 
 dependencies {
-    compile project(":clustercode.api.transcode")
-    compile project(":clustercode.api.process")
+    compile project(":${proj_api_transcode}")
+    compile project(":${proj_api_process}")
+    compile project(":${proj_api_event}")
     compile "${dep_inject}"
     //compile "${dep_rxjava}"
+    testCompile project(":${proj_test_util}").sourceSets.test.output
 }

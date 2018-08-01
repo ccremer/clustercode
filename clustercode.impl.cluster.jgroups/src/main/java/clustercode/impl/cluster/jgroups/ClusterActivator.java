@@ -1,16 +1,18 @@
 package clustercode.impl.cluster.jgroups;
 
 import clustercode.api.cluster.messages.CancelTaskApiRequest;
+import clustercode.api.domain.Activator;
+import clustercode.api.domain.ActivatorContext;
 import clustercode.api.event.RxEventBus;
+import clustercode.api.event.messages.CancelTranscodeMessage;
 import clustercode.api.transcode.TranscodeProgress;
-import clustercode.api.transcode.messages.CancelTranscodeMessage;
 import lombok.extern.slf4j.XSlf4j;
 
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
 @XSlf4j
-public class ClusterActivator {
+public class ClusterActivator implements Activator {
 
     private final JgroupsClusterImpl clusterService;
     private final RxEventBus eventBus;
@@ -24,9 +26,8 @@ public class ClusterActivator {
         this.eventBus = eventBus;
     }
 
-    @Inject
-    public void start() {
-
+    @Override
+    public void activate(ActivatorContext context) {
         eventBus.register(CancelTaskApiRequest.class)
                 .filter(this::isLocalHost)
                 .doOnNext(log::entry)
@@ -48,6 +49,11 @@ public class ClusterActivator {
 
         clusterService.onCancelTaskRequested()
                       .subscribe(r -> r.setCancelled(cancelTaskLocally()));
+    }
+
+    @Override
+    public void deactivate(ActivatorContext context) {
+
     }
 
     private boolean isNotLocalHost(CancelTaskApiRequest cancelTaskApiRequest) {

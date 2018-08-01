@@ -1,32 +1,32 @@
 package clustercode.api.rest.v1.hook;
 
+import clustercode.api.event.RxEventBus;
+import clustercode.api.event.messages.TranscodeFinishedEvent;
+import clustercode.api.rest.v1.ProgressReport;
+import clustercode.api.rest.v1.ProgressReportAdapter;
+import clustercode.api.rest.v1.RestServiceConfig;
+import clustercode.api.transcode.TranscodeProgress;
 import clustercode.api.transcode.Transcoder;
 import com.google.inject.Inject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
-import clustercode.api.rest.v1.ProgressReport;
-import clustercode.api.rest.v1.ProgressReportAdapter;
-import clustercode.api.event.RxEventBus;
-import clustercode.api.transcode.TranscodeProgress;
-import clustercode.api.transcode.TranscoderConfig;
-import clustercode.api.transcode.messages.TranscodeFinishedEvent;
 
 @XSlf4j
 public class ProgressHookImpl implements ProgressHook {
 
     private final ProgressReportAdapter progressAdapter;
 
-    private final TranscoderConfig settings;
+    private final RestServiceConfig serviceConfig;
     private TranscodeProgress latestProgressOutput;
 
     @Inject
     ProgressHookImpl(RxEventBus eventBus,
                      ProgressReportAdapter progressAdapter,
-                     TranscoderConfig settings) {
+                     RestServiceConfig serviceConfig) {
         this.progressAdapter = progressAdapter;
-        this.settings = settings;
+        this.serviceConfig = serviceConfig;
 
-        eventBus.register(settings.getTranscoderType().getOutputType(), this::onProgressUpdated);
+        eventBus.register(serviceConfig.transcoder_type().getOutputType(), this::onProgressUpdated);
 
         eventBus.register(TranscodeFinishedEvent.class, this::onTranscodingFinished);
     }
@@ -62,6 +62,6 @@ public class ProgressHookImpl implements ProgressHook {
      */
     @Override
     public Transcoder getTranscoder() {
-        return settings.getTranscoderType();
+        return serviceConfig.transcoder_type();
     }
 }

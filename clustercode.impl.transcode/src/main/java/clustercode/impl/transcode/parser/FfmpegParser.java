@@ -1,12 +1,12 @@
 package clustercode.impl.transcode.parser;
 
+import clustercode.api.transcode.TranscodeProgress;
 import clustercode.api.transcode.output.FfmpegOutput;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.val;
-import clustercode.api.transcode.TranscodeProgress;
 
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
@@ -17,18 +17,17 @@ public class FfmpegParser
     extends AbstractOutputParser {
 
     /*
-    frame=\s*([0-9]+)\s*fps=\s*([0-9]*\.?[0-9]*).*size=\s*([0-9]*)kB\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\s*
-    ([0-9]+\.?[0-9]*)kbits\/s(?:\s?speed=)?([0-9]+\.?[0-9]*)?
+    frame=\s*(\d+)\s*fps=\s*(\d*\.?\d*).*size=\s*(\d*)kB\s+time=(\d{2}:\d{2}:\d{2}).*bitrate=\s*(\d+\.?\d*)kbits\/s
+    (?:\s?speed=)?(\d+\.?\d*)?
      */
-    private static final Pattern progressPattern = Pattern.compile("frame=\\s*([0-9]+)\\s*fps=\\s*([0-9]*\\.?[0-9]*)" +
-        ".*size=\\s*" +
-        "([0-9]*)kB\\s+time=([0-9]{2}:[0-9]{2}:[0-9]{2}).*bitrate=\\s*([0-9]+\\.?[0-9]*)kbits\\/s(?:\\s?speed=)?" +
-        "([0-9]+\\.?[0-9]*)?");
+    private static final Pattern progressPattern = Pattern.compile("frame=\\s*(\\d+)\\s*fps=\\s*(\\d*\\.?\\d*)" +
+            ".*size=\\s*(\\d*)kB\\s+time=(\\d{2}:\\d{2}:\\d{2}).*bitrate=\\s*(\\d+\\.?\\d*)kbits\\/s(?:\\s?speed=)?" +
+            "(\\d+\\.?\\d*)?");
     /*
-    \s*Duration:\s*(\d+:\d{2}:[0-9]{2}(?:\.\d{1,3})?)
+    \s*Duration:\s*(\d+:\d{2}:\d{2}(?:\.\d{1,3})?)
      */
-    private static final Pattern durationPattern = Pattern.compile("\\s*Duration:\\s*(\\d+:\\d{2}:[0-9]{2}(?:\\" +
-        ".\\d{1,3})?)");
+    private static final Pattern durationPattern = Pattern.compile("\\s*Duration:\\s*(\\d+:\\d{2}:\\d{2}(?:\\.\\d{1," +
+            "3})?)");
 
     private boolean foundDuration = false;
     private final PublishSubject<TranscodeProgress> publishSubject = PublishSubject.create();

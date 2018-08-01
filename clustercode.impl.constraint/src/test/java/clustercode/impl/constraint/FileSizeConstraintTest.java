@@ -1,9 +1,8 @@
-package net.chrigel.clustercode.constraint.impl;
+package clustercode.impl.constraint;
 
-import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.test.FileBasedUnitTest;
-import net.chrigel.clustercode.util.InvalidConfigurationException;
+import clustercode.api.domain.Media;
+import clustercode.impl.util.InvalidConfigurationException;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -24,7 +23,7 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
     private Path inputDir;
 
     @Mock
-    private MediaScanSettings scanSettings;
+    private ConstraintConfig config;
 
     @Spy
     private Media media;
@@ -33,13 +32,13 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        when(scanSettings.getBaseInputDir()).thenReturn(getPath("input"));
-        inputDir = scanSettings.getBaseInputDir();
+        when(config.base_input_dir()).thenReturn(getPath("input"));
+        inputDir = config.base_input_dir();
         Files.createDirectory(inputDir);
     }
 
-    private void initSubject(long minSize, long maxSize) {
-        subject = new FileSizeConstraint(minSize, maxSize, FileSizeConstraint.BYTES, scanSettings);
+    private void initSubject() {
+        subject = new FileSizeConstraint(config, FileSizeConstraint.BYTES);
     }
 
     private void writeBytes(int count, Path path) throws IOException {
@@ -48,9 +47,9 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void accept_ShouldReturnTrue_IfFileIsGreaterThanMinSize() throws Exception {
-        long minSize = 10;
-        long maxSize = 1024;
-        initSubject(minSize, maxSize);
+        when(config.max_file_size()).thenReturn(1024L);
+        when(config.min_file_size()).thenReturn(10L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(12, file);
@@ -62,9 +61,9 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void accept_ShouldReturnTrue_IfFileIsGreaterThanMinSize_AndMaxSizeDisabled() throws Exception {
-        long minSize = 10;
-        long maxSize = 0;
-        initSubject(minSize, maxSize);
+        when(config.max_file_size()).thenReturn(104L);
+        when(config.min_file_size()).thenReturn(0L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(12, file);
@@ -75,10 +74,10 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
     }
 
     @Test
-    public void accept_ShouldReturnTrue_IfFileIsSmallerThanMinSize_AndMMinSizeDisabled() throws Exception {
-        long minSize = 0;
-        long maxSize = 16;
-        initSubject(minSize, maxSize);
+    public void accept_ShouldReturnTrue_IfFileIsSmallerThanMinSize_AndMinSizeDisabled() throws Exception {
+        when(config.max_file_size()).thenReturn(16L);
+        when(config.min_file_size()).thenReturn(0L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(12, file);
@@ -90,9 +89,9 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void accept_ShouldReturnFalse_IfFileIsSmallerThanMinSize() throws Exception {
-        long minSize = 10;
-        long maxSize = 1024;
-        initSubject(minSize, maxSize);
+        when(config.max_file_size()).thenReturn(1024L);
+        when(config.min_file_size()).thenReturn(10L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(8, file);
@@ -104,9 +103,9 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void accept_ShouldReturnFalse_IfFileIsGreaterThanMaxSize() throws Exception {
-        long minSize = 1000000;
-        long maxSize = 10000000;
-        initSubject(minSize, maxSize);
+        when(config.max_file_size()).thenReturn(10000000L);
+        when(config.min_file_size()).thenReturn(1000000L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
         writeBytes(101, file);
@@ -117,9 +116,9 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void accept_ShouldReturnFalse_IfFileSizeCannotBeDetermined() throws Exception {
-        long minSize = 10;
-        long maxSize = 100;
-        initSubject(minSize, maxSize);
+        when(config.max_file_size()).thenReturn(100L);
+        when(config.min_file_size()).thenReturn(10L);
+        initSubject();
 
         Path file = inputDir.resolve("movie.mp4");
 
@@ -129,23 +128,23 @@ public class FileSizeConstraintTest implements FileBasedUnitTest {
 
     @Test
     public void ctor_ShouldThrowException_IfFileSizesEqual() throws Exception {
-        long minSize = 0;
-        long maxSize = 0;
-        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+        when(config.max_file_size()).thenReturn(0L);
+        when(config.min_file_size()).thenReturn(0L);
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(this::initSubject);
     }
 
     @Test
     public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesSwapped() throws Exception {
-        long minSize = 12;
-        long maxSize = 1;
-        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+        when(config.max_file_size()).thenReturn(1L);
+        when(config.min_file_size()).thenReturn(12L);
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(this::initSubject);
     }
 
     @Test
     public void ctor_ShouldThrowException_IfConfiguredIncorrectly_WhenSizesNegative() throws Exception {
-        long minSize = -1;
-        long maxSize = 1;
-        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(() -> initSubject(minSize, maxSize));
+        when(config.max_file_size()).thenReturn(-1L);
+        when(config.min_file_size()).thenReturn(-1L);
+        assertThatExceptionOfType(InvalidConfigurationException.class).isThrownBy(this::initSubject);
     }
 
 }

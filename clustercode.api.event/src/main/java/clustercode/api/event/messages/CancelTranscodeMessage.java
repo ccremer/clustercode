@@ -1,4 +1,4 @@
-package net.chrigel.clustercode.transcode.messages;
+package clustercode.api.event.messages;
 
 import lombok.Getter;
 import lombok.Setter;

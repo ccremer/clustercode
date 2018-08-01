@@ -1,7 +1,7 @@
-package net.chrigel.clustercode.constraint.impl;
+package clustercode.impl.constraint;
 
-import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.test.FileBasedUnitTest;
+import clustercode.api.domain.Media;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -15,28 +15,30 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
     private FileNameConstraint subject;
     @Mock
     private Media candidate;
+    @Mock
+    private ConstraintConfig config;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
+        subject = new FileNameConstraint(config);
     }
 
     @Test
     public void accept_ShouldReturnFalse_IfRegexOnlyMatchesPartially() throws Exception {
         when(candidate.getSourcePath()).thenReturn(getPath("input", "movie.mp4"));
+        when(config.filename_regex()).thenReturn(".mp4");
 
-        subject = new FileNameConstraint(".mp4");
         assertThat(subject.accept(candidate)).isFalse();
     }
 
     @Test
     public void accept_ShouldReturnTrue_IfRegexMatches() throws Exception {
         when(candidate.getSourcePath()).thenReturn(getPath("input", "movie.mp4"));
+        when(config.filename_regex()).thenReturn("^.*\\.mp4");
 
-        subject = new FileNameConstraint("^.*\\.mp4");
         assertThat(subject.accept(candidate)).isTrue();
     }
-
 
 }

@@ -1,6 +1,6 @@
 package clustercode.impl.constraint;
 
-import clustercode.api.config.PathConverter;
+import clustercode.api.config.converter.PathConverter;
 import org.aeonbits.owner.Config;
 
 import java.nio.file.Path;
