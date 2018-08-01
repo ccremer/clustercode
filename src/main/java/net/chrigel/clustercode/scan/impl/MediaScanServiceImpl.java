@@ -76,7 +76,7 @@ class MediaScanServiceImpl implements MediaScanService {
     /**
      * Creates a media object with the given priority dir and file location.
      *
-     * @param priorityDir the root path, which must start with a number.
+     * @param priorityDir the root path, which must activate with a number.
      * @param file        the file name, which will be relativized against the base input dir.
      * @return new media object.
      */

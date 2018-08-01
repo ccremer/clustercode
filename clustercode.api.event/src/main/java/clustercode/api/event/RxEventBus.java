@@ -35,7 +35,7 @@ public interface RxEventBus {
 
     /**
      * Emits the given event object in another thread. Useful for long running subscribers and you expect the state
-     * of the object to be changed after processing.
+     * of the object to be changed after processing (this is useful for implementing return values).
      *
      * @param event the object.
      * @param <T>   the type of object.

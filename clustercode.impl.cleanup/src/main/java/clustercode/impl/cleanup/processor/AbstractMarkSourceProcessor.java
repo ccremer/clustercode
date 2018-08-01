@@ -1,6 +1,7 @@
 package clustercode.impl.cleanup.processor;
 
 import clustercode.api.cleanup.CleanupContext;
+import clustercode.api.cleanup.CleanupProcessor;
 import clustercode.impl.cleanup.CleanupConfig;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -9,7 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public abstract class AbstractMarkSourceProcessor extends AbstractCleanupProcessor {
+public abstract class AbstractMarkSourceProcessor implements CleanupProcessor {
 
     protected final CleanupConfig cleanupConfig;
     protected XLogger log = XLoggerFactory.getXLogger(getClass());

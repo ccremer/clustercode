@@ -33,7 +33,7 @@ public interface ConstraintConfig extends Config {
     @Separator(" ")
     @Key("CC_CONSTRAINTS_ACTIVE")
     @DefaultValue("FILE_SIZE")
-    List<String> active_constraints();
+    List<Constraints> active_constraints();
 
     @Key("CC_CONSTRAINT_TIME_BEGIN")
     @DefaultValue("08:00")

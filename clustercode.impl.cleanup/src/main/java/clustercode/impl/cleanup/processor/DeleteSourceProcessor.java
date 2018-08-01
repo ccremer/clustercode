@@ -1,6 +1,7 @@
 package clustercode.impl.cleanup.processor;
 
 import clustercode.api.cleanup.CleanupContext;
+import clustercode.api.cleanup.CleanupProcessor;
 import clustercode.impl.cleanup.CleanupConfig;
 import lombok.extern.slf4j.XSlf4j;
 
@@ -13,7 +14,7 @@ import java.nio.file.Path;
  * Provides a processor which deletes the source file.
  */
 @XSlf4j
-public class DeleteSourceProcessor extends AbstractCleanupProcessor {
+public class DeleteSourceProcessor implements CleanupProcessor {
 
     private final CleanupConfig cleanupConfig;
 

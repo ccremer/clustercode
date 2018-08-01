@@ -1,6 +1,7 @@
 package clustercode.impl.cleanup.processor;
 
 import clustercode.api.cleanup.CleanupContext;
+import clustercode.api.cleanup.CleanupProcessor;
 import clustercode.api.process.ExternalProcessService;
 import clustercode.api.process.ProcessConfiguration;
 import clustercode.impl.cleanup.CleanupConfig;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @XSlf4j
-public class ChangeOwnerProcessor extends AbstractCleanupProcessor {
+public class ChangeOwnerProcessor implements CleanupProcessor {
 
     private final CleanupConfig cleanupConfig;
     private final ExternalProcessService externalProcessService;

@@ -1,8 +1,6 @@
 package clustercode.api.cleanup;
 
-import clustercode.impl.util.Indexable;
-
-public interface CleanupProcessor extends Indexable<CleanupProcessor> {
+public interface CleanupProcessor {
 
     CleanupContext processStep(CleanupContext context);
 

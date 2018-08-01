@@ -1,10 +1,14 @@
-package net.chrigel.clustercode.process.impl;
+package clustercode.main.modules;
 
+import clustercode.api.process.ExternalProcessService;
+import clustercode.api.process.ScriptInterpreter;
+import clustercode.impl.process.AutoResolvableInterpreter;
+import clustercode.impl.process.BourneAgainShell;
+import clustercode.impl.process.ExternalProcessServiceImpl;
+import clustercode.impl.process.Shell;
+import clustercode.impl.util.FilesystemProvider;
+import clustercode.impl.util.Platform;
 import com.google.inject.AbstractModule;
-import net.chrigel.clustercode.process.ExternalProcessService;
-import net.chrigel.clustercode.process.ScriptInterpreter;
-import net.chrigel.clustercode.util.FilesystemProvider;
-import net.chrigel.clustercode.util.Platform;
 
 import java.nio.file.Files;
 

@@ -17,7 +17,7 @@ import java.util.Optional;
  * the configured transcoder settings defined in {@link ProfileScanConfig}.
  */
 @XSlf4j
-public class CompanionProfileMatcher extends AbstractProfileMatcher {
+public class CompanionProfileMatcher implements ProfileMatcher {
 
     private final ProfileScanConfig scanConfig;
     private final ProfileParser profileParser;

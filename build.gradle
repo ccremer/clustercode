@@ -29,6 +29,26 @@ ext {
     dep_rxjava = "io.reactivex.rxjava2:rxjava:2.1.+"
     dep_jgroups = "org.jgroups:jgroups:4.0.+"
     dep_inject = "javax.inject:javax.inject:1"
+    dep_guice = "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
+
+    proj_test_util = "clustercode.test.util"
+    proj_api_transcode = "clustercode.api.transcode"
+    proj_api_cluster = "clustercode.api.cluster"
+    proj_api_config = "clustercode.api.config"
+    proj_api_domain = "clustercode.api.domain"
+    proj_api_scan = "clustercode.api.scan"
+    proj_api_process = "clustercode.api.process"
+    proj_api_event = "clustercode.api.event"
+    proj_api_cleanup = "clustercode.api.cleanup"
+    proj_api_rest = "clustercode.api.rest.v1"
+    proj_impl_util = "clustercode.impl.util"
+    proj_impl_scan = "clustercode.impl.scan"
+    proj_impl_transcode = "clustercode.impl.transcode"
+    proj_impl_cluster_jgroups = "clustercode.impl.cluster.jgroups"
+    proj_impl_process = "clustercode.impl.process"
+    proj_impl_cleanup = "clustercode.impl.cleanup"
+    proj_impl_constraint = "clustercode.impl.constraint"
+
 }
 
 allprojects {
@@ -75,7 +95,14 @@ subprojects {
         testCompile "org.mockito:mockito-all:2.0.+"
         testCompile "com.google.jimfs:jimfs:1.+"
         testCompile "org.assertj:assertj-core:3.8.0"
+
+        //testCompile project(":clustercode.test.util").sourceSets.test.output
     }
+
+    test {
+        systemProperty 'log4j.configurationFile', '../clustercode.main/src/test/resources/log4j2-debug.xml'
+    }
+
 }
 
 dependencies {
@@ -132,13 +159,13 @@ swagger {
 
 shadowJar {
     dependencies {
-        exclude(project(":clustercode.test.util"))
+        exclude(project(":${proj_test_util}"))
     }
 }
 
 task fullBuild(type: Jar) {
     manifest {
-        attributes "Main-Class": "net.chrigel.clustercode.Startup",
+        attributes "Main-Class": "clustercode.main.Startup",
             "Implementation-Version": version,
             "Implementation-Title": project.name
     }

@@ -19,8 +19,8 @@ public class ClusterActivator implements Activator {
 
     @Inject
     ClusterActivator(
-        JgroupsClusterImpl clusterService,
-        RxEventBus eventBus
+            JgroupsClusterImpl clusterService,
+            RxEventBus eventBus
     ) {
         this.clusterService = clusterService;
         this.eventBus = eventBus;
@@ -28,6 +28,19 @@ public class ClusterActivator implements Activator {
 
     @Override
     public void activate(ActivatorContext context) {
+        clusterService.joinCluster();
+
+        if (clusterService.getSize() == 1) {
+            log.info("We are the only member in the cluster. Let's wait 15 seconds before we continue" +
+                    "in order to make sure that there wasn't a connection problem and we can join" +
+                    "an existing cluster.");
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                log.warn(e.getMessage());
+            }
+        }
+
         eventBus.register(CancelTaskApiRequest.class)
                 .filter(this::isLocalHost)
                 .doOnNext(log::entry)
@@ -53,7 +66,7 @@ public class ClusterActivator implements Activator {
 
     @Override
     public void deactivate(ActivatorContext context) {
-
+        clusterService.leaveCluster();
     }
 
     private boolean isNotLocalHost(CancelTaskApiRequest cancelTaskApiRequest) {

@@ -11,7 +11,7 @@ import java.text.DecimalFormat;
 
 /**
  * This constraint checks the file size of the given argument. If the file is too big or too small it will be
- * rejected. The limits are configurable. If the minimum or maximum size are 0 (zero), the verifyIn is disabled
+ * rejected. The limits are configurable. If the minimum or maximum size are 0 (zero), the check is disabled
  * (for its respective limit).
  */
 public class FileSizeConstraint

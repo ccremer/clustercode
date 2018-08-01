@@ -78,9 +78,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
         task.setProfile(profile);
 
         subject = new TranscodingServiceImpl(process,
-            transcoderSettings,
-            mediaScanSettings,
-            parser);
+                transcoderSettings,
+                mediaScanSettings,
+                () -> parser);
     }
 
     @Test
@@ -90,8 +90,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
         when(profile.getArguments()).thenReturn(Collections.singletonList(TranscodingServiceImpl.OUTPUT_PLACEHOLDER));
 
         String result = subject.replaceOutput(
-            TranscodingServiceImpl.OUTPUT_PLACEHOLDER,
-            output
+                TranscodingServiceImpl.OUTPUT_PLACEHOLDER,
+                output
         );
 
         assertThat(result).isEqualTo(output.toString());
@@ -103,8 +103,8 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
         when(profile.getArguments()).thenReturn(Arrays.asList());
 
         String result = subject.replaceInput(
-            TranscodingServiceImpl.INPUT_PLACEHOLDER,
-            input);
+                TranscodingServiceImpl.INPUT_PLACEHOLDER,
+                input);
 
         assertThat(result).isEqualTo(mediaScanSettings.getBaseInputDir().resolve(input).toString());
     }
@@ -172,17 +172,17 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
 
         CountDownLatch latch = new CountDownLatch(1);
         when(process.start(any(), any())).thenAnswer(invocation -> Single
-            .fromCallable(() -> {
-                Consumer<RunningExternalProcess> consumer = UnsafeCastUtil.cast(
-                    invocation.getArgumentAt(1, Consumer.class));
-                consumer.accept(runningProcessMock);
-                latch.countDown();
-                subject.cancelTranscode();
-                //Thread.sleep(500);
-                return 1;
-            })
-            .observeOn(Schedulers.io())
-            .subscribeOn(Schedulers.io())
+                .fromCallable(() -> {
+                    Consumer<RunningExternalProcess> consumer = UnsafeCastUtil.cast(
+                            invocation.getArgumentAt(1, Consumer.class));
+                    consumer.accept(runningProcessMock);
+                    latch.countDown();
+                    subject.cancelTranscode();
+                    //Thread.sleep(500);
+                    return 1;
+                })
+                .observeOn(Schedulers.io())
+                .subscribeOn(Schedulers.io())
         );
 
         subject.onTranscodeBegin()

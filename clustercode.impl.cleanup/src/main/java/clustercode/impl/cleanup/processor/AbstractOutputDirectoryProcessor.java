@@ -1,5 +1,6 @@
 package clustercode.impl.cleanup.processor;
 
+import clustercode.api.cleanup.CleanupProcessor;
 import clustercode.api.event.messages.TranscodeFinishedEvent;
 import clustercode.impl.util.FileUtil;
 import org.slf4j.ext.XLogger;
@@ -14,7 +15,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 
-public abstract class AbstractOutputDirectoryProcessor extends AbstractCleanupProcessor {
+public abstract class AbstractOutputDirectoryProcessor implements CleanupProcessor {
 
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd.HH-mm-ss");
     protected final XLogger log = XLoggerFactory.getXLogger(getClass());

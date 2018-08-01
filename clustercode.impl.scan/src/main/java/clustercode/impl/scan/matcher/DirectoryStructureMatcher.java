@@ -20,7 +20,7 @@ import java.util.Optional;
  * 0/}.
  */
 @XSlf4j
-public class DirectoryStructureMatcher extends AbstractProfileMatcher {
+public class DirectoryStructureMatcher implements ProfileMatcher {
 
     private final ProfileParser profileParser;
     private final ProfileScanConfig profileScanConfig;
