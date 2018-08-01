@@ -1,4 +1,4 @@
-package clustercode.api.transcode;
+package clustercode.api.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

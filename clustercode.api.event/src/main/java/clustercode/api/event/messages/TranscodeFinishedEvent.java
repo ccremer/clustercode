@@ -1,11 +1,11 @@
-package clustercode.api.transcode.messages;
+package net.chrigel.clustercode.transcode.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import clustercode.api.domain.Media;
-import clustercode.api.domain.Profile;
+import net.chrigel.clustercode.scan.Media;
+import net.chrigel.clustercode.scan.Profile;
 
 import java.nio.file.Path;
 

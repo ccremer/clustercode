@@ -1,9 +1,9 @@
-package clustercode.api.transcode.messages;
+package net.chrigel.clustercode.transcode.messages;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import clustercode.api.transcode.TranscodeTask;
+import net.chrigel.clustercode.transcode.TranscodeTask;
 
 /**
  * This event indicates that a trancoding job has begun.
