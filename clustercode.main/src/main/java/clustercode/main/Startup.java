@@ -1,17 +1,16 @@
 package clustercode.main;
 
 import clustercode.api.config.ConfigLoader;
+import clustercode.impl.cluster.jgroups.ClusterActivator;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 public class Startup {
 
@@ -19,7 +18,7 @@ public class Startup {
 
     public static void main(String[] args) throws Exception {
 
-        List<String> logFiles = Arrays.asList("log4j2.xml", System.getenv("CC_LOG_CONFIG_FILE"));
+        List<String> logFiles = Arrays.asList("log4j2.xml", System.getenv("CC_LOG_CONFIG_FILE"), "log4j2.xml");
 
         logFiles.forEach(name -> {
             if (name == null) return;
@@ -42,7 +41,7 @@ public class Startup {
         ConfigLoader loader = new ConfigLoader().loadDefaultsFromPropertiesFile(configFile);
 
         GuiceManager container = new GuiceManager(loader);
-
+        container.getInstance(ClusterActivator.class).activate(null);
     }
 
 }

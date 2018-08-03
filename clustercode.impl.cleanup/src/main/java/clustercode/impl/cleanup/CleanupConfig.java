@@ -34,14 +34,14 @@ public interface CleanupConfig extends Config {
      * Gets the group id of the new owner of the output file(s).
      */
     @Key("CC_CLEANUP_CHOWN_GROUPID")
-    @DefaultValue("-1")
+    @DefaultValue("0")
     int group_id();
 
     /**
      * Gets the user id of the new owner of the output file(s).
      */
     @Key("CC_CLEANUP_CHOWN_USERID")
-    @DefaultValue("-1")
+    @DefaultValue("0")
     int user_id();
 
     /**

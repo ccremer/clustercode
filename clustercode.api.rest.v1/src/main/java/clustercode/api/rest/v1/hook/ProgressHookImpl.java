@@ -11,6 +11,8 @@ import com.google.inject.Inject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 
+import java.util.Map;
+
 @XSlf4j
 public class ProgressHookImpl implements ProgressHook {
 
@@ -22,11 +24,13 @@ public class ProgressHookImpl implements ProgressHook {
     @Inject
     ProgressHookImpl(RxEventBus eventBus,
                      ProgressReportAdapter progressAdapter,
-                     RestServiceConfig serviceConfig) {
+                     RestServiceConfig serviceConfig,
+                     Map<Transcoder, TranscodeProgress> transcodeProgressMap) {
         this.progressAdapter = progressAdapter;
         this.serviceConfig = serviceConfig;
 
-        eventBus.register(serviceConfig.transcoder_type().getOutputType(), this::onProgressUpdated);
+        eventBus.register(transcodeProgressMap.get(serviceConfig.transcoder_type())
+                                              .getClass(), this::onProgressUpdated);
 
         eventBus.register(TranscodeFinishedEvent.class, this::onTranscodingFinished);
     }

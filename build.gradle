@@ -1,24 +1,18 @@
 plugins {
-    id "org.unbroken-dome.test-sets" version "1.4.2"
     id "java"
     id "idea"
-    id "jacoco"
-    id "com.benjaminsproule.swagger" version "0.1.2"
     id 'com.github.johnrengelman.shadow' version '2.0.4'
 }
 
 group "clustercode"
 version "1.4.0"
-
+/*
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
+*/
 
 repositories {
     mavenCentral()
-}
-
-testSets {
-    integrationTest { dirName = 'integration-test' }
 }
 
 ext {
@@ -48,7 +42,7 @@ ext {
     proj_impl_process = "clustercode.impl.process"
     proj_impl_cleanup = "clustercode.impl.cleanup"
     proj_impl_constraint = "clustercode.impl.constraint"
-
+    proj_main = "clustercode.main"
 }
 
 allprojects {
@@ -105,68 +99,23 @@ subprojects {
 
 }
 
-dependencies {
-
-    // Core dependencies
-    compile("org.squirrelframework:squirrel-foundation:0.3.+") {
-        exclude group: "log4j"
-        exclude group: "org.slf4j"
-    }
-    compile "org.jgroups:jgroups:4.0.+"
-    compile 'com.google.guava:guava:23.5-jre'
-    compile "io.reactivex.rxjava2:rxjava:2.1.+"
-
-    // REST dependencies
-    compile "io.logz:guice-jersey:1.0.+"
-    compile "com.owlike:genson:1.+"
-
-    // compiler helpers
-    compileOnly "org.projectlombok:lombok:1.16.+"
-    compileOnly "io.swagger:swagger-annotations:1.5.+"
-    // DI frameworks
-    compile "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
-
-
-    // testing
-    testCompile "junit:junit:4.12"
-    testCompile "org.mockito:mockito-all:2.0.+"
-    testCompile "com.google.jimfs:jimfs:1.+"
-    testCompile "org.assertj:assertj-core:3.8.0"
-
-    integrationTestCompile sourceSets.test.output
-    compile project(":clustercode.api.domain")
-    compile project(":clustercode.impl.constraint")
-
+dependencies{
+    compile project(":${proj_main}")
 }
 
-swagger {
-    apiSource {
-        locations = ["net.chrigel.clustercode.api"]
-        schemes = ["http"]
-        host = "your.clustercode.domain:8080"
-        basePath = "/api/v1"
-        info {
-            title = "Clustercode REST API"
-            version = "1.3.0"
-            description = "Convert your videos in a cluster!"
-        }
-
-        templatePath = "${project.rootDir}/src/swagger/strapdown.html.hbs"
-        outputPath = "${project.buildDir}/swagger/swagger.html"
-        swaggerDirectory = "${project.buildDir}/swagger"
-    }
-}
 
 shadowJar {
     dependencies {
         exclude(project(":${proj_test_util}"))
+    }
+    manifest {
+        attributes "Main-Class": "clustercode.main.Startup"
     }
 }
 
 task fullBuild(type: Jar) {
     manifest {
         attributes "Main-Class": "clustercode.main.Startup",
-            "Implementation-Version": version,
             "Implementation-Title": project.name
     }
     archiveName = "clustercode.jar"
@@ -197,15 +146,15 @@ task githubRelease()
 fullBuild.dependsOn test
 
 windowsZip.dependsOn fullBuild
-windowsZip.dependsOn generateSwaggerDocumentation
+//windowsZip.dependsOn generateSwaggerDocumentation
 
-check.dependsOn integrationTest
-integrationTest.mustRunAfter test
+//check.dependsOn integrationTest
+//integrationTest.mustRunAfter test
 
 githubRelease.dependsOn windowsZip
 
-jacoco {
+/*jacoco {
     reportsDir file("${project.buildDir}/reports/jacoco")
     toolVersion "0.7.6.201602180812"
-}
+}*/
 

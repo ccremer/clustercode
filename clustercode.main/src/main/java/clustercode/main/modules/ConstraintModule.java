@@ -6,6 +6,7 @@ import clustercode.impl.constraint.*;
 import clustercode.impl.util.InvalidConfigurationException;
 import clustercode.impl.util.di.ModuleHelper;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 import lombok.var;
 
 import java.util.HashMap;
@@ -22,7 +23,7 @@ public class ConstraintModule extends ConfigurableModule {
         ConstraintConfig config = loader.getConfig(ConstraintConfig.class);
         bind(ConstraintConfig.class).toInstance(config);
 
-        var mapBinder = MapBinder.newMapBinder(binder(), Constraints.class, Constraint.class);
+        var setBinder = Multibinder.newSetBinder(binder(), Constraint.class);
         var map = getConstraintMap();
 
         try {
@@ -34,11 +35,11 @@ public class ConstraintModule extends ConfigurableModule {
         }
 
         if (config.active_constraints().contains(Constraints.ALL)) {
-            map.forEach((key, value) -> mapBinder.addBinding(key).to(value));
+            map.forEach((key, value) -> setBinder.addBinding().to(value));
         } else if (config.active_constraints().contains(Constraints.NONE)) {
-            mapBinder.addBinding(Constraints.NONE).to(NoConstraint.class);
+            setBinder.addBinding().to(NoConstraint.class);
         } else {
-            config.active_constraints().forEach(key -> mapBinder.addBinding(key).to(map.get(key)));
+            config.active_constraints().forEach(key -> setBinder.addBinding().to(map.get(key)));
         }
 
     }

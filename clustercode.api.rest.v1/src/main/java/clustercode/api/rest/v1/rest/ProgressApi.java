@@ -6,7 +6,6 @@ import clustercode.api.rest.v1.dto.FfmpegProgressReport;
 import clustercode.api.rest.v1.dto.HandbrakeProgressReport;
 import clustercode.api.rest.v1.hook.ProgressHook;
 import clustercode.api.transcode.Transcoder;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -20,7 +19,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/progress")
-@Api(description = "The progress service API")
 public class ProgressApi extends AbstractRestApi {
 
     private final ProgressHook cache;

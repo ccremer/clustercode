@@ -4,15 +4,20 @@ import clustercode.api.config.ConfigLoader;
 import clustercode.api.rest.v1.ProgressReportAdapter;
 import clustercode.api.rest.v1.RestServiceConfig;
 import clustercode.api.rest.v1.RestServicesActivator;
+import clustercode.api.rest.v1.dto.FfmpegProgressReport;
 import clustercode.api.rest.v1.hook.ProgressHook;
 import clustercode.api.rest.v1.hook.ProgressHookImpl;
 import clustercode.api.rest.v1.hook.TaskHook;
 import clustercode.api.rest.v1.hook.TaskHookImpl;
 import clustercode.api.rest.v1.impl.FfmpegProgressAdapter;
 import clustercode.api.rest.v1.impl.HandbrakeProgressAdapter;
+import clustercode.api.transcode.TranscodeProgress;
 import clustercode.api.transcode.Transcoder;
+import clustercode.api.transcode.output.FfmpegOutput;
+import clustercode.api.transcode.output.HandbrakeOutput;
 import clustercode.impl.util.InvalidConfigurationException;
 import com.google.inject.TypeLiteral;
+import com.google.inject.multibindings.MapBinder;
 import com.owlike.genson.ext.jaxrs.GensonJsonConverter;
 import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
@@ -37,9 +42,14 @@ public class RestApiModule extends ConfigurableModule {
         }
 
         try {
-            var map = getAdapterMap();
+            var adapterMap = getAdapterMap();
             bind(new TypeLiteral<ProgressReportAdapter>() {
-            }).to(map.get(config.transcoder_type()));
+            }).to(adapterMap.get(config.transcoder_type()));
+
+            var progressMap = getProgressMap();
+            MapBinder<Transcoder, TranscodeProgress> progressMapBinder = MapBinder.newMapBinder(binder(),
+                    Transcoder.class, TranscodeProgress.class);
+            progressMapBinder.addBinding(config.transcoder_type()).to(progressMap.get(config.transcoder_type()));
         } catch (UnsupportedOperationException ex) {
             throw new InvalidConfigurationException(
                     "You configured the CC_TRANSCODE_TYPE incorrectly. Consult the docs!");
@@ -67,6 +77,13 @@ public class RestApiModule extends ConfigurableModule {
         Map<Transcoder, Class<? extends ProgressReportAdapter>> map = new HashMap<>();
         map.put(Transcoder.FFMPEG, FfmpegProgressAdapter.class);
         map.put(Transcoder.HANDBRAKE, HandbrakeProgressAdapter.class);
+        return map;
+    }
+
+    private Map<Transcoder, Class<? extends TranscodeProgress>> getProgressMap() {
+        Map<Transcoder, Class<? extends TranscodeProgress>> map = new HashMap<>();
+        map.put(Transcoder.FFMPEG, FfmpegOutput.class);
+        map.put(Transcoder.HANDBRAKE, HandbrakeOutput.class);
         return map;
     }
 }

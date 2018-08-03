@@ -5,7 +5,10 @@ import clustercode.api.rest.v1.RestServicesActivator;
 import clustercode.api.rest.v1.dto.ApiError;
 import clustercode.api.rest.v1.dto.Task;
 import clustercode.api.rest.v1.hook.TaskHook;
-import io.swagger.annotations.*;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -16,7 +19,6 @@ import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
 @Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/tasks")
-@Api(description = "the tasks API")
 public class TasksApi extends AbstractRestApi {
 
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");

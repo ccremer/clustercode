@@ -31,8 +31,8 @@ public class ClusterActivator implements Activator {
         clusterService.joinCluster();
 
         if (clusterService.getSize() == 1) {
-            log.info("We are the only member in the cluster. Let's wait 15 seconds before we continue" +
-                    "in order to make sure that there wasn't a connection problem and we can join" +
+            log.info("We are the only member in the cluster. Let's wait 15 seconds before we continue " +
+                    "in order to make sure that there wasn't a connection problem and we can join " +
                     "an existing cluster.");
             try {
                 Thread.sleep(3000);

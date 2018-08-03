@@ -27,6 +27,7 @@ public class ScanModule extends ConfigurableModule {
         checkInterval(mediaScanConfig.media_scan_interval());
 
         ProfileScanConfig profileScanConfig = loader.getConfig(ProfileScanConfig.class);
+        bind(ProfileScanConfig.class).toInstance(profileScanConfig);
 
         bind(MediaScanConfig.class).toInstance(mediaScanConfig);
 
