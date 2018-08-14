@@ -32,7 +32,7 @@ public interface ConstraintConfig extends Config {
      */
     @Separator(" ")
     @Key("CC_CONSTRAINTS_ACTIVE")
-    @DefaultValue("FILE_SIZE")
+    @DefaultValue("FILE_SIZE CLUSTER")
     List<Constraints> active_constraints();
 
     @Key("CC_CONSTRAINT_TIME_BEGIN")

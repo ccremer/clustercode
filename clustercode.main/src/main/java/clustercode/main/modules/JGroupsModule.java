@@ -23,7 +23,7 @@ class JGroupsModule extends ConfigurableModule {
         bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
         bind(JGroupsTaskState.class).to(JGroupsTaskStateImpl.class);
 
-        bind(ClusterActivator.class).asEagerSingleton();
+        bind(JgroupsClusterActivator.class).asEagerSingleton();
     }
 
 }

@@ -19,7 +19,7 @@ public class RestServicesActivator implements Activator {
         this.jerseyServer = jerseyServer;
     }
 
-
+    @Inject
     @Override
     public void activate(ActivatorContext context) {
         log.info("Starting REST services...");

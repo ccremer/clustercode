@@ -1,6 +1,5 @@
 package clustercode.impl.scan;
 
-import clustercode.api.cluster.ClusterService;
 import clustercode.api.domain.Constraint;
 import clustercode.api.domain.Media;
 import clustercode.api.scan.SelectionService;
@@ -16,13 +15,10 @@ import java.util.Set;
 public class SelectionServiceImpl implements SelectionService {
 
     private final Set<Constraint> constraints;
-    private final ClusterService clusterService;
 
     @Inject
-    SelectionServiceImpl(Set<Constraint> constraints,
-                         ClusterService clusterService) {
+    SelectionServiceImpl(Set<Constraint> constraints) {
         this.constraints = constraints;
-        this.clusterService = clusterService;
     }
 
     @Override
@@ -30,25 +26,7 @@ public class SelectionServiceImpl implements SelectionService {
         return log.exit(list.stream()
                 .sorted(Comparator.comparingInt(Media::getPriority).reversed())
                 .filter(this::checkConstraints)
-                .filter(this::isNotInCluster)
                 .findFirst());
-    }
-
-    /**
-     * Checks whether the given media candidate is already queued in the cluster.
-     *
-     * @param candidate the media. Not null.
-     * @return true if queued.
-     */
-    boolean isInCluster(Media candidate) {
-        return clusterService.isQueuedInCluster(candidate);
-    }
-
-    /**
-     * Negates {@link #isInCluster(Media)}.
-     */
-    boolean isNotInCluster(Media candidate) {
-        return !isInCluster(candidate);
     }
 
     /**

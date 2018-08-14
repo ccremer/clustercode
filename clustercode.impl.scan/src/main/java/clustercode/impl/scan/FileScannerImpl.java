@@ -103,7 +103,7 @@ public class FileScannerImpl
                 .filter(this::hasAllowedExtension)
                 .filter(this::hasNotCompanionFile);
         } catch (IOException e) {
-            log.catching(logLevel, e);
+           // log.catching(logLevel, e);
             throw new RuntimeException(e);
         }
     }

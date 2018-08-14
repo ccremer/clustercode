@@ -1,7 +1,6 @@
 package clustercode.main;
 
 import clustercode.api.config.ConfigLoader;
-import clustercode.impl.cluster.jgroups.ClusterActivator;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -31,8 +30,8 @@ public class Startup {
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             // Normally the expectable exceptions should be caught, but to debug any unexpected ones we log them.
-            log.error("Application-wide uncaught exception:", throwable);
-            System.exit(1);
+        //    log.error("Application-wide uncaught exception:", throwable);
+        //    System.exit(1);
         });
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
@@ -40,8 +39,7 @@ public class Startup {
         String configFile = args.length >= 1 ? args[0] : "conf/clustercode.properties";
         ConfigLoader loader = new ConfigLoader().loadDefaultsFromPropertiesFile(configFile);
 
-        GuiceManager container = new GuiceManager(loader);
-        container.getInstance(ClusterActivator.class).activate(null);
+        new GuiceManager(loader).start();
     }
 
 }

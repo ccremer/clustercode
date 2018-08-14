@@ -16,11 +16,12 @@ import java.util.jar.Manifest;
 @XSlf4j
 public class GuiceManager {
 
-    private final Injector injector;
+    private Injector injector;
+    private final List<Module> modules;
 
     public GuiceManager(ConfigLoader loader) {
         log.debug("Creating guice modules...");
-        List<Module> modules = new LinkedList<>();
+        modules = new LinkedList<>();
 
         modules.add(new GlobalModule());
         modules.add(new CleanupModule(loader));
@@ -31,6 +32,9 @@ public class GuiceManager {
         modules.add(new TranscodeModule(loader));
         modules.add(new RestApiModule(loader));
 
+    }
+
+    void start() {
         log.info("Booting clustercode {}...", getApplicationVersion());
         injector = Guice.createInjector(modules);
     }

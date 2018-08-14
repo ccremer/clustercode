@@ -15,7 +15,8 @@ public interface MediaScanConfig extends Config {
      */
     @Key("CC_MEDIA_INPUT_DIR")
     @ConverterClass(PathConverter.class)
-    Path getBaseInputDir();
+    @DefaultValue("/input")
+    Path base_input_dir();
 
     /**
      * Gets the list of file name extensions. An entry can be ".txt" or "txt".
@@ -24,7 +25,7 @@ public interface MediaScanConfig extends Config {
      */
     @Key("CC_MEDIA_EXTENSIONS")
     @DefaultValue("mkv,mp4,avi")
-    List<String> getAllowedExtensions();
+    List<String> allowed_extensions();
 
     /**
      * Gets the extension which cause a file to be skipped in the scan. If e.g. the string equals ".doe", then a
@@ -34,7 +35,7 @@ public interface MediaScanConfig extends Config {
      */
     @Key("CC_MEDIA_SKIP_NAME")
     @DefaultValue(".done")
-    String getSkipExtension();
+    String skip_extension_name();
 
     /**
      * Gets the interval after which the file system is rescanned when no media has been found.

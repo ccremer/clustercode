@@ -28,9 +28,9 @@ public class MediaScanServiceImpl implements MediaScanService {
 
     @Override
     public Map<Path, List<Media>> retrieveFiles() {
-        log.info("Scanning for directories in {}", scanConfig.getBaseInputDir());
+        log.info("Scanning for directories in {}", scanConfig.base_input_dir());
         return scannerProvider.get()
-            .searchIn(scanConfig.getBaseInputDir())
+            .searchIn(scanConfig.base_input_dir())
             .withRecursion(false)
             .withDirectories(true)
             .stream()
@@ -59,8 +59,8 @@ public class MediaScanServiceImpl implements MediaScanService {
         return scannerProvider.get()
             .searchIn(path)
             .withRecursion(true)
-            .withFileExtensions(scanConfig.getAllowedExtensions())
-            .whileSkippingExtraFilesWith(scanConfig.getSkipExtension())
+            .withFileExtensions(scanConfig.allowed_extensions())
+            .whileSkippingExtraFilesWith(scanConfig.skip_extension_name())
             .whileSkippingExtraFilesIn(scanConfig.mark_source_dir())
             .streamAndIgnoreErrors()
             .map(file -> buildMedia(path, file))
@@ -77,7 +77,7 @@ public class MediaScanServiceImpl implements MediaScanService {
      */
     Media buildMedia(Path priorityDir, Path file) {
         return Media.builder()
-            .sourcePath(scanConfig.getBaseInputDir().relativize(file))
+            .sourcePath(scanConfig.base_input_dir().relativize(file))
             .priority(getNumberFromDir(priorityDir))
             .build();
     }

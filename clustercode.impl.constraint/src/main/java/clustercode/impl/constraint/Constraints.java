@@ -6,6 +6,7 @@ public enum Constraints {
     NONE,
     FILE_NAME,
     TIME,
-    FILE_SIZE
+    FILE_SIZE,
+    CLUSTER
 
 }

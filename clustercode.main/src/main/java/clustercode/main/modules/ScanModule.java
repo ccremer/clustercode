@@ -51,6 +51,7 @@ public class ScanModule extends ConfigurableModule {
         var map = getMatcherMap();
         profileScanConfig.profile_matchers().forEach(matcher -> mapBinder.addBinding(matcher).to(map.get(matcher)));
 
+        bind(ScanServicesActivator.class).asEagerSingleton();
     }
 
     private void checkInterval(long scanInterval) {

@@ -4,6 +4,7 @@ dependencies {
     compile project(":${proj_api_scan}")
     compile project(":${proj_api_cluster}")
     compile project(":${proj_api_config}")
+    compile project(":${proj_api_event}")
     compile "${dep_inject}"
     compile "${dep_owner}"
 

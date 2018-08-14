@@ -49,6 +49,7 @@ public class ConstraintModule extends ConfigurableModule {
         map.put(Constraints.FILE_NAME, FileNameConstraint.class);
         map.put(Constraints.TIME, TimeConstraint.class);
         map.put(Constraints.FILE_SIZE, FileSizeConstraint.class);
+        map.put(Constraints.CLUSTER, ClusterConstraint.class);
         return map;
     }
 }
