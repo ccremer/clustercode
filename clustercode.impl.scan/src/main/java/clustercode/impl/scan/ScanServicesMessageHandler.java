@@ -69,11 +69,11 @@ class ScanServicesMessageHandler {
                 "being transcoded by a cluster member.");
     }
 
-    void onTimeout(ProfileSelectedMessage msg) {
-        eventBus.emitAsync(new ScanMediaCommand());
+    void onTimeout(Object msg) {
+        startScanning();
     }
 
-    void onTimeout(MediaSelectedMessage msg) {
+    private void startScanning() {
         eventBus.emitAsync(new ScanMediaCommand());
     }
 

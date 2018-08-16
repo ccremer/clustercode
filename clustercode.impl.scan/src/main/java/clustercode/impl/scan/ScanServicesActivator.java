@@ -66,13 +66,20 @@ public class ScanServicesActivator implements Activator {
         handlers.add(eventBus
                 .listenFor(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isNotSelected)
+                .map(this::onWaiting)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));
         handlers.add(eventBus
                 .listenFor(MediaSelectedMessage.class)
                 .filter(MediaSelectedMessage::isNotSelected)
+                .map(this::onWaiting)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));
+    }
+
+    private <T> T onWaiting(T msg) {
+        log.info("Waiting {} minutes.", config.media_scan_interval());
+        return msg;
     }
 
     @Override
