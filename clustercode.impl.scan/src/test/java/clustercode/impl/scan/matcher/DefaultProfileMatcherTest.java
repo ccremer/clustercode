@@ -37,9 +37,9 @@ public class DefaultProfileMatcherTest implements FileBasedUnitTest {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
         profileFolder = getPath("profiles");
-        when(config.getProfileFileNameExtension()).thenReturn(".ffmpeg");
-        when(config.getProfilesBaseDir()).thenReturn(profileFolder);
-        when(config.getDefaultProfileFileName()).thenReturn("default");
+        when(config.profile_file_name_extension()).thenReturn(".ffmpeg");
+        when(config.profile_base_dir()).thenReturn(profileFolder);
+        when(config.default_profile_file_name()).thenReturn("default");
         subject = new DefaultProfileMatcher(config, parser);
     }
 

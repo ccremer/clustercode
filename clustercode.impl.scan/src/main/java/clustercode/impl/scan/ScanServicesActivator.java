@@ -2,117 +2,82 @@ package clustercode.impl.scan;
 
 import clustercode.api.domain.Activator;
 import clustercode.api.domain.ActivatorContext;
-import clustercode.api.domain.Media;
-import clustercode.api.domain.Profile;
 import clustercode.api.event.RxEventBus;
-import clustercode.api.event.messages.ClusterJoinedMessage;
-import clustercode.api.event.messages.MediaScannedMessage;
-import clustercode.api.event.messages.MediaSelectedMessage;
-import clustercode.api.event.messages.ProfileSelectedMessage;
-import clustercode.api.scan.MediaScanService;
-import clustercode.api.scan.ProfileScanService;
-import clustercode.api.scan.SelectionService;
+import clustercode.api.event.messages.*;
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class ScanServicesActivator implements Activator {
 
     private final RxEventBus eventBus;
-    private final MediaScanService scanService;
-    private final SelectionService selectionService;
-    private final ProfileScanService profileScanService;
     private final List<Disposable> handlers = new LinkedList<>();
+    private final ScanServicesMessageHandler messageHandler;
+    private final MediaScanConfig config;
 
     @Inject
     public ScanServicesActivator(RxEventBus eventBus,
-                                 MediaScanService scanService,
-                                 SelectionService selectionService,
-                                 ProfileScanService profileScanService) {
+                                 ScanServicesMessageHandler messageHandler,
+                                 MediaScanConfig config
+    ) {
         this.eventBus = eventBus;
-        this.scanService = scanService;
-        this.selectionService = selectionService;
-        this.profileScanService = profileScanService;
+        this.messageHandler = messageHandler;
+        this.config = config;
     }
 
     @Inject
     @Override
     public void activate(ActivatorContext context) {
+        log.debug("Activating scanning services.");
         handlers.add(eventBus
                 .register(ClusterJoinedMessage.class)
-                .subscribe(msg -> onClusterJoined(), this::onError));
+                .filter(ClusterJoinedMessage::isNotArbiterNode)
+                .map(msg -> new ScanMediaCommand())
+                .subscribe(messageHandler::onMediaScanRequest));
+        handlers.add(eventBus
+                .register(ScanMediaCommand.class)
+                .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus
                 .register(MediaScannedMessage.class)
-                .subscribe(this::onMediaScanned));
+                .filter(MediaScannedMessage::listHasEntries)
+                .subscribe(messageHandler::onSuccessfulMediaScan));
+        handlers.add(eventBus
+                .register(MediaScannedMessage.class)
+                .filter(MediaScannedMessage::listIsEmpty)
+                .subscribe(messageHandler::onFailedMediaScan));
         handlers.add(eventBus
                 .register(MediaSelectedMessage.class)
                 .filter(MediaSelectedMessage::isSelected)
                 .map(MediaSelectedMessage::getMedia)
-                .subscribe(this::onMediaSelected));
-        handlers.add(eventBus
-                .register(MediaSelectedMessage.class)
-                .filter(MediaSelectedMessage::isNotSelected)
-                .subscribe(msg -> {
-                    log.info("No suitable media found. Either all media are already converted or the last one is " +
-                            "being transcoded by a cluster member.");
-                }));
+                .subscribe(messageHandler::onSuccessfulMediaSelection));
         handlers.add(eventBus
                 .register(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isSelected)
-                .subscribe(msg -> {
-                    log.info("Selected {}", msg.getProfile());
-                }));
+                .subscribe(messageHandler::onSuccessfulProfileSelection));
+        handlers.add(eventBus
+                .register(MediaSelectedMessage.class)
+                .filter(MediaSelectedMessage::isNotSelected)
+                .subscribe(messageHandler::onFailedMediaSelection));
         handlers.add(eventBus
                 .register(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isNotSelected)
-                .subscribe(msg -> {
-
-                }));
-    }
-
-    private void onError(Throwable throwable) {
-        log.error("", throwable);
-    }
-
-    private void onMediaSelected(Media media) {
-        log.info("Selected media: {}", media);
-        Optional<Profile> result = profileScanService.selectProfile(media);
-        eventBus.emitAsync(ProfileSelectedMessage
-                .builder()
-                .media(media)
-                .profile(result.orElse(null))
-                .build());
-    }
-
-    private void onMediaScanned(MediaScannedMessage msg) {
-        log.debug("Selecting a suitable media for scheduling...");
-        Optional<Media> result = selectionService.selectMedia(msg.getMediaList());
-        eventBus.emitAsync(MediaSelectedMessage
-                .builder()
-                .media(result.orElse(null))
-                .build());
-    }
-
-    private void onClusterJoined() {
-        List<Media> resultList = scanService.retrieveFilesAsList();
-        if (resultList.isEmpty()) {
-            log.info("No media found.");
-        } else {
-            log.info("Found {} possible media entries.", resultList.size());
-        }
-        eventBus.emitAsync(MediaScannedMessage
-                .builder()
-                .mediaList(resultList)
-                .build());
+                .delay(config.media_scan_interval(), TimeUnit.MINUTES)
+                .subscribe(messageHandler::onTimeout));
+        handlers.add(eventBus
+                .register(MediaSelectedMessage.class)
+                .filter(MediaSelectedMessage::isNotSelected)
+                .delay(config.media_scan_interval(), TimeUnit.MINUTES)
+                .subscribe(messageHandler::onTimeout));
     }
 
     @Override
     public void deactivate(ActivatorContext context) {
+        log.debug("Deactivating scanning services.");
         handlers.forEach(Disposable::dispose);
         handlers.clear();
     }

@@ -36,11 +36,11 @@ public class DirectoryStructureMatcher implements ProfileMatcher {
     public Optional<Profile> apply(Media candidate) {
         log.entry(candidate);
         Path mediaFileParent = candidate.getSourcePath().getParent();
-        Path sisterDir = profileScanConfig.getProfilesBaseDir().resolve(mediaFileParent);
-        Path profileFile = sisterDir.resolve(profileScanConfig.getProfileFileName() + profileScanConfig
-                .getProfileFileNameExtension());
+        Path sisterDir = profileScanConfig.profile_base_dir().resolve(mediaFileParent);
+        Path profileFile = sisterDir.resolve(profileScanConfig.profile_file_name() + profileScanConfig
+                .profile_file_name_extension());
 
-        Path rootDir = profileScanConfig.getProfilesBaseDir().resolve(mediaFileParent.getName(0));
+        Path rootDir = profileScanConfig.profile_base_dir().resolve(mediaFileParent.getName(0));
         return log.exit(parseRecursive(profileFile, rootDir));
     }
 
@@ -52,7 +52,7 @@ public class DirectoryStructureMatcher implements ProfileMatcher {
                 return result;
             } else {
                 return parseRecursive(getProfileFileFromParentDirectory(file,
-                        profileScanConfig.getProfileFileName() + profileScanConfig.getProfileFileNameExtension()),
+                        profileScanConfig.profile_file_name() + profileScanConfig.profile_file_name_extension()),
                         root);
             }
         } else if (file.getParent().equals(root)) {
@@ -60,7 +60,7 @@ public class DirectoryStructureMatcher implements ProfileMatcher {
             return Optional.empty();
         } else {
             return parseRecursive(getProfileFileFromParentDirectory(file,
-                    profileScanConfig.getProfileFileName() + profileScanConfig.getProfileFileNameExtension()),
+                    profileScanConfig.profile_file_name() + profileScanConfig.profile_file_name_extension()),
                     root);
         }
     }

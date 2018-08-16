@@ -36,7 +36,7 @@ public class CompanionProfileMatcherTest implements FileBasedUnitTest {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
         subject = new CompanionProfileMatcher(config, profileParser);
-        when(config.getProfileFileNameExtension()).thenReturn(".ffmpeg");
+        when(config.profile_file_name_extension()).thenReturn(".ffmpeg");
         when(profileParser.parseFile(any())).thenReturn(Optional.of(profile));
     }
 

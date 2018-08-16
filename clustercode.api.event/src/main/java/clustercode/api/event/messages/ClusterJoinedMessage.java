@@ -9,4 +9,9 @@ public class ClusterJoinedMessage {
 
     private String hostname;
 
+    private boolean arbiterNode;
+
+    public boolean isNotArbiterNode() {
+        return !arbiterNode;
+    }
 }

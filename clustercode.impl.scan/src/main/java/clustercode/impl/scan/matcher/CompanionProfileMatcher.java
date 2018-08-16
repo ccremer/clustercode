@@ -33,7 +33,7 @@ public class CompanionProfileMatcher implements ProfileMatcher {
     public Optional<Profile> apply(Media candidate) {
         log.entry(candidate);
         Path profile = candidate.getSourcePath().resolveSibling(
-                candidate.getSourcePath().getFileName() + scanConfig.getProfileFileNameExtension());
+                candidate.getSourcePath().getFileName() + scanConfig.profile_file_name_extension());
 
         if (Files.exists(profile)) {
             return log.exit(profileParser.parseFile(profile));

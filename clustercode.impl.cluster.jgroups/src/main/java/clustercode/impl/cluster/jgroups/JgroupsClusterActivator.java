@@ -21,22 +21,25 @@ import java.util.concurrent.TimeUnit;
 public class JgroupsClusterActivator implements Activator {
 
     private final JgroupsClusterImpl clusterService;
+    private final JgroupsClusterConfig config;
     private final RxEventBus eventBus;
     private final List<Disposable> handlers = new LinkedList<>();
 
     @Inject
     JgroupsClusterActivator(
             JgroupsClusterImpl clusterService,
+            JgroupsClusterConfig config,
             RxEventBus eventBus
     ) {
         this.clusterService = clusterService;
+        this.config = config;
         this.eventBus = eventBus;
     }
 
     @Inject
     @Override
     public void activate(ActivatorContext context) {
-
+        log.debug("Activating JGroups cluster.");
         CompletableFuture.supplyAsync(() -> {
             clusterService.joinCluster();
             return clusterService.getSize();
@@ -55,6 +58,7 @@ public class JgroupsClusterActivator implements Activator {
         }).thenRun(() -> eventBus.emit(
                 ClusterJoinedMessage.builder()
                                     .hostname(clusterService.getName().orElse(""))
+                                    .arbiterNode(config.arbiter_enabled())
                                     .build())
         );
 
@@ -95,6 +99,7 @@ public class JgroupsClusterActivator implements Activator {
 
     @Override
     public void deactivate(ActivatorContext context) {
+        log.debug("Deactivating JGroups cluster.");
         handlers.forEach(Disposable::dispose);
         clusterService.leaveCluster();
         handlers.clear();

@@ -15,17 +15,17 @@ public interface ProfileScanConfig extends Config {
      */
     @Key("CC_PROFILE_FILE_EXTENSION")
     @DefaultValue(".ffmpeg")
-    String getProfileFileNameExtension();
+    String profile_file_name_extension();
 
     /**
-     * Gets the base name of the profile file. This method could be combined with {@link #getProfileFileNameExtension()}
+     * Gets the base name of the profile file. This method could be combined with {@link #profile_file_name_extension()}
      * to create a file (e.g. "profile.ffmpeg").
      *
      * @return the file name (e.g. "profile"), not null.
      */
     @Key("CC_PROFILE_FILE_NAME")
     @DefaultValue("profile")
-    String getProfileFileName();
+    String profile_file_name();
 
     /**
      * Gets the root directory for profiles.
@@ -34,17 +34,17 @@ public interface ProfileScanConfig extends Config {
      */
     @Key("CC_PROFILE_DIR")
     @DefaultValue("/profiles")
-    Path getProfilesBaseDir();
+    Path profile_base_dir();
 
     /**
      * Gets the base name of the default profile file without extension. This method could be combined with {@link
-     * #getProfileFileNameExtension()}.
+     * #profile_file_name_extension()}.
      *
      * @return the file name (e.g. "default"), not null.
      */
     @Key("CC_PROFILE_FILE_DEFAULT")
     @DefaultValue("default")
-    String getDefaultProfileFileName();
+    String default_profile_file_name();
 
     @Key("CC_PROFILE_STRATEGY")
     @DefaultValue("COMPANION DIRECTORY_STRUCTURE DEFAULT")

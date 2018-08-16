@@ -31,8 +31,8 @@ public class DefaultProfileMatcher implements ProfileMatcher {
     @Override
     public Optional<Profile> apply(Media candidate) {
         log.entry(candidate);
-        Path profileFile = profileScanConfig.getProfilesBaseDir().resolve(
-                profileScanConfig.getDefaultProfileFileName() + profileScanConfig.getProfileFileNameExtension());
+        Path profileFile = profileScanConfig.profile_base_dir().resolve(
+                profileScanConfig.default_profile_file_name() + profileScanConfig.profile_file_name_extension());
         if (Files.exists(profileFile)) {
             return log.exit(parser.parseFile(profileFile));
         } else {

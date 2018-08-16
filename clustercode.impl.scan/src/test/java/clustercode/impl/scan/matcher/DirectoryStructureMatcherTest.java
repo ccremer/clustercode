@@ -36,9 +36,9 @@ public class DirectoryStructureMatcherTest implements FileBasedUnitTest {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
         profileFolder = getPath("profiles");
-        when(config.getProfileFileName()).thenReturn("profile");
-        when(config.getProfileFileNameExtension()).thenReturn(".ffmpeg");
-        when(config.getProfilesBaseDir()).thenReturn(profileFolder);
+        when(config.profile_file_name()).thenReturn("profile");
+        when(config.profile_file_name_extension()).thenReturn(".ffmpeg");
+        when(config.profile_base_dir()).thenReturn(profileFolder);
         subject = new DirectoryStructureMatcher(config, parser);
     }
 
