@@ -20,7 +20,7 @@ public class TaskHookImpl implements TaskHook {
     @Inject
     TaskHookImpl(RxEventBus eventBus) {
         this.eventBus = eventBus;
-        eventBus.register(ClusterTaskCollectionChanged.class)
+        eventBus.listenFor(ClusterTaskCollectionChanged.class)
                 .subscribe(this::onTaskCollectionChanged);
     }
 

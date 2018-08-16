@@ -32,8 +32,8 @@ public class TranscodeActivator implements Activator {
     @Inject
     @Override
     public void activate(ActivatorContext context) {
-        eventBus.register(CancelTranscodeMessage.class, this::onCancelTranscodeTask);
-        eventBus.register(TranscodeTask.class, transcodingService::transcode);
+        eventBus.listenFor(CancelTranscodeMessage.class, this::onCancelTranscodeTask);
+        eventBus.listenFor(TranscodeTask.class, transcodingService::transcode);
 
         handlers.add(transcodingService
                 .onProgressUpdated()

@@ -35,41 +35,41 @@ public class ScanServicesActivator implements Activator {
     public void activate(ActivatorContext context) {
         log.debug("Activating scanning services.");
         handlers.add(eventBus
-                .register(ClusterJoinedMessage.class)
+                .listenFor(ClusterJoinedMessage.class)
                 .filter(ClusterJoinedMessage::isNotArbiterNode)
                 .map(msg -> new ScanMediaCommand())
                 .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus
-                .register(ScanMediaCommand.class)
+                .listenFor(ScanMediaCommand.class)
                 .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus
-                .register(MediaScannedMessage.class)
+                .listenFor(MediaScannedMessage.class)
                 .filter(MediaScannedMessage::listHasEntries)
                 .subscribe(messageHandler::onSuccessfulMediaScan));
         handlers.add(eventBus
-                .register(MediaScannedMessage.class)
+                .listenFor(MediaScannedMessage.class)
                 .filter(MediaScannedMessage::listIsEmpty)
                 .subscribe(messageHandler::onFailedMediaScan));
         handlers.add(eventBus
-                .register(MediaSelectedMessage.class)
+                .listenFor(MediaSelectedMessage.class)
                 .filter(MediaSelectedMessage::isSelected)
                 .map(MediaSelectedMessage::getMedia)
                 .subscribe(messageHandler::onSuccessfulMediaSelection));
         handlers.add(eventBus
-                .register(ProfileSelectedMessage.class)
+                .listenFor(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isSelected)
                 .subscribe(messageHandler::onSuccessfulProfileSelection));
         handlers.add(eventBus
-                .register(MediaSelectedMessage.class)
+                .listenFor(MediaSelectedMessage.class)
                 .filter(MediaSelectedMessage::isNotSelected)
                 .subscribe(messageHandler::onFailedMediaSelection));
         handlers.add(eventBus
-                .register(ProfileSelectedMessage.class)
+                .listenFor(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isNotSelected)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));
         handlers.add(eventBus
-                .register(MediaSelectedMessage.class)
+                .listenFor(MediaSelectedMessage.class)
                 .filter(MediaSelectedMessage::isNotSelected)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));

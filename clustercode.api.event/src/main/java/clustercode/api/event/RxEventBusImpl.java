@@ -13,22 +13,22 @@ public class RxEventBusImpl implements RxEventBus {
     private final Subject<Object> bus = PublishSubject.create().toSerialized();
 
     @Override
-    public <T> Disposable register(Class<T> eventClass,
-                                   Consumer<? super T> onNext) {
-        return register(eventClass)
+    public <T> Disposable listenFor(Class<T> eventClass,
+                                    Consumer<? super T> onNext) {
+        return listenFor(eventClass)
             .subscribe(onNext);
     }
 
     @Override
-    public <T> Disposable register(Class<T> eventClass,
-                                   Consumer<? super T> onNext,
-                                   Consumer<? super Throwable> onError) {
-        return register(eventClass)
+    public <T> Disposable listenFor(Class<T> eventClass,
+                                    Consumer<? super T> onNext,
+                                    Consumer<? super Throwable> onError) {
+        return listenFor(eventClass)
             .subscribe(onNext, onError);
     }
 
     @Override
-    public <T> Observable<T> register(Class<T> eventClass) {
+    public <T> Observable<T> listenFor(Class<T> eventClass) {
         return bus
             .ofType(eventClass);
     }

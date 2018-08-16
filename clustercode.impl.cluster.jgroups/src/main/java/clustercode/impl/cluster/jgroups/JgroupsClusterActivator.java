@@ -63,25 +63,25 @@ public class JgroupsClusterActivator implements Activator {
         );
 
         handlers.add(eventBus
-                .register(CancelTaskApiRequest.class)
+                .listenFor(CancelTaskApiRequest.class)
                 .filter(this::isLocalHost)
                 .doOnNext(log::entry)
                 .subscribe(r -> r.setCancelled(cancelTaskLocally())));
 
         handlers.add(eventBus
-                .register(CancelTaskApiRequest.class)
+                .listenFor(CancelTaskApiRequest.class)
                 .filter(this::isNotLocalHost)
                 .doOnNext(log::entry)
                 .subscribe(r -> r.setCancelled(clusterService.cancelTask(r.getHostname()))));
 
         handlers.add(eventBus
-                .register(TranscodeProgress.class)
+                .listenFor(TranscodeProgress.class)
                 .sample(10, TimeUnit.SECONDS)
                 .map(TranscodeProgress::getPercentage)
                 .subscribe(clusterService::setProgress));
 
         handlers.add(eventBus
-                .register(MediaInClusterMessage.class)
+                .listenFor(MediaInClusterMessage.class)
                 .subscribe(this::onMediaInClusterQuery));
 
         clusterService.getTaskState()

@@ -29,10 +29,10 @@ public class ProgressHookImpl implements ProgressHook {
         this.progressAdapter = progressAdapter;
         this.serviceConfig = serviceConfig;
 
-        eventBus.register(transcodeProgressMap.get(serviceConfig.transcoder_type())
-                                              .getClass(), this::onProgressUpdated);
+        eventBus.listenFor(transcodeProgressMap.get(serviceConfig.transcoder_type())
+                                               .getClass(), this::onProgressUpdated);
 
-        eventBus.register(TranscodeFinishedEvent.class, this::onTranscodingFinished);
+        eventBus.listenFor(TranscodeFinishedEvent.class, this::onTranscodingFinished);
     }
 
     @Synchronized

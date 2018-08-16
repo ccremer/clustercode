@@ -23,7 +23,7 @@ public class CleanupActivator implements Activator {
 
     @Override
     public void activate(ActivatorContext context) {
-        transcodeFinishedHandler = eventBus.register(TranscodeFinishedEvent.class,
+        transcodeFinishedHandler = eventBus.listenFor(TranscodeFinishedEvent.class,
                 cleanupService::performCleanup);
     }
 

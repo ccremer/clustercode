@@ -23,7 +23,7 @@ public class RxEventBusImplTest implements CompletableUnitTest {
     public void shouldNotifySubscriber() {
         String message = "hello";
 
-        subject.register(String.class, value -> {
+        subject.listenFor(String.class, value -> {
             assertThat(value).isEqualTo(message);
             completeOne();
         });
@@ -36,7 +36,7 @@ public class RxEventBusImplTest implements CompletableUnitTest {
     public void shouldThrowException_FromSubscriber() {
         String message = "hello";
 
-        subject.register(String.class, value -> {
+        subject.listenFor(String.class, value -> {
             throw new RuntimeException(message);
         }, ex -> assertThat(ex).hasMessage(message));
         subject.emit(message);
@@ -48,7 +48,7 @@ public class RxEventBusImplTest implements CompletableUnitTest {
         String message = "hello";
         Object ignore = new Object();
 
-        subject.register(String.class, value -> {
+        subject.listenFor(String.class, value -> {
             assertThat(value).isEqualTo(message);
             completeOne();
         });
@@ -64,7 +64,7 @@ public class RxEventBusImplTest implements CompletableUnitTest {
         String message = "hello";
         AtomicInteger called = new AtomicInteger();
 
-        subject.register(String.class, value -> fail("This should not be called."))
+        subject.listenFor(String.class, value -> fail("This should not be called."))
                .dispose();
 
         subject.emit(message);
@@ -76,8 +76,8 @@ public class RxEventBusImplTest implements CompletableUnitTest {
     public void emit_ShouldEmitSynchronously() {
         Message message = new Message();
 
-        subject.register(Message.class, Message::increment);
-        subject.register(Message.class, Message::increment);
+        subject.listenFor(Message.class, Message::increment);
+        subject.listenFor(Message.class, Message::increment);
         subject.emit(message);
 
         assertThat(message.getValue()).isEqualTo(2);
@@ -87,8 +87,8 @@ public class RxEventBusImplTest implements CompletableUnitTest {
     public void emitAsync_ShouldEmitAsynchronously() throws Exception {
         Message message = new Message();
 
-        subject.register(Message.class, Message::increment);
-        subject.register(Message.class, Message::increment);
+        subject.listenFor(Message.class, Message::increment);
+        subject.listenFor(Message.class, Message::increment);
         CompletableFuture<Message> result = subject.emitAsync(message);
 
         assertThat(result.get().getValue()).isEqualTo(2);

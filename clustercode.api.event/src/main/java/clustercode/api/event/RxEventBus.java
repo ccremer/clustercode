@@ -17,11 +17,11 @@ public interface RxEventBus {
      * @param <T>
      * @return
      */
-    <T> Disposable register(Class<T> eventClass, Consumer<? super T> onNext);
+    <T> Disposable listenFor(Class<T> eventClass, Consumer<? super T> onNext);
 
-    <T> Disposable register(Class<T> eventClass, Consumer<? super T> onNext, Consumer<? super Throwable> onError);
+    <T> Disposable listenFor(Class<T> eventClass, Consumer<? super T> onNext, Consumer<? super Throwable> onError);
 
-    <T> Observable<T> register(Class<T> eventClass);
+    <T> Observable<T> listenFor(Class<T> eventClass);
 
     /**
      * Inserts the given object into the underlying event stream. This method blocks until all subscribers have
