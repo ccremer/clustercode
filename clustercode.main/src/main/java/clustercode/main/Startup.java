@@ -17,7 +17,7 @@ public class Startup {
 
     public static void main(String[] args) throws Exception {
 
-        List<String> logFiles = Arrays.asList("log4j2.xml", System.getenv("CC_LOG_CONFIG_FILE"), "log4j2.xml");
+        List<String> logFiles = Arrays.asList("log4j2-debug.xml", System.getenv("CC_LOG_CONFIG_FILE"), "log4j2.xml");
 
         logFiles.forEach(name -> {
             if (name == null) return;
