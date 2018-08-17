@@ -36,7 +36,7 @@ public class Startup {
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
 
-        String configFile = args.length >= 1 ? args[0] : "conf/clustercode.properties";
+        String configFile = args.length >= 1 ? args[0] : "config/clustercode.properties";
         ConfigLoader loader = new ConfigLoader().loadDefaultsFromPropertiesFile(configFile);
 
         new GuiceManager(loader).start();

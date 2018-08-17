@@ -1,5 +1,6 @@
 package clustercode.impl.scan;
 
+import clustercode.api.config.converter.PathConverter;
 import clustercode.impl.scan.matcher.ProfileMatchers;
 import org.aeonbits.owner.Config;
 
@@ -34,6 +35,7 @@ public interface ProfileScanConfig extends Config {
      */
     @Key("CC_PROFILE_DIR")
     @DefaultValue("/profiles")
+    @ConverterClass(PathConverter.class)
     Path profile_base_dir();
 
     /**

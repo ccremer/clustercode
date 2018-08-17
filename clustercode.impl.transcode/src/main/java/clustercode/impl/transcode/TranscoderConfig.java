@@ -34,6 +34,7 @@ public interface TranscoderConfig extends Config {
      */
     @Key("CC_TRANSCODE_TEMP_DIR")
     @DefaultValue("/var/tmp/clustercode")
+    @ConverterClass(PathConverter.class)
     Path temporary_dir();
 
     /**
