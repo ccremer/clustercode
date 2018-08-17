@@ -40,6 +40,10 @@ public class ScanServicesActivator implements Activator {
                 .map(msg -> new ScanMediaCommand())
                 .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus
+                .listenFor(CleanupFinishedMessage.class)
+                .map(msg -> new ScanMediaCommand())
+                .subscribe(messageHandler::onMediaScanRequest));
+        handlers.add(eventBus
                 .listenFor(ScanMediaCommand.class)
                 .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus
