@@ -1,6 +1,6 @@
-package net.chrigel.clustercode.scan.impl;
+package clustercode.impl.scan;
 
-import net.chrigel.clustercode.test.FileBasedUnitTest;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path searchDir = getPath("input");
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
-            .scan();
+                                              .scan();
 
         assertThat(results.isPresent()).isFalse();
     }
@@ -40,7 +40,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         createFile(searchDir.resolve("subdir/ignored.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withDepth(1).withRecursion(false)
-            .scan();
+                                              .scan();
 
         assertThat(results.get()).containsExactly(testMedia);
         assertThat(results.get()).hasSize(1);
@@ -53,7 +53,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path subdir = createDirectory(searchDir.resolve("subdir"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true).withDirectories(true)
-            .scan();
+                                              .scan();
 
         assertThat(results.get()).containsExactly(subdir);
         assertThat(results.get()).hasSize(1);
@@ -66,7 +66,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path testMedia = createFile(searchDir.resolve("subdir/media.mp4"));
 
         Optional<List<Path>> results = subject.searchIn(searchDir).withRecursion(true)
-            .scan();
+                                              .scan();
 
         assertThat(results.get()).containsExactly(testMedia);
         assertThat(results.get()).hasSize(1);
@@ -130,8 +130,8 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         Path dir = createDirectory(getPath("mark"));
 
         subject.whileSkippingExtraFilesWith(ext)
-            .whileSkippingExtraFilesIn(dir)
-            .searchIn(getPath("input", "foo"));
+               .whileSkippingExtraFilesIn(dir)
+               .searchIn(getPath("input", "foo"));
 
         assertThat(subject.hasNotCompanionFile(testFile)).isTrue();
     }
@@ -144,8 +144,8 @@ public class FileScannerImplTest implements FileBasedUnitTest {
         createFile(getPath("mark", "0", "bar.ext" + ext));
 
         subject.whileSkippingExtraFilesWith(ext)
-            .whileSkippingExtraFilesIn(getPath("mark"))
-            .searchIn(inputFolder);
+               .whileSkippingExtraFilesIn(getPath("mark"))
+               .searchIn(inputFolder);
 
         assertThat(subject.hasNotCompanionFile(testFile)).isFalse();
     }
@@ -160,6 +160,6 @@ public class FileScannerImplTest implements FileBasedUnitTest {
     public void emptyStreamOnError_ShouldThrowException_IfIOExceptionOccurred() throws Exception {
         Path testDir = getPath("foo", "bar");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-            subject.searchIn(testDir).stream());
+                subject.searchIn(testDir).stream());
     }
 }

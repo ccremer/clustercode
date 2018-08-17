@@ -1,17 +1,17 @@
-package net.chrigel.clustercode.scan.impl;
+package clustercode.impl.scan;
 
-import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.scan.ProfileMatcher;
-import net.chrigel.clustercode.scan.ProfileMatcherStrategy;
+import clustercode.api.domain.Media;
+import clustercode.api.domain.Profile;
+import clustercode.api.scan.ProfileMatcher;
+import clustercode.impl.scan.matcher.ProfileMatchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,8 +25,6 @@ public class ProfileScanServiceImplTest {
     @Mock
     private Media candidate;
     @Mock
-    private ProfileMatcherStrategy strategy;
-    @Mock
     private ProfileMatcher matcher1;
     @Mock
     private ProfileMatcher matcher2;
@@ -34,14 +32,14 @@ public class ProfileScanServiceImplTest {
     @Spy
     private Profile profile;
 
-    private List<ProfileMatcher> matchers;
+    private Map<ProfileMatchers, ProfileMatcher> matchers = new HashMap<>();
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        subject = new ProfileScanServiceImpl(strategy);
-        matchers = Arrays.asList(matcher1, matcher2);
-        when(strategy.matcherIterator()).thenReturn(matchers.iterator());
+        matchers.put(ProfileMatchers.DIRECTORY_STRUCTURE, matcher1);
+        matchers.put(ProfileMatchers.DEFAULT, matcher2);
+        subject = new ProfileScanServiceImpl(matchers);
     }
 
     @Test

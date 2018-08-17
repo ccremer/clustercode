@@ -1,9 +1,7 @@
-package net.chrigel.clustercode.scan.impl;
+package clustercode.impl.scan;
 
-import net.chrigel.clustercode.cleanup.CleanupSettings;
-import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.scan.MediaScanSettings;
-import net.chrigel.clustercode.test.FileBasedUnitTest;
+import clustercode.api.domain.Media;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -13,7 +11,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -25,9 +22,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
     private Path inputDir;
 
     @Mock
-    private MediaScanSettings scanSettings;
-    @Mock
-    private CleanupSettings cleanupSettings;
+    private MediaScanConfig scanSettings;
 
     private Map<Path, List<Media>> candidates;
 
@@ -35,13 +30,13 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        when(scanSettings.getAllowedExtensions()).thenReturn(Arrays.asList(".mp4"));
-        when(scanSettings.getBaseInputDir()).thenReturn(getPath("input"));
-        when(scanSettings.getSkipExtension()).thenReturn(".done");
-        when(cleanupSettings.getMarkSourceDirectory()).thenReturn(Optional.of(getPath("mark")));
+        when(scanSettings.allowed_extensions()).thenReturn(Arrays.asList(".mp4"));
+        when(scanSettings.base_input_dir()).thenReturn(getPath("input"));
+        when(scanSettings.skip_extension_name()).thenReturn(".done");
+        when(scanSettings.mark_source_dir()).thenReturn(getPath("mark"));
 
-        inputDir = scanSettings.getBaseInputDir();
-        subject = new MediaScanServiceImpl(scanSettings, FileScannerImpl::new, cleanupSettings);
+        inputDir = scanSettings.base_input_dir();
+        subject = new MediaScanServiceImpl(scanSettings, FileScannerImpl::new);
     }
 
     @Test
@@ -54,7 +49,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
         List<Media> result = subject.getListOfMediaFiles(dir1);
 
         assertThat(result).extracting(Media::getSourcePath)
-                .containsExactly(inputDir.relativize(file11), inputDir.relativize(file12));
+                          .containsExactly(inputDir.relativize(file11), inputDir.relativize(file12));
     }
 
     @Test
@@ -77,7 +72,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
         Path file11 = createFile(dir1.resolve("file11.mp4"));
         createFile(dir1.resolve("file12.mp4"));
-        createFile(cleanupSettings.getMarkSourceDirectory().get().resolve("1").resolve("file12.mp4.done"));
+        createFile(scanSettings.base_input_dir().resolve("1").resolve("file12.mp4.done"));
 
         List<Media> result = subject.getListOfMediaFiles(dir1);
 

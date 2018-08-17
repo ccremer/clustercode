@@ -1,9 +1,8 @@
-package net.chrigel.clustercode.cluster.impl;
+package clustercode.impl.cluster.jgroups;
 
-import net.chrigel.clustercode.cluster.ClusterTask;
-import net.chrigel.clustercode.event.RxEventBusImpl;
-import net.chrigel.clustercode.scan.Media;
-import net.chrigel.clustercode.test.FileBasedUnitTest;
+import clustercode.api.cluster.ClusterTask;
+import clustercode.api.domain.Media;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

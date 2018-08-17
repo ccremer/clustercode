@@ -8,4 +8,5 @@ dependencies {
     compile "${dep_jgroups}"
     compile "${dep_rxjava}"
     compile "${dep_inject}"
+    testCompile project(":${proj_test_util}").sourceSets.test.output
 }

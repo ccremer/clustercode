@@ -1,7 +1,7 @@
-package net.chrigel.clustercode.scan.impl;
+package clustercode.impl.scan;
 
-import net.chrigel.clustercode.scan.Profile;
-import net.chrigel.clustercode.test.FileBasedUnitTest;
+import clustercode.api.domain.Profile;
+import clustercode.test.util.FileBasedUnitTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -143,23 +143,23 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     public void separateWhitespace_ShouldReturnTwoElements() throws Exception {
         String testLine = "one two";
         assertThat(subject.separateWhitespace(testLine))
-            .contains("one", atIndex(0))
-            .contains("two", atIndex(1))
-            .hasSize(2);
+                .contains("one", atIndex(0))
+                .contains("two", atIndex(1))
+                .hasSize(2);
     }
 
     @Test
     public void separateWhitespace_ShouldReturnOneElement_IfNoWhitespace() throws Exception {
         String testLine = "one";
         assertThat(subject.separateWhitespace(testLine))
-            .contains("one", atIndex(0))
-            .hasSize(1);
+                .contains("one", atIndex(0))
+                .hasSize(1);
     }
     @Test
     public void separateWhitespace_ShouldReturnOneElement_IfWhitespaceIsQuoted() throws Exception {
         String testLine = "\"one two \"";
         assertThat(subject.separateWhitespace(testLine))
-            .contains("\"one two \"", atIndex(0))
-            .hasSize(1);
+                .contains("one two ", atIndex(0))
+                .hasSize(1);
     }
 }
