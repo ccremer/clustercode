@@ -125,9 +125,10 @@ task fullBuild(type: Jar) {
     with jar
 }
 
-task downloadDependencies(type: Exec) {
+task downloadDependenciesCustom(type: Exec) {
     configurations.testRuntime.files
-    commandLine "echo", "Downloaded all dependencies"
+    //commandLine "echo", "Downloaded all dependencies"
+    commandLine "print", "Downloaded all dependencies"
 }
 
 task windowsZip(type: Zip) {
@@ -139,6 +140,19 @@ task windowsZip(type: Zip) {
     from("src/assembly/clustercode-admin/nginx") { into "clustercode/nginx/conf" }
     from("build/swagger") { into "clustercode/clustercode-admin/static" }
     classifier "win"
+}
+
+task resolveDependencies {
+    doLast {
+        project.rootProject.allprojects.each { subProject ->
+            subProject.buildscript.configurations.each { configuration ->
+                if (configuration.isCanBeResolved()) configuration.resolve()
+            }
+            subProject.configurations.each { configuration ->
+                if (configuration.isCanBeResolved()) configuration.resolve()
+            }
+        }
+    }
 }
 
 task githubRelease()

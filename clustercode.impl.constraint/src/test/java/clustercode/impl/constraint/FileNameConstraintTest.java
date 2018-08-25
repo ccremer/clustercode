@@ -22,7 +22,6 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();
-        subject = new FileNameConstraint(config);
     }
 
     @Test
@@ -30,6 +29,7 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
         when(candidate.getSourcePath()).thenReturn(getPath("input", "movie.mp4"));
         when(config.filename_regex()).thenReturn(".mp4");
 
+        subject = new FileNameConstraint(config);
         assertThat(subject.accept(candidate)).isFalse();
     }
 
@@ -38,6 +38,7 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
         when(candidate.getSourcePath()).thenReturn(getPath("input", "movie.mp4"));
         when(config.filename_regex()).thenReturn("^.*\\.mp4");
 
+        subject = new FileNameConstraint(config);
         assertThat(subject.accept(candidate)).isTrue();
     }
 

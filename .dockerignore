@@ -1,24 +1,21 @@
 .git
-.idea
-.gradle
+.idea/**/*
+.gradle/*
 
-docs
-config
-tmp
+docs/*
+config/*
+tmp/*
 
-build
-dist
+build/*
+dist/*
 out
 
-output
+output/**/*
+input/**/*
 input
-
-gradle
-node_modules
 
 .gitignore
 .editorconfig
-gradlew*
 README.md
 lombok.config
 LICENSE
