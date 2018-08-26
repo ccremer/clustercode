@@ -17,4 +17,4 @@ if [ ! "$(ls -A $profiledir)" ]; then
 fi
 
 echo "Invoking java $JAVA_ARGS -jar clustercode.jar"
-exec supervisord -c supervisord.conf
+exec java ${JAVA_ARGS} -jar clustercode.jar

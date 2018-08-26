@@ -109,8 +109,11 @@ shadowJar {
         exclude(project(":${proj_test_util}"))
     }
     manifest {
-        attributes "Main-Class": "clustercode.main.Startup"
+        attributes "Main-Class": "clustercode.main.Startup", "Implementation-Version": version
     }
+    baseName = "clustercode"
+    classifier = null
+    version = null
 }
 
 task fullBuild(type: Jar) {

@@ -21,21 +21,24 @@ public class Startup {
 
         logFiles.forEach(name -> {
             if (name == null) return;
+            if (log != null) return;
             Path logFile = Paths.get(name);
             if (Files.exists(logFile)) {
                 System.setProperty("log4j.configurationFile", logFile.toAbsolutePath().toString());
+                log = XLoggerFactory.getXLogger(Startup.class);
+                log.info("Used log config: {}", logFile);
             }
         });
         log = XLoggerFactory.getXLogger(Startup.class);
 
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
             // Normally the expectable exceptions should be caught, but to debug any unexpected ones we log them.
-        //    log.error("Application-wide uncaught exception:", throwable);
-        //    System.exit(1);
+            log.error("Application-wide uncaught exception:", throwable);
+            System.exit(1);
         });
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
-
+        log.error("Test");
         String configFile = args.length >= 1 ? args[0] : "config/clustercode.properties";
         ConfigLoader loader = new ConfigLoader().loadDefaultsFromPropertiesFile(configFile);
 

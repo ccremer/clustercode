@@ -5,10 +5,7 @@ import clustercode.api.rest.v1.RestServicesActivator;
 import clustercode.api.rest.v1.dto.ApiError;
 import clustercode.api.rest.v1.dto.Task;
 import clustercode.api.rest.v1.hook.TaskHook;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.*;
 
 import javax.inject.Inject;
 import javax.ws.rs.*;
@@ -18,6 +15,7 @@ import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
+@Api
 @Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/tasks")
 public class TasksApi extends AbstractRestApi {
 
