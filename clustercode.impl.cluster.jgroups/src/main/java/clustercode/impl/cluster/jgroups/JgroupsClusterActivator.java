@@ -5,7 +5,7 @@ import clustercode.api.domain.Activator;
 import clustercode.api.domain.ActivatorContext;
 import clustercode.api.event.RxEventBus;
 import clustercode.api.event.messages.CancelTranscodeMessage;
-import clustercode.api.event.messages.ClusterJoinedMessage;
+import clustercode.api.event.messages.ClusterConnectMessage;
 import clustercode.api.event.messages.MediaInClusterMessage;
 import clustercode.api.transcode.TranscodeProgress;
 import io.reactivex.disposables.Disposable;
@@ -44,22 +44,19 @@ public class JgroupsClusterActivator implements Activator {
             clusterService.joinCluster();
             return clusterService.getSize();
         }).thenAccept(memberCount -> {
-            int timeout = 3000;
-            if (memberCount == 1) {
-                log.info("We are the only member in the cluster. Let's wait {} seconds before we continue " +
-                        "in order to make sure that there wasn't a connection problem and we can join " +
-                        "an existing cluster.", timeout / 1000);
-                try {
-                    Thread.sleep(timeout);
-                } catch (InterruptedException e) {
-                    log.warn(e.getMessage());
+                    try {
+                        int timeout = 3000;
+                        Thread.sleep(timeout);
+                    } catch (InterruptedException ex) {
+                        log.warn("{}", ex);
+                    }
+                    eventBus.emit(
+                            ClusterConnectMessage.builder()
+                                                 .hostname(clusterService.getName().orElse(""))
+                                                 .arbiterNode(config.arbiter_enabled())
+                                                 .clusterSize(memberCount)
+                                                 .build());
                 }
-            }
-        }).thenRun(() -> eventBus.emit(
-                ClusterJoinedMessage.builder()
-                                    .hostname(clusterService.getName().orElse(""))
-                                    .arbiterNode(config.arbiter_enabled())
-                                    .build())
         );
 
         handlers.add(eventBus

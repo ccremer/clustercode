@@ -38,7 +38,6 @@ public class Startup {
         });
 
         log.info("Working dir: {}", new File("").getAbsolutePath());
-        log.error("Test");
         String configFile = args.length >= 1 ? args[0] : "config/clustercode.properties";
         ConfigLoader loader = new ConfigLoader().loadDefaultsFromPropertiesFile(configFile);
 
