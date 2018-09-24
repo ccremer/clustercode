@@ -21,7 +21,7 @@ ext {
     jacksonVersion = "2.9.+"
     dep_owner = "org.aeonbits.owner:owner:1.0.10"
     dep_rxjava = "io.reactivex.rxjava2:rxjava:2.1.+"
-    dep_jgroups = "org.jgroups:jgroups:4.0.+"
+    dep_jgroups = "org.jgroups:jgroups:4.0.13.Final"
     dep_inject = "javax.inject:javax.inject:1"
     dep_guice = "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
 

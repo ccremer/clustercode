@@ -1,0 +1,22 @@
+---
+dist: bionic
+sudo: true
+
+services:
+  - docker
+os:
+  - linux
+
+jobs:
+  include:
+    - stage: docker build
+      script: ./build.sh
+    - stage: builder
+      script:
+
+stages:
+  - name: builder
+    if: tag =~ /^builder-.+$/
+
+  - name: docker build
+    if: branch = master

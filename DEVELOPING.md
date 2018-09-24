@@ -16,3 +16,11 @@ for Docker usage. As such, it is built and distributed on Docker Cloud.
 The Docker build is always executing the unit tests. If you contribute
 code, make sure the unit tests are all green when executing
 `gradle test` before committing.
+
+## Docker
+
+On a Linux box with docker installed, run
+
+    docker run --rm --privileged multiarch/qemu-user-static:register --reset
+
+to enable multiarch builds.

@@ -1,10 +1,10 @@
 version '1.0.0'
 
 dependencies {
-    compile project(":clustercode.api.cluster")
-    compile project(":clustercode.api.event")
-    compile project(":clustercode.api.transcode")
-    compile project(":clustercode.api.domain")
+    compile project(":${proj_api_cluster}")
+    compile project(":${proj_api_event}")
+    compile project(":${proj_api_transcode}")
+    compile project(":${proj_api_domain}")
     compile "${dep_jgroups}"
     compile "${dep_rxjava}"
     compile "${dep_inject}"
