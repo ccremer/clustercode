@@ -1,22 +1,33 @@
 ---
 dist: bionic
 sudo: true
+language: generic
 
 services:
   - docker
 os:
   - linux
 
+stages:
+- name: devel
+  if: branch = master
+- name: release branch
+  if: branch =~ /^[0-9\.]+$/
+
 jobs:
   include:
-    - stage: docker build
-      script: ./build.sh
-    - stage: builder
-      script:
+  - stage: devel
+    script: .travis/build.sh
+    deploy:
+    - provider: script
+      script: .travis/deploy-docker.sh dev
+      on:
+        branch: master
 
-stages:
-  - name: builder
-    if: tag =~ /^builder-.+$/
-
-  - name: docker build
-    if: branch = master
+  - stage: release branch
+    script: .travis/build.sh
+    deploy:
+    - provider: script
+      script: .travis/release-docker.sh $TRAVIS_BRANCH
+      on:
+        all_branches: true
