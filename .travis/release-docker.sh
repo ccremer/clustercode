@@ -29,7 +29,7 @@ for ARCH in amd64 armhf i386 aarch64; do
 done
 
 # Push latest images if eligible
-latest_branch=$(git branch --remote | grep release | sort -r | head -n 1)
+latest_branch=$(git branch --remote | grep "\." | sort -r | head -n 1)
 if [[ "${TRAVIS_BRANCH}" = "${latest_branch#*origin/}" ]]; then
     echo We are on latest release branch, push latest tag
     docker tag "${repo}:amd64" "${repo}:latest"

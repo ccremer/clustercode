@@ -14,7 +14,7 @@ stages:
 - name: devel
   if: (branch = master) AND (type != pull_request)
 - name: release branch
-  if: (branch =~ /^[0-9\.]+$/) (type != pull_request)
+  if: (branch =~ /^[0-9\.]+$/) AND (type != pull_request)
 
 jobs:
   include:
