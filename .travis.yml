@@ -9,18 +9,23 @@ os:
   - linux
 
 stages:
+- name: build pr
+  if: type = pull_request
 - name: devel
-  if: branch = master
+  if: (branch = master) AND (type != pull_request)
 - name: release branch
-  if: branch =~ /^[0-9\.]+$/
+  if: (branch =~ /^[0-9\.]+$/) (type != pull_request)
 
 jobs:
   include:
+  - stage: build pr
+    script: .travis/build.sh
+
   - stage: devel
     script: .travis/build.sh
     deploy:
     - provider: script
-      script: .travis/deploy-docker.sh dev
+      script: .travis/release-docker.sh dev
       on:
         branch: master
 
