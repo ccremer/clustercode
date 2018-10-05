@@ -59,7 +59,7 @@ public interface CleanupConfig extends Config {
     String skip_extension();
 
     @Key("CC_CLEANUP_STRATEGY")
-    @DefaultValue("STRUCTURED_OUTPUT MARK_SOURCE CHOWN")
+    @DefaultValue("STRUCTURED_OUTPUT MARK_SOURCE")
     @Separator(" ")
     List<CleanupProcessors> cleanup_processors();
 }

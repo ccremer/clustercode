@@ -30,14 +30,12 @@ I hate long `docker run` commands with tons of arguments, so here is a docker-co
 ```yaml
 version: "2.2"
 services:
+  # The backend
   clustercode:
-    restart: always
+    restart: unless-stopped
     image: braindoctor/clustercode:latest
     container_name: clustercode
     cpu_shares: 512
-    ports:
-      - "7600:7600/tcp"
-      - "8080"
     volumes:
       - "/path/to/input:/input"
       - "/path/to/output:/output"
@@ -48,6 +46,29 @@ services:
     # overwrite any settings from the default using env vars!
       - CC_CLUSTER_JGROUPS_TCP_INITIAL_HOSTS=your.other.docker.node[7600],another.one[7600]
       - CC_CLUSTER_JGROUPS_EXT_ADDR=192.168.1.100
+
+  # The frontend
+  clustercode-admin:
+    restart: unless-stopped
+    image: braindoctor/clustercode-admin:latest
+    container_name: clustercode-admin
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8080:8080"
+
+  # This is entirely optional!
+  clustercode-netdata:
+    restart: unless-stopped
+    image: braindoctor/clustercode-netdata:latest
+    container_name: clustercode-netdata
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "19999:19999"
+    environment:
+      - N_ENABLE_NODE_D=yes
+      - N_HOSTNAME=clustercode
 ```
 The external IP address is needed so that other nodes will be available to
 contact the local node. Use the physical address of the docker host.

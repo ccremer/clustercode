@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # check if config files exist. If not, copy from default
 echo "Checking if $CC_CONFIG_DIR has contents..."

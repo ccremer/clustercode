@@ -1,21 +1,38 @@
+#______________________________________________________________________________
+#### Base Image, to save build time on local dev machine
 ARG ARCH
-#FROM braindoctor/clustercode:builder-${ARCH} as builder
-FROM braindoctor/clustercode:builder as builder
-
-COPY / .
-
-RUN \
-    sh ./gradlew shadowJar && \
-    tree
-
-ARG ARCH
-FROM multiarch/alpine:${ARCH}
+FROM multiarch/alpine:${ARCH} as base
 
 ENTRYPOINT ["/bin/bash"]
 
 ARG SRC_DIR="/usr/local/src/clustercode"
 ARG TGT_DIR="/opt/clustercode"
-#USER root
+
+WORKDIR ${TGT_DIR}
+
+RUN \
+    apk update && \
+    apk upgrade && \
+    apk add --no-cache openjdk8-jre ffmpeg nano curl bash
+
+COPY docker/docker-entrypoint.sh ${TGT_DIR}/docker-entrypoint.sh
+COPY docker/default ${TGT_DIR}/default/
+
+#______________________________________________________________________________
+#### Builder Image
+FROM braindoctor/clustercode:builder as builder
+
+COPY / .
+
+RUN \
+    sh ./gradlew shadowJar
+
+#______________________________________________________________________________
+#### Runtime Image
+FROM base
+
+ARG SRC_DIR="/usr/local/src/clustercode"
+ARG TGT_DIR="/opt/clustercode"
 
 WORKDIR ${TGT_DIR}
 
@@ -39,11 +56,4 @@ EXPOSE \
 
 CMD ["/opt/clustercode/docker-entrypoint.sh"]
 
-COPY docker/docker-entrypoint.sh ${TGT_DIR}/docker-entrypoint.sh
-RUN \
-    apk update && \
-    apk upgrade && \
-    apk add --no-cache openjdk8-jre ffmpeg nano curl
-
 COPY --from=builder ${SRC_DIR}/build/libs/clustercode.jar ${TGT_DIR}/
-
