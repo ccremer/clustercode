@@ -1,5 +1,5 @@
 version '1.0.0'
 
 dependencies {
-    compile project(":clustercode.impl.util")
+    compile project(":${proj_impl_util}")
 }

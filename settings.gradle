@@ -19,4 +19,5 @@ include 'clustercode.api.scan'
 include 'clustercode.impl.scan'
 include 'clustercode.api.cleanup'
 include 'clustercode.impl.cleanup'
+include 'clustercode.test.integration'
 

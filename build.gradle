@@ -24,6 +24,7 @@ ext {
     dep_jgroups = "org.jgroups:jgroups:4.0.13.Final"
     dep_inject = "javax.inject:javax.inject:1"
     dep_guice = "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
+    dep_testcontainers = "org.testcontainers:testcontainers:1.9.1"
 
     proj_test_util = "clustercode.test.util"
     proj_api_transcode = "clustercode.api.transcode"
@@ -76,6 +77,7 @@ subprojects {
 
     dependencies {
         compileOnly "org.projectlombok:lombok:1.16.+"
+        testCompileOnly "org.projectlombok:lombok:1.16.+"
 
         // logging
         compile "org.slf4j:slf4j-ext:1.7.+"

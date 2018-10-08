@@ -1,0 +1,15 @@
+version '1.4.0'
+
+dependencies {
+    testCompile project(":${proj_test_util}")
+    
+    testCompile project(":${proj_test_util}").sourceSets.test.output
+    testCompile "${dep_testcontainers}"
+
+    testCompile "org.glassfish.jersey.core:jersey-client:2.27"
+    testCompile project(":${proj_api_rest}")
+}
+
+test {
+    //systemProperty 'log4j.configurationFile', './clustercode.test.integration/src/test/resources/log4j2.xml'
+}

@@ -1,6 +1,6 @@
 version '1.0.0'
 
 dependencies {
-    compile project(":clustercode.api.process")
-    compile project(":clustercode.impl.util")
+    compile project(":${proj_api_process}")
+    compile project(":${proj_impl_util}")
 }

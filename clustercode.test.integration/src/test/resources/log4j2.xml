@@ -10,8 +10,5 @@
         <Root level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>
-        <Logger name="clustercode" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-        </Logger>
     </Loggers>
 </Configuration>
