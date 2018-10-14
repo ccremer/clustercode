@@ -18,33 +18,42 @@ abstract class AbstractRestApi {
         } catch (Exception ex) {
             log.catching(ex);
             return Response
-                .status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(ApiError
-                    .builder()
-                    .message(ex.getMessage())
-                    .build())
-                .build();
+                    .status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(ApiError
+                            .builder()
+                            .message(ex.getMessage())
+                            .build())
+                    .build();
         }
     }
 
     final Response clientError(String message) {
         return Response
-            .status(Response.Status.BAD_REQUEST)
-            .entity(ApiError
-                .builder()
-                .message(message)
-                .build())
-            .build();
+                .status(Response.Status.BAD_REQUEST)
+                .entity(ApiError
+                        .builder()
+                        .message(message)
+                        .build())
+                .build();
     }
 
     final Response serverError(Throwable ex) {
         return Response
-            .serverError()
-            .entity(ApiError
-                .builder()
-                .message(ex.getMessage())
-                .build())
-            .build();
+                .serverError()
+                .entity(ApiError
+                        .builder()
+                        .message(ex.getMessage())
+                        .build())
+                .build();
     }
 
+    final Response serverError(String message) {
+        return Response
+                .serverError()
+                .entity(ApiError
+                        .builder()
+                        .message(message)
+                        .build())
+                .build();
+    }
 }

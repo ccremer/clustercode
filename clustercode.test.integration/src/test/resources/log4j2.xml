@@ -10,5 +10,8 @@
         <Root level="info" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>
+        <Logger level="info" additivity="false" name="org.testcontainers.containers.wait">
+            <AppenderRef ref="Console"/>
+        </Logger>
     </Loggers>
 </Configuration>

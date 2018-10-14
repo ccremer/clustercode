@@ -1,10 +1,10 @@
 package clustercode.main.modules;
 
 import clustercode.api.config.ConfigLoader;
+import clustercode.api.domain.Activator;
 import clustercode.api.rest.v1.ProgressReportAdapter;
 import clustercode.api.rest.v1.RestServiceConfig;
 import clustercode.api.rest.v1.RestServicesActivator;
-import clustercode.api.rest.v1.dto.FfmpegProgressReport;
 import clustercode.api.rest.v1.hook.ProgressHook;
 import clustercode.api.rest.v1.hook.ProgressHookImpl;
 import clustercode.api.rest.v1.hook.TaskHook;
@@ -16,8 +16,10 @@ import clustercode.api.transcode.Transcoder;
 import clustercode.api.transcode.output.FfmpegOutput;
 import clustercode.api.transcode.output.HandbrakeOutput;
 import clustercode.impl.util.InvalidConfigurationException;
+import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 import com.owlike.genson.ext.jaxrs.GensonJsonConverter;
 import io.logz.guice.jersey.JerseyModule;
 import io.logz.guice.jersey.configuration.JerseyConfiguration;
@@ -70,7 +72,8 @@ public class RestApiModule extends ConfigurableModule {
                 .build();
 
         install(new JerseyModule(configuration));
-        bind(RestServicesActivator.class).asEagerSingleton();
+        Multibinder<Activator> multibinder = Multibinder.newSetBinder(binder(), Activator.class);
+        multibinder.addBinding().to(RestServicesActivator.class).in(Singleton.class);
     }
 
     private Map<Transcoder, Class<? extends ProgressReportAdapter>> getAdapterMap() {

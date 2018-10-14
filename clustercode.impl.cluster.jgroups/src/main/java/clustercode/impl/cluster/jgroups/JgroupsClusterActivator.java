@@ -36,29 +36,8 @@ public class JgroupsClusterActivator implements Activator {
         this.eventBus = eventBus;
     }
 
-    @Inject
     @Override
-    public void activate(ActivatorContext context) {
-        log.debug("Activating JGroups cluster.");
-        CompletableFuture.supplyAsync(() -> {
-            clusterService.joinCluster();
-            return clusterService.getSize();
-        }).thenAccept(memberCount -> {
-                    try {
-                        int timeout = 3000;
-                        Thread.sleep(timeout);
-                    } catch (InterruptedException ex) {
-                        log.warn("{}", ex);
-                    }
-                    eventBus.emit(
-                            ClusterConnectMessage.builder()
-                                                 .hostname(clusterService.getName().orElse(""))
-                                                 .arbiterNode(config.arbiter_enabled())
-                                                 .clusterSize(memberCount)
-                                                 .build());
-                }
-        );
-
+    public void preActivate(ActivatorContext context) {
         handlers.add(eventBus
                 .listenFor(CancelTaskApiRequest.class)
                 .filter(this::isLocalHost)
@@ -87,6 +66,30 @@ public class JgroupsClusterActivator implements Activator {
 
         clusterService.onCancelTaskRequested()
                       .subscribe(r -> r.setCancelled(cancelTaskLocally()));
+
+    }
+
+    @Override
+    public void activate(ActivatorContext context) {
+        log.debug("Activating JGroups cluster.");
+        CompletableFuture.supplyAsync(() -> {
+            clusterService.joinCluster();
+            return clusterService.getSize();
+        }).thenAccept(memberCount -> {
+                    try {
+                        int timeout = 3000;
+                        Thread.sleep(timeout);
+                    } catch (InterruptedException ex) {
+                        log.warn("{}", ex);
+                    }
+                    eventBus.emit(
+                            ClusterConnectMessage.builder()
+                                                 .hostname(clusterService.getName().orElse(""))
+                                                 .arbiterNode(config.arbiter_enabled())
+                                                 .clusterSize(memberCount)
+                                                 .build());
+                }
+        );
 
     }
 

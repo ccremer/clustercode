@@ -33,9 +33,8 @@ public class TranscodeActivator implements Activator {
         this.messageHandler = messageHandler;
     }
 
-    @Inject
     @Override
-    public void activate(ActivatorContext context) {
+    public void preActivate(ActivatorContext context) {
         log.debug("Activating transcoding services.");
         handlers.add(eventBus
                 .listenFor(CancelTranscodeMessage.class, this::onCancelTranscodeTask));
@@ -55,6 +54,11 @@ public class TranscodeActivator implements Activator {
                 .listenFor(ProfileSelectedMessage.class)
                 .filter(ProfileSelectedMessage::isSelected)
                 .subscribe(messageHandler::onProfileSelected));
+    }
+
+    @Override
+    public void activate(ActivatorContext context) {
+
     }
 
     private void onCancelTranscodeTask(CancelTranscodeMessage event) {

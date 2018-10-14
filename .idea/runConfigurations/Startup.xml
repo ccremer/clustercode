@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Startup" type="Application" factoryName="Application" nameIsGenerated="true">
+    <envs>
+      <env name="CC_MEDIA_INPUT_DIR" value="input" />
+      <env name="CC_MEDIA_OUTPUT_DIR" value="output" />
+      <env name="CC_CLEANUP_MARK_SOURCE_DIR" value="input/done" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="clustercode.main.Startup" />
+    <module name="clustercode.main_main" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="clustercode.main.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -30,9 +30,9 @@ public class ScanServicesActivator implements Activator {
         this.config = config;
     }
 
-    @Inject
     @Override
-    public void activate(ActivatorContext context) {
+    public void preActivate(ActivatorContext context) {
+
         log.debug("Activating scanning services.");
         handlers.add(eventBus
                 .listenFor(ClusterConnectMessage.class)
@@ -79,6 +79,10 @@ public class ScanServicesActivator implements Activator {
                 .map(this::onWaiting)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));
+    }
+
+    @Override
+    public void activate(ActivatorContext context) {
     }
 
     private <T> T onWaiting(T msg) {

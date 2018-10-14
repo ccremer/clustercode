@@ -24,12 +24,15 @@ public class CleanupActivator implements Activator {
         this.messageHandler = messageHandler;
     }
 
-    @Inject
     @Override
-    public void activate(ActivatorContext context) {
+    public void preActivate(ActivatorContext context) {
         log.debug("Activating cleanup services.");
         handlers.add(eventBus
                 .listenFor(TranscodeFinishedEvent.class, messageHandler::onTranscodeFinished));
+    }
+
+    @Override
+    public void activate(ActivatorContext context) {
     }
 
     @Override

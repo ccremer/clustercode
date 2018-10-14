@@ -1,6 +1,8 @@
 package clustercode.main;
 
 import clustercode.api.config.ConfigLoader;
+import clustercode.api.event.RxEventBus;
+import clustercode.api.event.messages.StartupCompletedEvent;
 import clustercode.main.modules.*;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.jar.Manifest;
 
 @XSlf4j
@@ -35,22 +38,36 @@ public class GuiceManager {
     }
 
     void start() {
-        log.info("Booting clustercode {}...", getApplicationVersion());
+        log.info("Booting clustercode {}...", getApplicationVersion().orElse("unknown"));
         injector = Guice.createInjector(modules);
+        ComponentActivator componentActivator = injector.getInstance(ComponentActivator.class);
+        log.info("Preparing components...");
+        componentActivator.preActivateServices();
+        log.info("Activating components...");
+        componentActivator.activateServices();
+        log.info("Bootup complete.");
+        injector.getInstance(RxEventBus.class)
+                .emit(StartupCompletedEvent
+                        .builder()
+                        .mainVersion(getApplicationVersion().orElse("unknown"))
+                        .build());
     }
 
     public <T> T getInstance(Class<T> clazz) {
         return injector.getInstance(clazz);
     }
 
-    private static String getApplicationVersion() {
+    public static Optional<String> getApplicationVersion() {
         InputStream stream = ClassLoader.getSystemResourceAsStream("META-INF/MANIFEST.MF");
         try {
-            return new Manifest(stream).getMainAttributes().getValue("Implementation-Version");
+            return Optional.ofNullable(
+                    new Manifest(stream)
+                            .getMainAttributes()
+                            .getValue("Implementation-VersionInfo"));
         } catch (IOException | NullPointerException e) {
             log.catching(e);
         }
-        return "unknown-version";
+        return Optional.empty();
     }
 
 

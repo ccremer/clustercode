@@ -1,16 +1,18 @@
 package clustercode.main.modules;
 
 import clustercode.api.config.ConfigLoader;
+import clustercode.api.domain.Activator;
 import clustercode.api.transcode.Transcoder;
-import clustercode.impl.transcode.TranscoderConfig;
 import clustercode.api.transcode.TranscodingService;
 import clustercode.impl.transcode.TranscodeActivator;
+import clustercode.impl.transcode.TranscoderConfig;
 import clustercode.impl.transcode.TranscodingServiceImpl;
 import clustercode.impl.util.InvalidConfigurationException;
 import com.google.inject.Module;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.Multibinder;
 import lombok.var;
 
-import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,11 +24,12 @@ public class TranscodeModule extends ConfigurableModule {
 
     @Override
     protected void configure() {
-        TranscoderConfig config = loader.getConfig(TranscoderConfig.class);
+        var config = loader.getConfig(TranscoderConfig.class);
         bind(TranscoderConfig.class).toInstance(config);
 
         bind(TranscodingService.class).to(TranscodingServiceImpl.class).in(Singleton.class);
-        bind(TranscodeActivator.class).asEagerSingleton();
+        Multibinder<Activator> multibinder = Multibinder.newSetBinder(binder(), Activator.class);
+        multibinder.addBinding().to(TranscodeActivator.class).in(Singleton.class);
 
         try {
             var map = getTranscoderMap();

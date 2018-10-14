@@ -5,6 +5,8 @@ import org.aeonbits.owner.Config;
 
 public interface RestServiceConfig extends Config {
 
+    String REST_API_CONTEXT_PATH = "/v1";
+
     /**
      * Gets the type of transcoder.
      *

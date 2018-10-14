@@ -1,7 +1,7 @@
 package clustercode.api.rest.v1.rest;
 
 import clustercode.api.cluster.ClusterTask;
-import clustercode.api.rest.v1.RestServicesActivator;
+import clustercode.api.rest.v1.RestServiceConfig;
 import clustercode.api.rest.v1.dto.ApiError;
 import clustercode.api.rest.v1.dto.Task;
 import clustercode.api.rest.v1.hook.TaskHook;
@@ -16,7 +16,7 @@ import java.text.DecimalFormat;
 import java.util.stream.Collectors;
 
 @Api
-@Path(RestServicesActivator.REST_API_CONTEXT_PATH + "/tasks")
+@Path(RestServiceConfig.REST_API_CONTEXT_PATH + "/tasks")
 public class TasksApi extends AbstractRestApi {
 
     private static final DecimalFormat decimalFormat = new DecimalFormat("#.##");

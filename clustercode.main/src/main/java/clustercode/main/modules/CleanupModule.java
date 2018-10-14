@@ -3,12 +3,15 @@ package clustercode.main.modules;
 import clustercode.api.cleanup.CleanupProcessor;
 import clustercode.api.cleanup.CleanupService;
 import clustercode.api.config.ConfigLoader;
+import clustercode.api.domain.Activator;
 import clustercode.impl.cleanup.CleanupActivator;
 import clustercode.impl.cleanup.CleanupConfig;
 import clustercode.impl.cleanup.CleanupServiceImpl;
 import clustercode.impl.cleanup.processor.*;
 import clustercode.impl.util.di.ModuleHelper;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +47,8 @@ public class CleanupModule extends ConfigurableModule {
         Map<CleanupProcessors, Class<? extends CleanupProcessor>> assignments = createClassAssignments();
         config.cleanup_processors().forEach(entry -> mapBinder.addBinding(entry).to(assignments.get(entry)));
 
-        bind(CleanupActivator.class).asEagerSingleton();
+        Multibinder<Activator> multibinder = Multibinder.newSetBinder(binder(), Activator.class);
+        multibinder.addBinding().to(CleanupActivator.class).in(Singleton.class);
     }
 
     private Map<CleanupProcessors, Class<? extends CleanupProcessor>> createClassAssignments() {

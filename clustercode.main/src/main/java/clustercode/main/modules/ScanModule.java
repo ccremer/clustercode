@@ -1,12 +1,15 @@
 package clustercode.main.modules;
 
 import clustercode.api.config.ConfigLoader;
+import clustercode.api.domain.Activator;
 import clustercode.api.scan.*;
 import clustercode.impl.scan.*;
 import clustercode.impl.scan.matcher.*;
 import clustercode.impl.util.InvalidConfigurationException;
 import clustercode.impl.util.di.ModuleHelper;
+import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
+import com.google.inject.multibindings.Multibinder;
 import lombok.var;
 
 import java.util.HashMap;
@@ -23,7 +26,7 @@ public class ScanModule extends ConfigurableModule {
 
     @Override
     protected void configure() {
-        MediaScanConfig mediaScanConfig = loader.getConfig(MediaScanConfig.class);
+        var mediaScanConfig = loader.getConfig(MediaScanConfig.class);
         checkInterval(mediaScanConfig.media_scan_interval());
 
         ProfileScanConfig profileScanConfig = loader.getConfig(ProfileScanConfig.class);
@@ -51,7 +54,8 @@ public class ScanModule extends ConfigurableModule {
         var map = getMatcherMap();
         profileScanConfig.profile_matchers().forEach(matcher -> mapBinder.addBinding(matcher).to(map.get(matcher)));
 
-        bind(ScanServicesActivator.class).asEagerSingleton();
+        var multibinder = Multibinder.newSetBinder(binder(), Activator.class);
+        multibinder.addBinding().to(ScanServicesActivator.class).in(Singleton.class);
     }
 
     private void checkInterval(long scanInterval) {

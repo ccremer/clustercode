@@ -7,7 +7,7 @@ dependencies {
     testCompile "${dep_testcontainers}"
 
     testCompile "org.glassfish.jersey.core:jersey-client:2.27"
-    testCompile project(":${proj_api_rest}")
+    testCompile project(":${proj_main}")
 }
 
 test {
