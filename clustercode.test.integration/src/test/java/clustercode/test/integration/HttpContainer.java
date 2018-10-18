@@ -19,7 +19,7 @@ public class HttpContainer extends GenericContainer {
         this.port = port;
     }
 
-    public <T> T get(String uri, Class<T> entity) {
+    public <T> T httpGet(String uri, Class<T> entity) {
         String url = buildUrl(uri);
         logger().debug("Perform http request for {}", url);
         return getClient().target(url)
@@ -27,7 +27,7 @@ public class HttpContainer extends GenericContainer {
                           .get(entity);
     }
 
-    public Response get(String uri) {
+    public Response httpGet(String uri) {
         String url = buildUrl(uri);
         logger().debug("Perform http request for {}", url);
         return getClient().target(url)
@@ -35,7 +35,7 @@ public class HttpContainer extends GenericContainer {
                           .get();
     }
 
-    public <T> T post(String uri, Class<T> responseType, Entity<?> entity) {
+    public <T> T httpPost(String uri, Class<T> responseType, Entity<?> entity) {
         String url = buildUrl(uri);
         logger().debug("Perform http request for {}", url);
         return getClient().target(url)
@@ -43,7 +43,7 @@ public class HttpContainer extends GenericContainer {
                           .post(entity, responseType);
     }
 
-    public Response post(String uri, Entity<?> entity) {
+    public Response httpPost(String uri, Entity<?> entity) {
         String url = buildUrl(uri);
         logger().debug("Perform http request for {}", url);
         return getClient().target(url)

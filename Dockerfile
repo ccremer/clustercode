@@ -43,6 +43,10 @@ ENV \
     JAVA_ARGS="" \
     CC_CLUSTER_JGROUPS_BIND_PORT=7600
 
+RUN \
+    # Let's create the directories first so we can apply the permissions:
+    mkdir -m 664 /input /output /profiles /var/tmp/clustercode ${CC_CONFIG_DIR}
+
 VOLUME \
     /input \
     /output \

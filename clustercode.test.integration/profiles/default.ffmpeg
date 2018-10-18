@@ -1,0 +1,23 @@
+# This is a ffmpeg template file which encodes in x264 in High Quality.
+# Note: Lines starting with # are comments. Comments within a line are NOT supported.
+
+-hide_banner
+# Force yes when overwriting files:
+-y
+
+# This option is necessary! FFMPEG has input and output options so the order of the option matters.
+# Therefore you have to specify the input in this file.
+-i ${INPUT}
+
+# copy metadata
+#-map_metadata 0
+
+# use x264 encoder
+-c:v libx264
+-preset medium
+# set parameter for libx264
+-crf 24
+
+${OUTPUT}
+# Specify format (clustercode specific)
+%{FORMAT=.mkv}

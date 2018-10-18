@@ -2,7 +2,7 @@ version '1.4.0'
 
 dependencies {
     testCompile project(":${proj_test_util}")
-    
+
     testCompile project(":${proj_test_util}").sourceSets.test.output
     testCompile "${dep_testcontainers}"
 
@@ -12,4 +12,20 @@ dependencies {
 
 test {
     //systemProperty 'log4j.configurationFile', './clustercode.test.integration/src/test/resources/log4j2.xml'
+}
+
+def createBlankVideo(int seconds) {
+    exec {
+        executable "ffmpeg"
+        args "-hide_banner", "-y", "-t", seconds, "-f", "rawvideo",
+                "-pix_fmt", "rgb24", "-r", "25", "-s", "640x480", "-i", "/dev/zero",
+                "${projectDir}/input/0/" + seconds + "s_blank.mp4"
+    }
+}
+
+task doIt {
+    doLast {
+        createBlankVideo(60)
+        createBlankVideo(120)
+    }
 }

@@ -21,6 +21,13 @@ code, make sure the unit tests are all green when executing
 
 On a Linux box with docker installed, run
 
-    docker run --rm --privileged multiarch/qemu-user-static:register --reset
+    export DOCKER_REPOSITORY=braindoctor/clustercode; ./.travis/build.sh
 
-to enable multiarch builds.
+which builds the builder image (a cache image that has all the Java
+dependencies installed) and the multi-arch runtime images.
+
+After you've built the builder image, you can just run
+
+    docker build --build-arg ARCH="amd64-edge" --tag "${DOCKER_REPOSITORY}" .
+
+to re-build the image locally for amd64.

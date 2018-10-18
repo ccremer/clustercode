@@ -32,7 +32,6 @@ public class ScanServicesActivator implements Activator {
 
     @Override
     public void preActivate(ActivatorContext context) {
-
         log.debug("Activating scanning services.");
         handlers.add(eventBus
                 .listenFor(ClusterConnectMessage.class)

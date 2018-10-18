@@ -30,6 +30,5 @@ public class TranscodingMessageHandler {
                 .media(msg.getMedia())
                 .build();
         transcodingService.transcode(task);
-        log.debug("Handler finished");
     }
 }

@@ -1,9 +1,13 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Startup" type="Application" factoryName="Application" nameIsGenerated="true">
     <envs>
-      <env name="CC_MEDIA_INPUT_DIR" value="input" />
-      <env name="CC_MEDIA_OUTPUT_DIR" value="output" />
-      <env name="CC_CLEANUP_MARK_SOURCE_DIR" value="input/done" />
+      <env name="CC_MEDIA_INPUT_DIR" value="clustercode.test.integration/input" />
+      <env name="CC_MEDIA_OUTPUT_DIR" value="clustercode.test.integration/output" />
+      <env name="CC_CLEANUP_MARK_SOURCE_DIR" value="clustercode.test.integration/input/done" />
+      <env name="CC_CONSTRAINTS_ACTIVE" value="NONE" />
+      <env name="CC_MEDIA_SCAN_INTERVAL" value="1" />
+      <env name="CC_CLUSTER_JGROUPS_CONFIG" value="docker/default/config/tcp.xml" />
+      <env name="CC_PROFILE_DIR" value="clustercode.test.integration/profiles" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="clustercode.main.Startup" />
     <module name="clustercode.main_main" />
