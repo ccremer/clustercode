@@ -1,23 +1,25 @@
 package clustercode.api.transcode.output;
 
-import clustercode.api.transcode.TranscodeProgress;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import clustercode.api.transcode.TranscodeReport;
+import lombok.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
-public class HandbrakeOutput implements TranscodeProgress {
+@EqualsAndHashCode
+@ToString
+public class HandbrakeOutput implements TranscodeReport {
 
+    @Getter
     private double percentage;
 
+    @Getter
     private double fps;
 
+    @Getter
     private double averageFps;
 
+    @Getter
     private String eta;
 
 }

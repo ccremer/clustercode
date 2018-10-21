@@ -5,7 +5,7 @@ import clustercode.api.event.messages.TranscodeFinishedEvent;
 import clustercode.api.rest.v1.ProgressReport;
 import clustercode.api.rest.v1.ProgressReportAdapter;
 import clustercode.api.rest.v1.RestServiceConfig;
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 import clustercode.api.transcode.Transcoder;
 import com.google.inject.Inject;
 import lombok.Synchronized;
@@ -19,13 +19,13 @@ public class ProgressHookImpl implements ProgressHook {
     private final ProgressReportAdapter progressAdapter;
 
     private final RestServiceConfig serviceConfig;
-    private TranscodeProgress latestProgressOutput;
+    private TranscodeReport latestProgressOutput;
 
     @Inject
     ProgressHookImpl(RxEventBus eventBus,
                      ProgressReportAdapter progressAdapter,
                      RestServiceConfig serviceConfig,
-                     Map<Transcoder, TranscodeProgress> transcodeProgressMap) {
+                     Map<Transcoder, TranscodeReport> transcodeProgressMap) {
         this.progressAdapter = progressAdapter;
         this.serviceConfig = serviceConfig;
 
@@ -36,7 +36,7 @@ public class ProgressHookImpl implements ProgressHook {
     }
 
     @Synchronized
-    private void onProgressUpdated(TranscodeProgress output) {
+    private void onProgressUpdated(TranscodeReport output) {
         log.entry(output);
         this.latestProgressOutput = output;
     }

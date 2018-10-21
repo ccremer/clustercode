@@ -5,7 +5,7 @@ import clustercode.api.domain.Profile;
 import clustercode.api.process.ExternalProcessService;
 import clustercode.api.process.ProcessConfiguration;
 import clustercode.api.process.RunningExternalProcess;
-import clustercode.api.transcode.OutputParser;
+import clustercode.api.transcode.ProgressParser;
 import clustercode.api.domain.TranscodeTask;
 import clustercode.impl.util.UnsafeCastUtil;
 import clustercode.test.util.CompletableUnitTest;
@@ -38,7 +38,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
     @Mock
     private TranscoderConfig transcoderConfig;
     @Mock
-    private OutputParser parser;
+    private ProgressParser parser;
 
     @Spy
     private Media media;

@@ -1,33 +1,39 @@
 package clustercode.api.transcode.output;
 
-import clustercode.api.transcode.TranscodeProgress;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import clustercode.api.transcode.TranscodeReport;
+import lombok.*;
 
 import java.time.Duration;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
-public class FfmpegOutput implements TranscodeProgress {
+@EqualsAndHashCode
+@ToString
+public class FfmpegOutput implements TranscodeReport {
 
+    @Getter
     private double percentage;
 
+    @Getter
     private double bitrate;
 
+    @Getter
     private double fps;
 
+    @Getter
     private double fileSize;
 
+    @Getter
     private long frame;
 
+    @Getter
     private double speed;
 
+    @Getter
     private Duration time;
 
+    @Getter
     private Duration duration;
 
 }

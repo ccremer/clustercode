@@ -1,11 +1,11 @@
 package clustercode.api.rest.v1;
 
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 
 import java.util.function.Function;
 
 public interface ProgressReportAdapter
-    extends Function<TranscodeProgress, ProgressReport> {
+    extends Function<TranscodeReport, ProgressReport> {
 
     ProgressReport getReportForInactiveEncoding();
 

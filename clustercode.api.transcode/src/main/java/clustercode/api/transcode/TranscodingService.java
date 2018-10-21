@@ -26,7 +26,7 @@ public interface TranscodingService {
 
     Flowable<TranscodeFinishedEvent> onTranscodeFinished();
 
-    Observable<TranscodeProgress> onProgressUpdated();
+    Observable<TranscodeReport> onProgressUpdated();
 
     Transcoder getTranscoder();
 }

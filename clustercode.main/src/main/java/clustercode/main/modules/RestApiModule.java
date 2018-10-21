@@ -11,7 +11,7 @@ import clustercode.api.rest.v1.hook.TaskHook;
 import clustercode.api.rest.v1.hook.TaskHookImpl;
 import clustercode.api.rest.v1.impl.FfmpegProgressAdapter;
 import clustercode.api.rest.v1.impl.HandbrakeProgressAdapter;
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 import clustercode.api.transcode.Transcoder;
 import clustercode.api.transcode.output.FfmpegOutput;
 import clustercode.api.transcode.output.HandbrakeOutput;
@@ -49,8 +49,8 @@ public class RestApiModule extends ConfigurableModule {
             }).to(adapterMap.get(config.transcoder_type()));
 
             var progressMap = getProgressMap();
-            MapBinder<Transcoder, TranscodeProgress> progressMapBinder = MapBinder.newMapBinder(binder(),
-                    Transcoder.class, TranscodeProgress.class);
+            MapBinder<Transcoder, TranscodeReport> progressMapBinder = MapBinder.newMapBinder(binder(),
+                    Transcoder.class, TranscodeReport.class);
             progressMapBinder.addBinding(config.transcoder_type()).to(progressMap.get(config.transcoder_type()));
         } catch (UnsupportedOperationException ex) {
             throw new InvalidConfigurationException(
@@ -83,8 +83,8 @@ public class RestApiModule extends ConfigurableModule {
         return map;
     }
 
-    private Map<Transcoder, Class<? extends TranscodeProgress>> getProgressMap() {
-        Map<Transcoder, Class<? extends TranscodeProgress>> map = new HashMap<>();
+    private Map<Transcoder, Class<? extends TranscodeReport>> getProgressMap() {
+        Map<Transcoder, Class<? extends TranscodeReport>> map = new HashMap<>();
         map.put(Transcoder.FFMPEG, FfmpegOutput.class);
         map.put(Transcoder.HANDBRAKE, HandbrakeOutput.class);
         return map;

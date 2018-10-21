@@ -2,7 +2,7 @@ package clustercode.api.rest.v1.impl;
 
 import clustercode.api.rest.v1.ProgressReportAdapter;
 import clustercode.api.rest.v1.dto.HandbrakeProgressReport;
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 import clustercode.api.transcode.output.HandbrakeOutput;
 import lombok.val;
 
@@ -21,7 +21,7 @@ public class HandbrakeProgressAdapter
     }
 
     @Override
-    public HandbrakeProgressReport apply(TranscodeProgress output) {
+    public HandbrakeProgressReport apply(TranscodeReport output) {
         val out = (HandbrakeOutput) output;
         return HandbrakeProgressReport
             .builder()

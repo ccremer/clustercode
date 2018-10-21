@@ -5,13 +5,13 @@ public enum Transcoder {
     FFMPEG,
     HANDBRAKE;
 
-    private Class<? extends TranscodeProgress> outputType;
+    private Class<? extends TranscodeReport> outputType;
 
-    public Class<? extends TranscodeProgress> getOutputType() {
+    public Class<? extends TranscodeReport> getOutputType() {
         return outputType;
     }
 
-    public void setOutputType(Class<? extends TranscodeProgress> type) {
+    public void setOutputType(Class<? extends TranscodeReport> type) {
         this.outputType = type;
     }
 }

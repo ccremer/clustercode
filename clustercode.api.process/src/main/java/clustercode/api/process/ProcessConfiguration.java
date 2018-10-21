@@ -1,9 +1,9 @@
 package clustercode.api.process;
 
-import io.reactivex.Observable;
 import lombok.*;
 
 import java.nio.file.Path;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -20,7 +20,9 @@ public class ProcessConfiguration {
     @Singular
     private List<String> arguments;
 
-    private Consumer<Observable<String>> errorObserver;
+    @Singular
+    private List<Consumer<String>> errorObservers = new LinkedList<>();
 
-    private Consumer<Observable<String>> stdoutObserver;
+    @Singular
+    private List<Consumer<String>> stdoutObservers = new LinkedList<>();
 }

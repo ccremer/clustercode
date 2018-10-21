@@ -7,7 +7,7 @@ import clustercode.api.event.RxEventBus;
 import clustercode.api.event.messages.CancelTranscodeMessage;
 import clustercode.api.event.messages.ClusterConnectMessage;
 import clustercode.api.event.messages.MediaInClusterMessage;
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.XSlf4j;
 
@@ -51,9 +51,9 @@ public class JgroupsClusterActivator implements Activator {
                 .subscribe(r -> r.setCancelled(clusterService.cancelTask(r.getHostname()))));
 
         handlers.add(eventBus
-                .listenFor(TranscodeProgress.class)
+                .listenFor(TranscodeReport.class)
                 .sample(10, TimeUnit.SECONDS)
-                .map(TranscodeProgress::getPercentage)
+                .map(TranscodeReport::getPercentage)
                 .subscribe(clusterService::setProgress));
 
         handlers.add(eventBus

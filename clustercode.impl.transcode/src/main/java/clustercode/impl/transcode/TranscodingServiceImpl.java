@@ -1,5 +1,6 @@
 package clustercode.impl.transcode;
 
+import clustercode.api.domain.OutputFrameTuple;
 import clustercode.api.domain.Profile;
 import clustercode.api.domain.TranscodeTask;
 import clustercode.api.event.messages.TranscodeBeginEvent;
@@ -7,8 +8,8 @@ import clustercode.api.event.messages.TranscodeFinishedEvent;
 import clustercode.api.process.ExternalProcessService;
 import clustercode.api.process.ProcessConfiguration;
 import clustercode.api.process.RunningExternalProcess;
-import clustercode.api.transcode.OutputParser;
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.ProgressParser;
+import clustercode.api.transcode.TranscodeReport;
 import clustercode.api.transcode.Transcoder;
 import clustercode.api.transcode.TranscodingService;
 import clustercode.impl.util.FileUtil;
@@ -20,11 +21,12 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
-import lombok.val;
+import lombok.var;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -35,7 +37,7 @@ public class TranscodingServiceImpl implements TranscodingService {
     public static final String INPUT_PLACEHOLDER = "${INPUT}";
 
     private final TranscoderConfig transcoderConfig;
-    private final Provider<OutputParser> parserProvider;
+    private final Provider<ProgressParser> parserProvider;
     private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
 
@@ -45,7 +47,7 @@ public class TranscodingServiceImpl implements TranscodingService {
     @Inject
     TranscodingServiceImpl(ExternalProcessService externalProcessService,
                            TranscoderConfig transcoderConfig,
-                           Provider<OutputParser> parserProvider) {
+                           Provider<ProgressParser> parserProvider) {
         this.externalProcessService = externalProcessService;
         this.transcoderConfig = transcoderConfig;
 
@@ -68,46 +70,68 @@ public class TranscodingServiceImpl implements TranscodingService {
     private void doTranscode(Path tempFile, TranscodeTask task) {
         if (process != null) return;
 
-        val source = task.getMedia().getSourcePath();
+        var source = task.getMedia().getSourcePath();
         log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
 
-        ProcessConfiguration config = ProcessConfiguration
-            .builder()
-            .executable(transcoderConfig.transcoder_executable())
-            .arguments(task.getProfile()
-                           .getArguments()
-                           .stream()
-                           .map(s -> replaceInput(s, source))
-                           .map(s -> replaceOutput(s, tempFile))
-                           .collect(Collectors.toList()))
-            .stdoutObserver(observable -> observable
-                .observeOn(Schedulers.computation())
-                .sample(1, TimeUnit.SECONDS)
-                .subscribe(parserProvider.get()::parse))
-            .build();
+        TranscodeProgressImpl transcodeProgress = new TranscodeProgressImpl(task.getMedia(), task.getProfile());
+        transcodeProgress.withStdOutListener(System.out::println)
+                         .withStdErrListener(System.err::println);
+
+        var relayer = PublishSubject.create().toSerialized();
+
+
+        var parser = parserProvider.get();
+
+        parser.onProgressParsed().forEach(publisher::onNext);
+
+        relayer.ofType(OutputFrameTuple.class)
+               .filter(parser::matchesProgressLine)
+               .sample(1, TimeUnit.SECONDS)
+               .subscribe(transcodeProgress::addOutputFrame);
+
+        relayer.ofType(OutputFrameTuple.class)
+               .filter(parser::doesNotMatchProgressLine)
+               .subscribe(transcodeProgress::addOutputFrame);
+
+        var config = ProcessConfiguration
+                .builder()
+                .executable(transcoderConfig.transcoder_executable())
+                .arguments(buildArguments(source, tempFile, task))
+                .stdoutObserver(line -> relayer.onNext(OutputFrameTuple.fromStdOut(line)))
+                .errorObserver(line -> relayer.onNext(OutputFrameTuple.fromStdErr(line)))
+                .build();
 
         externalProcessService
-            .start(config, this::setHandle)
-            .subscribe(
-                exitCode -> onSuccess(exitCode, tempFile, task),
-                this::onError);
+                .start(config, this::setHandle)
+                .subscribe(
+                        exitCode -> onSuccess(exitCode, tempFile, task),
+                        this::onError);
 
         publisher.onNext(TranscodeBeginEvent
-            .builder()
-            .task(task)
-            .build());
+                .builder()
+                .task(task)
+                .build());
+    }
+
+    private List<String> buildArguments(Path source, Path target, TranscodeTask task) {
+        return task.getProfile()
+                   .getArguments()
+                   .stream()
+                   .map(s -> replaceInput(s, source))
+                   .map(s -> replaceOutput(s, target))
+                   .collect(Collectors.toList());
     }
 
     private void onSuccess(Integer exitCode, Path tempFile, TranscodeTask task) {
         log.entry(exitCode, tempFile, task);
-        val event = TranscodeFinishedEvent
-            .builder()
-            .temporaryPath(tempFile)
-            .media(task.getMedia())
-            .profile(task.getProfile())
-            .successful(exitCode == 0)
-            .cancelled(cancelRequested)
-            .build();
+        var event = TranscodeFinishedEvent
+                .builder()
+                .temporaryPath(tempFile)
+                .media(task.getMedia())
+                .profile(task.getProfile())
+                .successful(exitCode == 0)
+                .cancelled(cancelRequested)
+                .build();
 
         setHandle(null);
         cancelRequested = false;
@@ -122,10 +146,10 @@ public class TranscodingServiceImpl implements TranscodingService {
 
     private void onError(Throwable ex) {
         log.error(ex.toString());
-        val event = TranscodeFinishedEvent
-            .builder()
-            .successful(false)
-            .build();
+        var event = TranscodeFinishedEvent
+                .builder()
+                .successful(false)
+                .build();
         setHandle(null);
         cancelRequested = false;
         publisher.onNext(event);
@@ -138,12 +162,12 @@ public class TranscodingServiceImpl implements TranscodingService {
 
     private void prepareTranscode(TranscodeTask task) {
         log.entry(task);
-        val tempFile = transcoderConfig
-            .temporary_dir()
-            .resolve(FileUtil.getFileNameWithoutExtension(
-                task.getMedia().getSourcePath()) + getPropertyOrDefault(
-                task.getProfile(), "FORMAT", transcoderConfig.default_video_extension())
-            );
+        var tempFile = transcoderConfig
+                .temporary_dir()
+                .resolve(FileUtil.getFileNameWithoutExtension(
+                        task.getMedia().getSourcePath()) + getPropertyOrDefault(
+                        task.getProfile(), "FORMAT", transcoderConfig.default_video_extension())
+                );
 
         doTranscode(tempFile, task);
     }
@@ -165,26 +189,26 @@ public class TranscodingServiceImpl implements TranscodingService {
     @Override
     public Flowable<TranscodeBeginEvent> onTranscodeBegin() {
         return publisher
-            .subscribeOn(Schedulers.computation())
-            .observeOn(Schedulers.computation())
-            .ofType(TranscodeBeginEvent.class)
-            .toFlowable(BackpressureStrategy.BUFFER);
+                .subscribeOn(Schedulers.computation())
+                .observeOn(Schedulers.computation())
+                .ofType(TranscodeBeginEvent.class)
+                .toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
     public Flowable<TranscodeFinishedEvent> onTranscodeFinished() {
         return publisher
-            .subscribeOn(Schedulers.computation())
-            .observeOn(Schedulers.computation())
-            .ofType(TranscodeFinishedEvent.class)
-            .toFlowable(BackpressureStrategy.BUFFER);
+                .subscribeOn(Schedulers.computation())
+                .observeOn(Schedulers.computation())
+                .ofType(TranscodeFinishedEvent.class)
+                .toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
-    public Observable<TranscodeProgress> onProgressUpdated() {
+    public Observable<TranscodeReport> onProgressUpdated() {
         return parserProvider
                 .get()
-            .onProgressParsed();
+                .onProgressParsed();
     }
 
     @Override

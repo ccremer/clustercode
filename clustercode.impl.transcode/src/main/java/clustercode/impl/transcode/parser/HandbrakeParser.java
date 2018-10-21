@@ -1,6 +1,6 @@
 package clustercode.impl.transcode.parser;
 
-import clustercode.api.transcode.TranscodeProgress;
+import clustercode.api.transcode.TranscodeReport;
 import clustercode.api.transcode.output.HandbrakeOutput;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 @XSlf4j
 public class HandbrakeParser
-    extends AbstractOutputParser {
+    extends AbstractProgressParser {
 
     /*
     Encoding:.*,\s*([0-9]+\.?[0-9]*)\s*%?(?:\s*\(([0-9]*\.?[0-9]*)?\s*fps,\s*avg\s*([0-9]+\.?[0-9]*)\s*fps,\s*ETA\s*
@@ -50,9 +50,9 @@ public class HandbrakeParser
     }
 
     @Override
-    public Observable<TranscodeProgress> onProgressParsed() {
+    public Observable<TranscodeReport> onProgressParsed() {
         return publishSubject
             .observeOn(Schedulers.computation())
-            .ofType(TranscodeProgress.class);
+            .ofType(TranscodeReport.class);
     }
 }
