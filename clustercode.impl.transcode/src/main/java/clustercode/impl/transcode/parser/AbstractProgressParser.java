@@ -5,22 +5,13 @@ import clustercode.api.transcode.ProgressParser;
 import clustercode.api.transcode.TranscodeReport;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
-import lombok.var;
 
+import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 public abstract class AbstractProgressParser implements ProgressParser {
 
     private final Subject<Object> publishSubject = PublishSubject.create().toSerialized();
-
-    @Override
-    public Stream<TranscodeReport> onProgressParsed() {
-
-        var iter = publishSubject.ofType(TranscodeReport.class).blockingNext().iterator();
-        return Stream.generate(iter::next);
-
-    }
 
     @Override
     public void close() {
@@ -28,11 +19,18 @@ public abstract class AbstractProgressParser implements ProgressParser {
     }
 
     @Override
-    public ProgressParser onProgressParsed(Consumer<TranscodeReport> listener) {
+    public final ProgressParser onProgressParsed(Consumer<TranscodeReport> listener) {
         publishSubject.ofType(TranscodeReport.class)
                       .subscribe(listener::accept);
         return this;
     }
+
+    @Override
+    public final void parse(String line) {
+        parseLine(line).ifPresent(publishSubject::onNext);
+    }
+
+    protected abstract Optional<TranscodeReport> parseLine(String line);
 
     @Override
     public final boolean doesNotMatchProgressLine(OutputFrameTuple line) {

@@ -13,6 +13,7 @@ import java.time.Duration;
 public class FfmpegOutput implements TranscodeReport {
 
     @Getter
+    @Setter
     private double percentage;
 
     @Getter
@@ -34,6 +35,7 @@ public class FfmpegOutput implements TranscodeReport {
     private Duration time;
 
     @Getter
+    @Setter
     private Duration duration;
 
 }

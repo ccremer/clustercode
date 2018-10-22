@@ -25,8 +25,6 @@ public interface ProgressParser {
      */
     ProgressParser onProgressParsed(Consumer<TranscodeReport> listener);
 
-    Stream<TranscodeReport> onProgressParsed();
-
     /**
      * Returns true if the given tuple matches an expected progress report.
      *

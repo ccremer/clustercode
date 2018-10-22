@@ -2,8 +2,8 @@ package clustercode.impl.transcode.parser;
 
 import clustercode.api.transcode.output.FfmpegOutput;
 import clustercode.test.util.CompletableUnitTest;
+import lombok.var;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -19,25 +19,45 @@ public class FfmpegParserTest implements CompletableUnitTest {
         this.subject = new FfmpegParser();
     }
 
-    @Ignore("Does not work currently")
-    @Test
+    @Test(timeout = 1000)
     public void parse_ShouldParseLine_AndNotifyObservers() throws Exception {
         String line = "frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s speed=1.36x";
 
-        subject.onProgressParsed()
-               .cast(FfmpegOutput.class)
-               .subscribe(p -> {
-                   assertThat(p.getFrame()).isEqualTo(81624);
-                   assertThat(p.getBitrate()).isEqualTo(2882.4);
-                   assertThat(p.getSpeed()).isEqualTo(1.36);
-                   assertThat(p.getFps()).isEqualTo(33);
-                   completeOne();
-               });
+        subject.onProgressParsed(r -> {
+            var p = (FfmpegOutput) r;
+            assertThat(p.getFrame()).isEqualTo(81624);
+            assertThat(p.getBitrate()).isEqualTo(2882.4);
+            assertThat(p.getSpeed()).isEqualTo(1.36);
+            assertThat(p.getFps()).isEqualTo(33);
+            completeOne();
+        });
 
         subject.parse(line);
+        subject.close();
 
         waitForCompletion();
     }
+
+    @Test(timeout = 1000)
+    public void parse_ShouldNotUserSpeedLine() {
+
+        String input = "frame=81624 fps= 33 q=-0.0 Lsize= 1197859kB time=00:56:44.38 bitrate=2882.4kbits/s";
+
+        subject.onProgressParsed(r -> {
+            var p = (FfmpegOutput) r;
+            assertThat(p.getFrame()).isEqualTo(81624);
+            assertThat(p.getBitrate()).isEqualTo(2882.4);
+            assertThat(p.getSpeed()).isEqualTo(0);
+            assertThat(p.getFps()).isEqualTo(33);
+            completeOne();
+        });
+
+        subject.parse(input);
+        subject.close();
+
+        waitForCompletion();
+    }
+
 
     @Test
     public void parseDuration_ShouldReturnDurationOf_Hours() throws Exception {

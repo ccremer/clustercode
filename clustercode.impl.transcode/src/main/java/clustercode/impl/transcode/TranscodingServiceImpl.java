@@ -22,6 +22,7 @@ import io.reactivex.subjects.Subject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.var;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -82,7 +83,7 @@ public class TranscodingServiceImpl implements TranscodingService {
 
         var parser = parserProvider.get();
 
-        parser.onProgressParsed().forEach(publisher::onNext);
+        parser.onProgressParsed(publisher::onNext);
 
         relayer.ofType(OutputFrameTuple.class)
                .filter(parser::matchesProgressLine)
@@ -206,9 +207,7 @@ public class TranscodingServiceImpl implements TranscodingService {
 
     @Override
     public Observable<TranscodeReport> onProgressUpdated() {
-        return parserProvider
-                .get()
-                .onProgressParsed();
+        throw new NotImplementedException();
     }
 
     @Override

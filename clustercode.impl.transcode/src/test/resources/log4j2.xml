@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration name="clustercode">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+                    pattern="%style{%d{yyyy-MM-dd HH:mm:ss.SSS}}{White} %highlight{%-5level} - %logger{36} - [%t] - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Root>
+        <Logger level="info" additivity="false" name="org.testcontainers.containers.wait">
+            <AppenderRef ref="Console"/>
+        </Logger>
+    </Loggers>
+</Configuration>
