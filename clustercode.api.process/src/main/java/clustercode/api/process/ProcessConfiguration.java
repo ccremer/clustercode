@@ -3,7 +3,6 @@ package clustercode.api.process;
 import lombok.*;
 
 import java.nio.file.Path;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -21,8 +20,8 @@ public class ProcessConfiguration {
     private List<String> arguments;
 
     @Singular
-    private List<Consumer<String>> errorObservers = new LinkedList<>();
+    private List<Consumer<String>> errorObservers;
 
     @Singular
-    private List<Consumer<String>> stdoutObservers = new LinkedList<>();
+    private List<Consumer<String>> stdoutObservers;
 }

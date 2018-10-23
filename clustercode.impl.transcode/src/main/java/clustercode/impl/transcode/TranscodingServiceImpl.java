@@ -22,13 +22,13 @@ import io.reactivex.subjects.Subject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 import lombok.var;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @XSlf4j
@@ -75,8 +75,10 @@ public class TranscodingServiceImpl implements TranscodingService {
         log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
 
         TranscodeProgressImpl transcodeProgress = new TranscodeProgressImpl(task.getMedia(), task.getProfile());
-        transcodeProgress.withStdOutListener(System.out::println)
-                         .withStdErrListener(System.err::println);
+        if (transcoderConfig.console_output_enabled()) {
+            transcodeProgress.withStdOutListener(System.out::println)
+                             .withStdErrListener(System.err::println);
+        }
 
         var relayer = PublishSubject.create().toSerialized();
 
@@ -207,7 +209,34 @@ public class TranscodingServiceImpl implements TranscodingService {
 
     @Override
     public Observable<TranscodeReport> onProgressUpdated() {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("not implemented");
+    }
+
+    @Override
+    public TranscodingService onProgressUpdated(Consumer<TranscodeReport> listener) {
+        publisher
+                .ofType(TranscodeReport.class)
+                .observeOn(Schedulers.computation())
+                .subscribe(listener::accept);
+        return this;
+    }
+
+    @Override
+    public TranscodingService onTranscodeFinished(Consumer<TranscodeFinishedEvent> listener) {
+        publisher
+                .ofType(TranscodeFinishedEvent.class)
+                .observeOn(Schedulers.computation())
+                .subscribe(listener::accept);
+        return this;
+    }
+
+    @Override
+    public TranscodingService onTranscodeBegin(Consumer<TranscodeBeginEvent> listener) {
+        publisher
+                .ofType(TranscodeBeginEvent.class)
+                .observeOn(Schedulers.computation())
+                .subscribe(listener::accept);
+        return this;
     }
 
     @Override

@@ -4,7 +4,7 @@
       <env name="CC_MEDIA_INPUT_DIR" value="clustercode.test.integration/input" />
       <env name="CC_MEDIA_OUTPUT_DIR" value="clustercode.test.integration/output" />
       <env name="CC_CLEANUP_MARK_SOURCE_DIR" value="clustercode.test.integration/input/done" />
-      <env name="CC_CONSTRAINTS_ACTIVE" value="NONE" />
+      <env name="CC_CONSTRAINTS_ACTIVE" value="CLUSTER" />
       <env name="CC_MEDIA_SCAN_INTERVAL" value="1" />
       <env name="CC_CLUSTER_JGROUPS_CONFIG" value="docker/default/config/tcp.xml" />
       <env name="CC_PROFILE_DIR" value="clustercode.test.integration/profiles" />

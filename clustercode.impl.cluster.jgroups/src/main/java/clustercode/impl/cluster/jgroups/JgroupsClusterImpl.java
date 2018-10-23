@@ -21,26 +21,30 @@ import java.util.concurrent.TimeUnit;
 
 @XSlf4j
 public class JgroupsClusterImpl
-    implements ClusterService {
+        implements ClusterService {
 
     private final JgroupsClusterConfig config;
     private final JGroupsMessageDispatcher messageDispatcher;
     private final JGroupsTaskState taskState;
+    private final SingleNodeClusterImpl singleNodeCluster;
     private JChannel channel;
     private ScheduledExecutorService executor;
 
     @Inject
     JgroupsClusterImpl(JgroupsClusterConfig config,
                        JGroupsMessageDispatcher messageDispatcher,
-                       JGroupsTaskState taskState) {
+                       JGroupsTaskState taskState,
+                       SingleNodeClusterImpl singleNodeCluster
+    ) {
         this.config = config;
         this.messageDispatcher = messageDispatcher;
         this.taskState = taskState;
+        this.singleNodeCluster = singleNodeCluster;
     }
 
     @Synchronized
     @Override
-    public void joinCluster() {
+    public void joinCluster() throws Exception {
         if (isConnected()) {
             log.info("Already joined the cluster {}.", config.cluster_name());
             return;
@@ -64,12 +68,11 @@ public class JgroupsClusterImpl
             executor.scheduleAtFixedRate(taskState::removeOrphanTasks, 1, 1, TimeUnit.MINUTES);
 
             log.info("Joined cluster {} with {} member(s).",
-                channel.getClusterName(), channel.getView().getMembers().size());
+                    channel.getClusterName(), channel.getView().getMembers().size());
             log.info("Cluster address: {}", channel.getAddress());
         } catch (Exception e) {
             channel = null;
-            log.catching(XLogger.Level.WARN, e);
-            log.info("Could not create or join cluster. Will work as single node.");
+            throw new Exception("Could not create or join cluster", e);
         }
     }
 
@@ -112,10 +115,11 @@ public class JgroupsClusterImpl
 
     @Override
     public void setTask(Media candidate) {
-        if (!isConnected()) return;
-        taskState.setTask(candidate);
+        if (isConnected()) taskState.setTask(candidate);
+        singleNodeCluster.setTask(candidate);
     }
 
+    @Override
     public void setProgress(double percentage) {
         if (!isConnected()) return;
         taskState.setProgress(percentage);
@@ -123,7 +127,8 @@ public class JgroupsClusterImpl
 
     @Override
     public boolean isQueuedInCluster(Media candidate) {
-        return isConnected() && taskState.isQueuedInCluster(candidate);
+        if (isConnected()) return taskState.isQueuedInCluster(candidate);
+        return false;
     }
 
     @Override
@@ -141,9 +146,9 @@ public class JgroupsClusterImpl
     @Override
     public Flowable<CancelTaskRpcRequest> onCancelTaskRequested() {
         return messageDispatcher
-            .onRpcTaskCancelled()
-            .doOnNext(log::entry)
-            .toFlowable(BackpressureStrategy.BUFFER);
+                .onRpcTaskCancelled()
+                .doOnNext(log::entry)
+                .toFlowable(BackpressureStrategy.BUFFER);
     }
 
 }

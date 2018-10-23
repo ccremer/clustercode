@@ -57,8 +57,8 @@ public class RestApiModule extends ConfigurableModule {
                     "You configured the CC_TRANSCODE_TYPE incorrectly. Consult the docs!");
         }
 
-        bind(ProgressHook.class).to(ProgressHookImpl.class).asEagerSingleton();
-        bind(TaskHook.class).to(TaskHookImpl.class).asEagerSingleton();
+        bind(ProgressHook.class).to(ProgressHookImpl.class).in(Singleton.class);
+        bind(TaskHook.class).to(TaskHookImpl.class).in(Singleton.class);
     }
 
     private void installJersey(int port) {

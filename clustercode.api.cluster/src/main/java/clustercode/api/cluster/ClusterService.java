@@ -12,7 +12,7 @@ public interface ClusterService {
      * Joins the cluster. If this Java process is the first member, it will create a new cluster. If a cluster cannot be
      * created, it will downgrade to a single-node cluster.
      */
-    void joinCluster();
+    void joinCluster() throws Exception;
 
     /**
      * Leaves the cluster, if it was connected.
@@ -42,6 +42,8 @@ public interface ClusterService {
      * @param candidate the candidate, not null.
      */
     void setTask(Media candidate);
+
+    void setProgress(double percentage);
 
     /**
      * Returns true if the candidate is known across the cluster. If this Java process is the only member or not at all

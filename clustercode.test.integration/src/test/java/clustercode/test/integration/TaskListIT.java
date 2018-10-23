@@ -1,7 +1,6 @@
 package clustercode.test.integration;
 
 import clustercode.api.rest.v1.dto.Task;
-import clustercode.impl.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.junit.BeforeClass;
@@ -36,10 +35,11 @@ public class TaskListIT {
         log.info("Waiting...");
         instance1.waitUntilLineStartsWith("Invoking: [/usr/bin/ffmpeg,");
 
-        Thread.sleep(5000);
         log.info("Assert");
+        Thread.sleep(5000);
         var result = instance1.httpGet("/api/v1/tasks").readEntity(new GenericType<List<Task>>() {
         });
+        Thread.sleep(5000);
         assertThat(result)
                 .isNotEmpty();
     }

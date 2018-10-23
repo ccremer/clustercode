@@ -25,7 +25,7 @@ public interface TranscoderConfig extends Config {
      */
     @Key("CC_TRANSCODE_IO_REDIRECTED")
     @DefaultValue("false")
-    boolean isIoRedirected();
+    boolean console_output_enabled();
 
     /**
      * Gets the path to the temporary directory, which is needed during transcoding.

@@ -40,15 +40,10 @@ public class TranscodeActivator implements Activator {
                 .listenFor(CancelTranscodeMessage.class, this::onCancelTranscodeTask));
         handlers.add(eventBus
                 .listenFor(TranscodeTask.class, transcodingService::transcode));
-        handlers.add(transcodingService
-                .onProgressUpdated()
-                .subscribe(eventBus::emit));
-        handlers.add(transcodingService
-                .onTranscodeBegin()
-                .subscribe(eventBus::emit));
-        handlers.add(transcodingService
-                .onTranscodeFinished()
-                .subscribe(eventBus::emit));
+        transcodingService
+                .onProgressUpdated(eventBus::emit)
+                .onTranscodeBegin(eventBus::emit)
+                .onTranscodeFinished(eventBus::emit);
 
         handlers.add(eventBus
                 .listenFor(ProfileSelectedMessage.class)

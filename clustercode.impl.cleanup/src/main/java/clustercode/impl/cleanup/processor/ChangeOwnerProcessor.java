@@ -56,7 +56,7 @@ public class ChangeOwnerProcessor implements CleanupProcessor {
             .builder()
             .executable(Paths.get("/bin", "chown"))
             .arguments(args)
-            .stdoutObserver(observable -> observable.subscribe(System.out::println))
+            .stdoutObserver(System.out::println)
             .build();
 
         externalProcessService

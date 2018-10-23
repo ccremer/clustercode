@@ -78,6 +78,12 @@ public class ScanServicesActivator implements Activator {
                 .map(this::onWaiting)
                 .delay(config.media_scan_interval(), TimeUnit.MINUTES)
                 .subscribe(messageHandler::onTimeout));
+        handlers.add(eventBus
+                .listenFor(MediaScannedMessage.class)
+                .filter(MediaScannedMessage::listIsEmpty)
+                .map(this::onWaiting)
+                .delay(config.media_scan_interval(), TimeUnit.MINUTES)
+                .subscribe(messageHandler::onTimeout));
     }
 
     @Override

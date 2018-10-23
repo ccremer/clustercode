@@ -1,15 +1,16 @@
 package clustercode.impl.cluster.jgroups;
 
+import clustercode.api.cluster.ClusterService;
 import clustercode.api.cluster.messages.CancelTaskApiRequest;
 import clustercode.api.domain.Activator;
 import clustercode.api.domain.ActivatorContext;
+import clustercode.api.domain.TranscodeTask;
 import clustercode.api.event.RxEventBus;
-import clustercode.api.event.messages.CancelTranscodeMessage;
-import clustercode.api.event.messages.ClusterConnectMessage;
-import clustercode.api.event.messages.MediaInClusterMessage;
+import clustercode.api.event.messages.*;
 import clustercode.api.transcode.TranscodeReport;
 import io.reactivex.disposables.Disposable;
 import lombok.extern.slf4j.XSlf4j;
+import org.slf4j.ext.XLogger;
 
 import javax.inject.Inject;
 import java.util.LinkedList;
@@ -20,18 +21,18 @@ import java.util.concurrent.TimeUnit;
 @XSlf4j
 public class JgroupsClusterActivator implements Activator {
 
-    private final JgroupsClusterImpl clusterService;
+    private final ClusterService clusterService;
     private final JgroupsClusterConfig config;
     private final RxEventBus eventBus;
     private final List<Disposable> handlers = new LinkedList<>();
 
     @Inject
     JgroupsClusterActivator(
-            JgroupsClusterImpl clusterService,
+            JgroupsClusterImpl jgroupsService,
             JgroupsClusterConfig config,
             RxEventBus eventBus
     ) {
-        this.clusterService = clusterService;
+        this.clusterService = jgroupsService;
         this.config = config;
         this.eventBus = eventBus;
     }
@@ -57,11 +58,22 @@ public class JgroupsClusterActivator implements Activator {
                 .subscribe(clusterService::setProgress));
 
         handlers.add(eventBus
+                .listenFor(TranscodeBeginEvent.class)
+                .map(TranscodeBeginEvent::getTask)
+                .map(TranscodeTask::getMedia)
+                .subscribe(clusterService::setTask));
+
+        handlers.add(eventBus
+                .listenFor(TranscodeFinishedEvent.class)
+                .subscribe(e -> clusterService.removeTask()));
+
+        handlers.add(eventBus
                 .listenFor(MediaInClusterMessage.class)
                 .subscribe(this::onMediaInClusterQuery));
 
         clusterService.getTaskState()
                       .clusterTaskCollectionChanged()
+                      .doOnNext(c -> log.warn("{}", c))
                       .subscribe(eventBus::emit);
 
         clusterService.onCancelTaskRequested()
@@ -73,22 +85,19 @@ public class JgroupsClusterActivator implements Activator {
     public void activate(ActivatorContext context) {
         log.debug("Activating JGroups cluster.");
         CompletableFuture.supplyAsync(() -> {
-            clusterService.joinCluster();
-            return clusterService.getSize();
-        }).thenAccept(memberCount -> {
-                    try {
-                        int timeout = 3000;
-                        Thread.sleep(timeout);
-                    } catch (InterruptedException ex) {
-                        log.warn("{}", ex);
-                    }
-                    eventBus.emit(
-                            ClusterConnectMessage.builder()
-                                                 .hostname(clusterService.getName().orElse(""))
-                                                 .arbiterNode(config.arbiter_enabled())
-                                                 .clusterSize(memberCount)
-                                                 .build());
-                }
+            try {
+                clusterService.joinCluster();
+                return clusterService.getSize();
+            } catch (Exception e) {
+                log.catching(XLogger.Level.WARN, e);
+                return 0;
+            }
+        }).thenAccept(memberCount -> eventBus.emit(
+                ClusterConnectMessage.builder()
+                                     .hostname(clusterService.getName().orElse("localhost"))
+                                     .arbiterNode(config.arbiter_enabled())
+                                     .clusterSize(memberCount)
+                                     .build())
         );
 
     }

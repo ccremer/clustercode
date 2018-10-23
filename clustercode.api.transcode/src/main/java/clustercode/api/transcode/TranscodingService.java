@@ -6,6 +6,8 @@ import clustercode.api.event.messages.TranscodeFinishedEvent;
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 
+import java.util.function.Consumer;
+
 public interface TranscodingService {
 
     /**
@@ -27,6 +29,12 @@ public interface TranscodingService {
     Flowable<TranscodeFinishedEvent> onTranscodeFinished();
 
     Observable<TranscodeReport> onProgressUpdated();
+
+    TranscodingService onTranscodeBegin(Consumer<TranscodeBeginEvent> listener);
+
+    TranscodingService onTranscodeFinished(Consumer<TranscodeFinishedEvent> listener);
+
+    TranscodingService onProgressUpdated(Consumer<TranscodeReport> listener);
 
     Transcoder getTranscoder();
 }
