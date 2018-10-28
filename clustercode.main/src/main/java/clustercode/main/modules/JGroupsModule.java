@@ -20,8 +20,7 @@ class JGroupsModule extends ConfigurableModule {
         bind(JgroupsClusterConfig.class).toInstance(
                 loader.getConfig(JgroupsClusterConfig.class));
 
-        bind(ClusterService.class).to(JgroupsClusterImpl.class);
-        bind(JgroupsClusterImpl.class).in(Singleton.class);
+        bind(ClusterService.class).to(JGroupsClusterFacade.class).in(Singleton.class);
         bind(SingleNodeClusterImpl.class).in(Singleton.class);
         bind(JGroupsMessageDispatcher.class).to(JGroupsMessageDispatcherImpl.class);
         bind(JGroupsTaskState.class).to(JGroupsTaskStateImpl.class);

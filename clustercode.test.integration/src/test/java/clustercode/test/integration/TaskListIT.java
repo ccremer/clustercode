@@ -4,6 +4,7 @@ import clustercode.api.rest.v1.dto.Task;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -33,15 +34,20 @@ public class TaskListIT {
     @Test
     public void taskList_ShouldBeEmpty_WhenNoneFound() throws TimeoutException, InterruptedException {
         log.info("Waiting...");
-        instance1.waitUntilLineStartsWith("Invoking: [/usr/bin/ffmpeg,");
+        instance1.waitUntilLineStartsWith("ExternalProcess - Invoking: [/usr/bin/ffmpeg,");
 
         log.info("Assert");
-        Thread.sleep(5000);
+        //Thread.sleep(5000);
         var result = instance1.httpGet("/api/v1/tasks").readEntity(new GenericType<List<Task>>() {
         });
-        Thread.sleep(5000);
+        //Thread.sleep(5000);
         assertThat(result)
                 .isNotEmpty();
     }
 
+    @Ignore
+    @Test
+    public void test() {
+        new FfmpegContainer(900, "900s_blank.mkv");
+    }
 }

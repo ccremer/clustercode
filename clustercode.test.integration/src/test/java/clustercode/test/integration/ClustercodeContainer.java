@@ -20,6 +20,7 @@ public class ClustercodeContainer extends HttpContainer {
                         .forPath("/api/v1/version")
                         .forPort(port))
                 .withEnv("CC_CONSTRAINTS_ACTIVE", "NONE")
+                .withEnv("LOG_LEVEL_CORE", "debug")
                 .withFileSystemBind("/etc/localtime", "/etc/localtime", BindMode.READ_ONLY)
                 .withFileSystemBind("./input", "/input")
                 .withFileSystemBind("./output", "/output")

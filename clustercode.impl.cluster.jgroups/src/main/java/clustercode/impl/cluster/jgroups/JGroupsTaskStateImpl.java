@@ -69,6 +69,7 @@ public class JGroupsTaskStateImpl implements JGroupsTaskState {
     @Override
     public void setProgress(double percentage) {
         val task = getCurrentTask();
+        log.info("setting");
         if (task == null) return;
         task.setPercentage(percentage);
         updateTask(task);

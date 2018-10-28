@@ -24,7 +24,7 @@ public class SingleNodeClusterImpl implements ClusterService {
     }
 
     @Override
-    public void joinCluster() throws Exception {
+    public void joinCluster() {
         log.info("Will work as a single-node cluster.");
     }
 

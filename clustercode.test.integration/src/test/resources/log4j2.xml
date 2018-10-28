@@ -7,10 +7,10 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="info" additivity="false">
+        <Root level="${env:CC_LOG_LEVEL_CORE:-info}" additivity="false">
             <AppenderRef ref="Console"/>
         </Root>
-        <Logger level="info" additivity="false" name="org.testcontainers.containers.wait">
+        <Logger level="${env:CC_LOG_LEVEL_TEST:-info}" additivity="false" name="org.testcontainers.containers.wait">
             <AppenderRef ref="Console"/>
         </Logger>
     </Loggers>

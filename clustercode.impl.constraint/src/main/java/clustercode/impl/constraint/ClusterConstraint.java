@@ -22,6 +22,6 @@ public class ClusterConstraint extends AbstractConstraint {
                                      .media(candidate)
                                      .build()
         ).isInCluster();
-        return logAndReturnResult(isInCluster, "{} is in cluster: {}", candidate.getSourcePath(), isInCluster);
+        return logAndReturnResult(!isInCluster, "{} is in cluster: {}", candidate.getSourcePath(), isInCluster);
     }
 }

@@ -26,25 +26,22 @@ public class JgroupsClusterImpl
     private final JgroupsClusterConfig config;
     private final JGroupsMessageDispatcher messageDispatcher;
     private final JGroupsTaskState taskState;
-    private final SingleNodeClusterImpl singleNodeCluster;
     private JChannel channel;
     private ScheduledExecutorService executor;
 
     @Inject
     JgroupsClusterImpl(JgroupsClusterConfig config,
                        JGroupsMessageDispatcher messageDispatcher,
-                       JGroupsTaskState taskState,
-                       SingleNodeClusterImpl singleNodeCluster
+                       JGroupsTaskState taskState
     ) {
         this.config = config;
         this.messageDispatcher = messageDispatcher;
         this.taskState = taskState;
-        this.singleNodeCluster = singleNodeCluster;
     }
 
     @Synchronized
     @Override
-    public void joinCluster() throws Exception {
+    public void joinCluster() {
         if (isConnected()) {
             log.info("Already joined the cluster {}.", config.cluster_name());
             return;
@@ -72,11 +69,11 @@ public class JgroupsClusterImpl
             log.info("Cluster address: {}", channel.getAddress());
         } catch (Exception e) {
             channel = null;
-            throw new Exception("Could not create or join cluster", e);
+            log.catching(XLogger.Level.WARN, e);
         }
     }
 
-    private boolean isConnected() {
+    boolean isConnected() {
         return channel != null && channel.isConnected();
     }
 
@@ -116,7 +113,6 @@ public class JgroupsClusterImpl
     @Override
     public void setTask(Media candidate) {
         if (isConnected()) taskState.setTask(candidate);
-        singleNodeCluster.setTask(candidate);
     }
 
     @Override

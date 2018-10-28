@@ -28,7 +28,7 @@ public class JgroupsClusterActivator implements Activator {
 
     @Inject
     JgroupsClusterActivator(
-            JgroupsClusterImpl jgroupsService,
+            ClusterService jgroupsService,
             JgroupsClusterConfig config,
             RxEventBus eventBus
     ) {
@@ -71,35 +71,30 @@ public class JgroupsClusterActivator implements Activator {
                 .listenFor(MediaInClusterMessage.class)
                 .subscribe(this::onMediaInClusterQuery));
 
-        clusterService.getTaskState()
-                      .clusterTaskCollectionChanged()
-                      .doOnNext(c -> log.warn("{}", c))
-                      .subscribe(eventBus::emit);
-
-        clusterService.onCancelTaskRequested()
-                      .subscribe(r -> r.setCancelled(cancelTaskLocally()));
-
     }
 
     @Override
     public void activate(ActivatorContext context) {
         log.debug("Activating JGroups cluster.");
         CompletableFuture.supplyAsync(() -> {
-            try {
-                clusterService.joinCluster();
-                return clusterService.getSize();
-            } catch (Exception e) {
-                log.catching(XLogger.Level.WARN, e);
-                return 0;
-            }
-        }).thenAccept(memberCount -> eventBus.emit(
-                ClusterConnectMessage.builder()
-                                     .hostname(clusterService.getName().orElse("localhost"))
-                                     .arbiterNode(config.arbiter_enabled())
-                                     .clusterSize(memberCount)
-                                     .build())
-        );
+            clusterService.joinCluster();
+            return clusterService.getSize();
+        }).thenAccept(memberCount -> {
+            eventBus.emit(
+                    ClusterConnectMessage.builder()
+                                         .hostname(clusterService.getName().orElse("localhost"))
+                                         .arbiterNode(config.arbiter_enabled())
+                                         .clusterSize(memberCount)
+                                         .build());
 
+            clusterService.getTaskState()
+                          .clusterTaskCollectionChanged()
+                          .doOnNext(c -> log.warn("{}", c))
+                          .subscribe(eventBus::emit);
+
+            clusterService.onCancelTaskRequested()
+                          .subscribe(r -> r.setCancelled(cancelTaskLocally()));
+        });
     }
 
     private void onMediaInClusterQuery(MediaInClusterMessage mediaInClusterMessage) {
