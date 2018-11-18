@@ -2,35 +2,20 @@ package clustercode.api.rest.v1.hook;
 
 import clustercode.api.event.RxEventBus;
 import clustercode.api.event.messages.TranscodeFinishedEvent;
-import clustercode.api.rest.v1.ProgressReport;
-import clustercode.api.rest.v1.ProgressReportAdapter;
-import clustercode.api.rest.v1.RestServiceConfig;
 import clustercode.api.transcode.TranscodeReport;
-import clustercode.api.transcode.Transcoder;
 import com.google.inject.Inject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
 
-import java.util.Map;
-
 @XSlf4j
 public class ProgressHookImpl implements ProgressHook {
 
-    private final ProgressReportAdapter progressAdapter;
-
-    private final RestServiceConfig serviceConfig;
     private TranscodeReport latestProgressOutput;
 
     @Inject
-    ProgressHookImpl(RxEventBus eventBus,
-                     ProgressReportAdapter progressAdapter,
-                     RestServiceConfig serviceConfig,
-                     Map<Transcoder, TranscodeReport> transcodeProgressMap) {
-        this.progressAdapter = progressAdapter;
-        this.serviceConfig = serviceConfig;
+    ProgressHookImpl(RxEventBus eventBus) {
 
-        eventBus.listenFor(transcodeProgressMap.get(serviceConfig.transcoder_type())
-                                               .getClass(), this::onProgressUpdated);
+        eventBus.listenFor(TranscodeReport.class, this::onProgressUpdated);
 
         eventBus.listenFor(TranscodeFinishedEvent.class, this::onTranscodingFinished);
     }
@@ -48,24 +33,9 @@ public class ProgressHookImpl implements ProgressHook {
     }
 
     @Override
-    public ProgressReport getLatestProgressOutput() {
-        if (latestProgressOutput == null) return progressAdapter.getReportForInactiveEncoding();
-        return progressAdapter.apply(latestProgressOutput);
-    }
-
-    @Override
     public double getPercentage() {
         if (latestProgressOutput == null) return -1d;
         return latestProgressOutput.getPercentage();
     }
 
-    /**
-     * Gets the type of the locally configured transcoder.
-     *
-     * @return the enum type.
-     */
-    @Override
-    public Transcoder getTranscoder() {
-        return serviceConfig.transcoder_type();
-    }
 }

@@ -2,17 +2,17 @@ package clustercode.impl.transcode;
 
 import clustercode.api.domain.Media;
 import clustercode.api.domain.Profile;
+import clustercode.api.domain.TranscodeTask;
 import clustercode.api.process.ExternalProcessService;
 import clustercode.api.process.ProcessConfiguration;
 import clustercode.api.process.RunningExternalProcess;
-import clustercode.api.transcode.ProgressParser;
-import clustercode.api.domain.TranscodeTask;
 import clustercode.impl.util.UnsafeCastUtil;
 import clustercode.test.util.CompletableUnitTest;
 import clustercode.test.util.FileBasedUnitTest;
 import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -37,8 +37,6 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
     private RunningExternalProcess runningProcessMock;
     @Mock
     private TranscoderConfig transcoderConfig;
-    @Mock
-    private ProgressParser parser;
 
     @Spy
     private Media media;
@@ -60,7 +58,6 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
                                                    .executable(getPath("mock"))
                                                    .build();
 
-        when(transcoderConfig.transcoder_executable()).thenReturn(getPath("mock"));
         when(media.getSourcePath()).thenReturn(getPath("0", "video.mkv"));
         when(profile.getFields()).thenReturn(Collections.singletonMap("FORMAT", ".mp4"));
         when(transcoderConfig.temporary_dir()).thenReturn(getPath("tmp"));
@@ -70,9 +67,9 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
         task.setMedia(media);
         task.setProfile(profile);
 
-        subject = new TranscodingServiceImpl(process,
-                transcoderConfig,
-                () -> parser);
+        subject = new TranscodingServiceImpl(
+            transcoderConfig
+        );
     }
 
     @Test
@@ -102,6 +99,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
     }
 
     @Test(timeout = 1000)
+    @Ignore("Decommissioning of internal transcoding")
     public void transcode_ShouldFireEvent_IfTranscodingSuccessful() {
         when(process.start(any(), any())).thenReturn(Single.just(0));
 
@@ -159,6 +157,7 @@ public class TranscodingServiceImplTest implements FileBasedUnitTest, Completabl
     }
 
     @Test(timeout = 2000)
+    @Ignore("Decommissioning of internal transcoding")
     public void cancel_ShouldCancelJob() {
         setExpectedCountForCompletion(2);
 

@@ -50,8 +50,7 @@ public class TasksApi extends AbstractRestApi {
     @Produces({MediaType.APPLICATION_JSON})
     @ApiOperation(
         value = "",
-        notes = "Stops the task that is currently being processed by the given hostname. If successful, the affected " +
-            "node will transition to state WAIT.",
+        notes = "Stops the task that is currently being processed by the workers.",
         response = Boolean.class)
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Stopped the task successfully."),
@@ -61,16 +60,11 @@ public class TasksApi extends AbstractRestApi {
     })
     public Response stopTask(
         @QueryParam("hostname")
-        @ApiParam(
-            value = "host name of the node, as returned by /tasks. If this parameter is omitted, then the node " +
-                "of the current API endpoint will cancel its task.",
-            required = true)
+        @ApiParam(value = "This param is not needed anymore, you can pass any value including null")
             String hostname
     ) {
-        log.debug("Hostname: {}", hostname);
-        if (hostname == null) return Response.status(Response.Status.PRECONDITION_FAILED).build();
         try {
-            boolean cancelled = taskHook.cancelTask(hostname);
+            boolean cancelled = taskHook.cancelTask();
             if (cancelled) return Response.ok().build();
             return Response.status(Response.Status.CONFLICT).build();
         } catch (Exception ex) {
@@ -84,8 +78,8 @@ public class TasksApi extends AbstractRestApi {
                    .priority(clusterTask.getPriority())
                    .source(clusterTask.getSourceName())
                    .added(Date.from(clusterTask.getDateAdded().toInstant()))
-                   .updated(Date.from(clusterTask.getLastUpdated().toInstant()))
-                   .nodename(clusterTask.getMemberName())
+                   .updated(Date.from(clusterTask.getDateAdded().toInstant()))
+                   .nodename("worker")
                    .progress(Double.parseDouble(decimalFormat.format(clusterTask.getPercentage())))
                    .build();
     }

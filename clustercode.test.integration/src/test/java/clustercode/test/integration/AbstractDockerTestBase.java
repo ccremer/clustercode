@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Slf4j
+@SuppressWarnings("unchecked")
 public abstract class AbstractDockerTestBase {
 
     protected Path createBlankVideo(int durationInSeconds) {

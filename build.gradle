@@ -5,7 +5,7 @@ plugins {
 }
 
 group "clustercode"
-version "1.4.0"
+version "2.0.0"
 /*
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -23,6 +23,7 @@ ext {
     dep_rxjava = "io.reactivex.rxjava2:rxjava:2.1.+"
     dep_jgroups = "org.jgroups:jgroups:4.0.13.Final"
     dep_inject = "javax.inject:javax.inject:1"
+    dep_rabbitmq = "com.rabbitmq:amqp-client:5.5.0"
     dep_guice = "com.google.inject.extensions:guice-multibindings:${guiceVersion}"
     dep_testcontainers = "org.testcontainers:testcontainers:1.9.1"
 
@@ -76,8 +77,8 @@ subprojects {
     }
 
     dependencies {
-        compileOnly "org.projectlombok:lombok:1.16.+"
-        testCompileOnly "org.projectlombok:lombok:1.16.+"
+        compileOnly "org.projectlombok:lombok:1.18.+"
+        testCompileOnly "org.projectlombok:lombok:1.18.+"
 
         // logging
         compile "org.slf4j:slf4j-ext:1.7.+"
@@ -136,17 +137,6 @@ task downloadDependenciesCustom(type: Exec) {
     commandLine "print", "Downloaded all dependencies"
 }
 
-task windowsZip(type: Zip) {
-    from("${project.buildDir}/libs/${fullBuild.archiveName}") { into "clustercode" }
-    from("src/assembly/clustercode/resources") { into "clustercode" }
-    from("src/assembly/clustercode/windows") { into "clustercode" }
-    from("dist") { into "clustercode/clustercode-admin" }
-    from("src/assembly/clustercode-admin/windows") { into "clustercode" }
-    from("src/assembly/clustercode-admin/nginx") { into "clustercode/nginx/conf" }
-    from("build/swagger") { into "clustercode/clustercode-admin/static" }
-    classifier "win"
-}
-
 task resolveDependencies {
     doLast {
         project.rootProject.allprojects.each { subProject ->
@@ -164,13 +154,8 @@ task githubRelease()
 
 fullBuild.dependsOn test
 
-windowsZip.dependsOn fullBuild
-//windowsZip.dependsOn generateSwaggerDocumentation
-
 //check.dependsOn integrationTest
 //integrationTest.mustRunAfter test
-
-githubRelease.dependsOn windowsZip
 
 /*jacoco {
     reportsDir file("${project.buildDir}/reports/jacoco")

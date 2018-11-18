@@ -12,10 +12,4 @@ public interface TranscodeProgress {
 
     Profile getProfile();
 
-    TranscodeProgress withStdErrListener(Consumer<String> listener);
-
-    TranscodeProgress withStdOutListener(Consumer<String> listener);
-
-    TranscodeProgress withOutputListener(Consumer<OutputFrameTuple> listener);
-
 }

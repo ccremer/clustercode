@@ -19,10 +19,6 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.jgroups.protocols.pbcast.GMS" level="debug" additivity="false">
-            <AppenderRef ref="Sysout"/>
-            <AppenderRef ref="Syserr"/>
-        </Logger>
         <Logger name="org.eclipse.jetty" level="${env:CC_LOG_LEVEL_JETTY:-info}" additivity="false">
             <AppenderRef ref="Sysout"/>
             <AppenderRef ref="Syserr"/>

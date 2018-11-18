@@ -13,10 +13,6 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.jgroups.protocols.pbcast.GMS" level="debug" additivity="false">
-            <AppenderRef ref="Sysout"/>
-            <AppenderRef ref="Syserr"/>
-        </Logger>
         <Logger name="org.jgroups" level="info" additivity="false">
             <AppenderRef ref="Sysout"/>
             <AppenderRef ref="Syserr"/>

@@ -4,7 +4,7 @@ dependencies {
     compile project(":${proj_api_transcode}")
     compile project(":${proj_api_process}")
     compile project(":${proj_api_event}")
+    compile "${dep_rabbitmq}"
     compile "${dep_inject}"
-    //compile "${dep_rxjava}"
     testCompile project(":${proj_test_util}").sourceSets.test.output
 }

@@ -1,16 +1,10 @@
 package clustercode.impl.transcode;
 
-import clustercode.api.domain.OutputFrameTuple;
 import clustercode.api.domain.Profile;
 import clustercode.api.domain.TranscodeTask;
 import clustercode.api.event.messages.TranscodeBeginEvent;
 import clustercode.api.event.messages.TranscodeFinishedEvent;
-import clustercode.api.process.ExternalProcessService;
-import clustercode.api.process.ProcessConfiguration;
-import clustercode.api.process.RunningExternalProcess;
-import clustercode.api.transcode.ProgressParser;
 import clustercode.api.transcode.TranscodeReport;
-import clustercode.api.transcode.Transcoder;
 import clustercode.api.transcode.TranscodingService;
 import clustercode.impl.util.FileUtil;
 import io.reactivex.BackpressureStrategy;
@@ -24,10 +18,8 @@ import lombok.extern.slf4j.XSlf4j;
 import lombok.var;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -38,82 +30,32 @@ public class TranscodingServiceImpl implements TranscodingService {
     public static final String INPUT_PLACEHOLDER = "${INPUT}";
 
     private final TranscoderConfig transcoderConfig;
-    private final Provider<ProgressParser> parserProvider;
-    private final ExternalProcessService externalProcessService;
     private final Subject<Object> publisher;
 
-    private RunningExternalProcess process;
     private boolean cancelRequested;
 
     @Inject
-    TranscodingServiceImpl(ExternalProcessService externalProcessService,
-                           TranscoderConfig transcoderConfig,
-                           Provider<ProgressParser> parserProvider) {
-        this.externalProcessService = externalProcessService;
+    TranscodingServiceImpl(TranscoderConfig transcoderConfig) {
         this.transcoderConfig = transcoderConfig;
-
-        this.parserProvider = parserProvider;
 
         this.publisher = PublishSubject.create().toSerialized();
 
         publisher.ofType(TranscodeTask.class)
-                 .skipWhile(o -> isActive())
                  .observeOn(Schedulers.computation())
                  .subscribeOn(Schedulers.io())
                  .subscribe(this::prepareTranscode);
     }
 
-    private boolean isActive() {
-        return process != null;
-    }
-
     @Synchronized
     private void doTranscode(Path tempFile, TranscodeTask task) {
-        if (process != null) return;
 
         var source = task.getMedia().getSourcePath();
         log.info("Starting transcoding process: from {} to {}. This might take a while...", source, tempFile);
 
-        TranscodeProgressImpl transcodeProgress = new TranscodeProgressImpl(task.getMedia(), task.getProfile());
-        if (transcoderConfig.console_output_enabled()) {
-            transcodeProgress.withStdOutListener(System.out::println)
-                             .withStdErrListener(System.err::println);
-        }
-
-        var relayer = PublishSubject.create().toSerialized();
-
-
-        var parser = parserProvider.get();
-
-        parser.onProgressParsed(publisher::onNext);
-
-        relayer.ofType(OutputFrameTuple.class)
-               .filter(parser::matchesProgressLine)
-               .sample(1, TimeUnit.SECONDS)
-               .subscribe(transcodeProgress::addOutputFrame);
-
-        relayer.ofType(OutputFrameTuple.class)
-               .filter(parser::doesNotMatchProgressLine)
-               .subscribe(transcodeProgress::addOutputFrame);
-
-        var config = ProcessConfiguration
-                .builder()
-                .executable(transcoderConfig.transcoder_executable())
-                .arguments(buildArguments(source, tempFile, task))
-                .stdoutObserver(line -> relayer.onNext(OutputFrameTuple.fromStdOut(line)))
-                .errorObserver(line -> relayer.onNext(OutputFrameTuple.fromStdErr(line)))
-                .build();
-
-        externalProcessService
-                .start(config, this::setHandle)
-                .subscribe(
-                        exitCode -> onSuccess(exitCode, tempFile, task),
-                        this::onError);
-
         publisher.onNext(TranscodeBeginEvent
-                .builder()
-                .task(task)
-                .build());
+            .builder()
+            .task(task)
+            .build());
     }
 
     private List<String> buildArguments(Path source, Path target, TranscodeTask task) {
@@ -125,24 +67,22 @@ public class TranscodingServiceImpl implements TranscodingService {
                    .collect(Collectors.toList());
     }
 
-    private void onSuccess(Integer exitCode, Path tempFile, TranscodeTask task) {
-        log.entry(exitCode, tempFile, task);
+    private void onSuccess(Path tempFile, TranscodeTask task) {
+        log.entry(tempFile, task);
         var event = TranscodeFinishedEvent
-                .builder()
-                .temporaryPath(tempFile)
-                .media(task.getMedia())
-                .profile(task.getProfile())
-                .successful(exitCode == 0)
-                .cancelled(cancelRequested)
-                .build();
+            .builder()
+            .temporaryPath(tempFile)
+            .media(task.getMedia())
+            .profile(task.getProfile())
+            .successful(true)
+            .cancelled(cancelRequested)
+            .build();
 
-        setHandle(null);
         cancelRequested = false;
 
         if (event.isSuccessful()) log.info("Transcode finished.");
         else {
-            if (event.isCancelled()) log.info("Transcode cancelled.");
-            else log.info("Transcode failed.");
+            log.info("Transcode {}.", event.isCancelled() ? "cancelled" : "failed");
         }
         publisher.onNext(event);
     }
@@ -150,27 +90,21 @@ public class TranscodingServiceImpl implements TranscodingService {
     private void onError(Throwable ex) {
         log.error(ex.toString());
         var event = TranscodeFinishedEvent
-                .builder()
-                .successful(false)
-                .build();
-        setHandle(null);
+            .builder()
+            .successful(false)
+            .build();
         cancelRequested = false;
         publisher.onNext(event);
-    }
-
-    @Synchronized
-    private void setHandle(RunningExternalProcess process) {
-        this.process = process;
     }
 
     private void prepareTranscode(TranscodeTask task) {
         log.entry(task);
         var tempFile = transcoderConfig
-                .temporary_dir()
-                .resolve(FileUtil.getFileNameWithoutExtension(
-                        task.getMedia().getSourcePath()) + getPropertyOrDefault(
-                        task.getProfile(), "FORMAT", transcoderConfig.default_video_extension())
-                );
+            .temporary_dir()
+            .resolve(FileUtil.getFileNameWithoutExtension(
+                task.getMedia().getSourcePath()) + getPropertyOrDefault(
+                task.getProfile(), "FORMAT", transcoderConfig.default_video_extension())
+            );
 
         doTranscode(tempFile, task);
     }
@@ -183,28 +117,27 @@ public class TranscodingServiceImpl implements TranscodingService {
     @Override
     @Synchronized
     public boolean cancelTranscode() {
-        if (process == null) return true;
         log.debug("Cancelling task...");
         this.cancelRequested = true;
-        return process.destroyNowWithTimeout(5, TimeUnit.SECONDS);
+        return true;
     }
 
     @Override
     public Flowable<TranscodeBeginEvent> onTranscodeBegin() {
         return publisher
-                .subscribeOn(Schedulers.computation())
-                .observeOn(Schedulers.computation())
-                .ofType(TranscodeBeginEvent.class)
-                .toFlowable(BackpressureStrategy.BUFFER);
+            .subscribeOn(Schedulers.computation())
+            .observeOn(Schedulers.computation())
+            .ofType(TranscodeBeginEvent.class)
+            .toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
     public Flowable<TranscodeFinishedEvent> onTranscodeFinished() {
         return publisher
-                .subscribeOn(Schedulers.computation())
-                .observeOn(Schedulers.computation())
-                .ofType(TranscodeFinishedEvent.class)
-                .toFlowable(BackpressureStrategy.BUFFER);
+            .subscribeOn(Schedulers.computation())
+            .observeOn(Schedulers.computation())
+            .ofType(TranscodeFinishedEvent.class)
+            .toFlowable(BackpressureStrategy.BUFFER);
     }
 
     @Override
@@ -215,33 +148,28 @@ public class TranscodingServiceImpl implements TranscodingService {
     @Override
     public TranscodingService onProgressUpdated(Consumer<TranscodeReport> listener) {
         publisher
-                .ofType(TranscodeReport.class)
-                .observeOn(Schedulers.computation())
-                .subscribe(listener::accept);
+            .ofType(TranscodeReport.class)
+            .observeOn(Schedulers.computation())
+            .subscribe(listener::accept);
         return this;
     }
 
     @Override
     public TranscodingService onTranscodeFinished(Consumer<TranscodeFinishedEvent> listener) {
         publisher
-                .ofType(TranscodeFinishedEvent.class)
-                .observeOn(Schedulers.computation())
-                .subscribe(listener::accept);
+            .ofType(TranscodeFinishedEvent.class)
+            .observeOn(Schedulers.computation())
+            .subscribe(listener::accept);
         return this;
     }
 
     @Override
     public TranscodingService onTranscodeBegin(Consumer<TranscodeBeginEvent> listener) {
         publisher
-                .ofType(TranscodeBeginEvent.class)
-                .observeOn(Schedulers.computation())
-                .subscribe(listener::accept);
+            .ofType(TranscodeBeginEvent.class)
+            .observeOn(Schedulers.computation())
+            .subscribe(listener::accept);
         return this;
-    }
-
-    @Override
-    public Transcoder getTranscoder() {
-        return transcoderConfig.transcoder_type();
     }
 
     private String getPropertyOrDefault(Profile profile, String key, String defaultValue) {

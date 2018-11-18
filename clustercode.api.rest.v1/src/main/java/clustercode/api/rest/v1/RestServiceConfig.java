@@ -1,20 +1,10 @@
 package clustercode.api.rest.v1;
 
-import clustercode.api.transcode.Transcoder;
 import org.aeonbits.owner.Config;
 
 public interface RestServiceConfig extends Config {
 
     String REST_API_CONTEXT_PATH = "/v1";
-
-    /**
-     * Gets the type of transcoder.
-     *
-     * @return the enum.
-     */
-    @Key("CC_TRANSCODE_TYPE")
-    @DefaultValue("FFMPEG")
-    Transcoder transcoder_type();
 
     @Key("CC_REST_API_ENABLED")
     @DefaultValue("true")

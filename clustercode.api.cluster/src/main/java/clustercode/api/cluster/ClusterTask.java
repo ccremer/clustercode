@@ -30,18 +30,8 @@ public class ClusterTask implements Serializable {
     private ZonedDateTime dateAdded;
 
     /**
-     * The absolute time when this task was last updated.
-     */
-    private ZonedDateTime lastUpdated;
-
-    /**
      * The progress in percentage of the task.
      */
     private double percentage;
-
-    /**
-     * The name of the host that currently transcodes this task.
-     */
-    private String memberName;
 
 }

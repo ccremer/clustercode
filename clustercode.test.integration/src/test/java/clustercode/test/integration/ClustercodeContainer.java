@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 
+@SuppressWarnings("unchecked")
 public class ClustercodeContainer extends HttpContainer {
 
     public ClustercodeContainer(int port) {

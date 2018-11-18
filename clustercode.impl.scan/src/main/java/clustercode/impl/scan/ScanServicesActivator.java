@@ -35,7 +35,6 @@ public class ScanServicesActivator implements Activator {
         log.debug("Activating scanning services.");
         handlers.add(eventBus
                 .listenFor(ClusterConnectMessage.class)
-                .filter(ClusterConnectMessage::isNotArbiterNode)
                 .map(msg -> new ScanMediaCommand())
                 .subscribe(messageHandler::onMediaScanRequest));
         handlers.add(eventBus

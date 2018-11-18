@@ -36,5 +36,4 @@ public interface TranscodingService {
 
     TranscodingService onProgressUpdated(Consumer<TranscodeReport> listener);
 
-    Transcoder getTranscoder();
 }

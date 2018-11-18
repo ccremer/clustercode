@@ -2,10 +2,7 @@ package clustercode.api.rest.v1.rest;
 
 import clustercode.api.rest.v1.RestServiceConfig;
 import clustercode.api.rest.v1.dto.ApiError;
-import clustercode.api.rest.v1.dto.FfmpegProgressReport;
-import clustercode.api.rest.v1.dto.HandbrakeProgressReport;
 import clustercode.api.rest.v1.hook.ProgressHook;
-import clustercode.api.transcode.Transcoder;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -56,28 +53,16 @@ public class ProgressApi extends AbstractRestApi {
     @Produces({MediaType.APPLICATION_JSON})
     @JSONP(queryParam = "callback")
     @ApiOperation(
-        value = "Conversion progress for ffmpeg",
-        notes = "Returns a report of the current conversion progress of the local node.",
-        response = FfmpegProgressReport.class,
+        value = "This URL is not available anymore, use the 2.0 API.",
+        response = ApiError.class,
         tags = {"Progress"})
     @ApiResponses(value = {
         @ApiResponse(
-            code = 200,
-            message = "A FfmpegProgressReport object which contains all relevant values.",
-            response = FfmpegProgressReport.class),
-        @ApiResponse(
             code = 400,
-            message = "This transcoder is not available on the current node.",
-            response = ApiError.class
-        ),
-        @ApiResponse(
-            code = 500,
-            message = "Unexpected error",
+            message = "This URL is not available anymore, use the 2.0 API.",
             response = ApiError.class)})
     public Response getFfmpegProgress() {
-        if (cache.getTranscoder() != Transcoder.FFMPEG)
-            return clientError("This transcoder is not available on the current node.");
-        return createResponse(cache::getLatestProgressOutput);
+        return clientError("This URL is not available anymore, use the 2.0 API.");
     }
 
     @Path("handbrake")
@@ -85,28 +70,17 @@ public class ProgressApi extends AbstractRestApi {
     @Produces({MediaType.APPLICATION_JSON})
     @JSONP(queryParam = "callback")
     @ApiOperation(
-        value = "Conversion progress for handbrake",
-        notes = "Returns a report of the current conversion progress of the local node.",
-        response = HandbrakeProgressReport.class,
+        value = "This URL is not available anymore, use the 2.0 API.",
+        response = ApiError.class,
         tags = {"Progress"})
     @ApiResponses(value = {
         @ApiResponse(
-            code = 200,
-            message = "A HandbrakeProgressAdapter object which contains all relevant values.",
-            response = HandbrakeProgressReport.class),
-        @ApiResponse(
             code = 400,
-            message = "This transcoder is not available on the current node.",
+            message = "This URL is not available anymore, use the 2.0 API.",
             response = ApiError.class
-        ),
-        @ApiResponse(
-            code = 500,
-            message = "Unexpected error",
-            response = ApiError.class)})
+        )})
     public Response getHandbrakeProgress() {
-        if (cache.getTranscoder() != Transcoder.HANDBRAKE)
-            return clientError("This transcoder is not available on the current node.");
-        return createResponse(cache::getLatestProgressOutput);
+        return clientError("This URL is not available anymore, use the 2.0 API.");
     }
 }
 

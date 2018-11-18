@@ -8,6 +8,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+@SuppressWarnings("unchecked")
 public class HttpContainer extends GenericContainer {
 
     private JerseyClient client;

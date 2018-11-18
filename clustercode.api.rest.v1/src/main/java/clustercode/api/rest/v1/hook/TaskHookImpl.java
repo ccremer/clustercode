@@ -37,8 +37,8 @@ public class TaskHookImpl implements TaskHook {
     }
 
     @Override
-    public boolean cancelTask(String hostname) {
-        return eventBus.emit(new CancelTaskApiRequest(hostname, false)).isCancelled();
+    public boolean cancelTask() {
+        return eventBus.emit(new CancelTaskApiRequest("", false)).isCancelled();
     }
 
 }
