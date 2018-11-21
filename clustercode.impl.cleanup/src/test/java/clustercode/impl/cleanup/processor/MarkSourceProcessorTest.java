@@ -5,8 +5,8 @@ import clustercode.api.domain.Media;
 import clustercode.api.event.messages.TranscodeFinishedEvent;
 import clustercode.impl.cleanup.CleanupConfig;
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -30,7 +30,7 @@ public class MarkSourceProcessorTest implements FileBasedUnitTest {
     @Spy
     private Media media;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();

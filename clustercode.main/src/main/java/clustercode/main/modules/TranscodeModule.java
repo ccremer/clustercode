@@ -8,7 +8,6 @@ import clustercode.impl.transcode.TranscoderConfig;
 import clustercode.impl.transcode.TranscodingServiceImpl;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
-import lombok.var;
 
 public class TranscodeModule extends ConfigurableModule {
 

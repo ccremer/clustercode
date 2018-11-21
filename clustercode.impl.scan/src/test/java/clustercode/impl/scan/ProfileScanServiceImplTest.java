@@ -4,8 +4,8 @@ import clustercode.api.domain.Media;
 import clustercode.api.domain.Profile;
 import clustercode.api.scan.ProfileMatcher;
 import clustercode.impl.scan.matcher.ProfileMatchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -34,7 +34,7 @@ public class ProfileScanServiceImplTest {
 
     private Map<ProfileMatchers, ProfileMatcher> matchers = new HashMap<>();
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         matchers.put(ProfileMatchers.DIRECTORY_STRUCTURE, matcher1);

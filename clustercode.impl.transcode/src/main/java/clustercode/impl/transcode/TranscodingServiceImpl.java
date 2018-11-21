@@ -15,7 +15,6 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import lombok.Synchronized;
 import lombok.extern.slf4j.XSlf4j;
-import lombok.var;
 
 import javax.inject.Inject;
 import java.nio.file.Path;

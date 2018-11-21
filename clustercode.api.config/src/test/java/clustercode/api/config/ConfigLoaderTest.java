@@ -1,20 +1,17 @@
 package clustercode.api.config;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ConfigLoaderTest {
 
     private ConfigLoader subject;
-    @Rule
-    public ExpectedException expected = ExpectedException.none();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         subject = new ConfigLoader();
     }
@@ -30,8 +27,8 @@ public class ConfigLoaderTest {
     public void getConfig_ShouldOverrideDefaultsFromFile() {
 
         TestConfig result = subject
-                .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
-                .getConfig(TestConfig.class);
+            .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
+            .getConfig(TestConfig.class);
 
         assertThat(result.variable()).isEqualTo("fromFile");
     }
@@ -39,8 +36,8 @@ public class ConfigLoaderTest {
     @Test
     public void getConfig_ShouldLoadDefaults_IfFileNotFound() {
         TestConfig result = subject
-                .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.inexistent")
-                .getConfig(TestConfig.class);
+            .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.inexistent")
+            .getConfig(TestConfig.class);
 
         assertThat(result.variable()).isEqualTo("unassigned");
     }
@@ -49,29 +46,30 @@ public class ConfigLoaderTest {
     public void getConfig_ShouldLoadEnumFromFile_InOrder() {
 
         TestConfig result = subject
-                .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
-                .getConfig(TestConfig.class);
+            .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
+            .getConfig(TestConfig.class);
 
         assertThat(result.enums()).containsSequence(TestEnum.VALUE_2, TestEnum.VALUE_1);
     }
 
     @Test
     public void getConfig_ShouldThrowException_IfEnumInexistent() {
-        expected.expect(UnsupportedOperationException.class);
-        TestConfig result = subject
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> {
+            TestConfig result = subject
                 .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
                 .getConfig(TestConfig.class);
 
-        result.enum_inexistent();
+            result.enum_inexistent();
+        });
     }
 
 
-    @Ignore("This test works only if the env var test.environment is defined")
+    @Disabled("This test works only if the env var test.environment is defined")
     public void getConfig_ShouldOverrideFromFileWithEnv() {
 
         TestConfig result = subject
-                .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
-                .getConfig(TestConfig.class);
+            .loadDefaultsFromPropertiesFile("src/test/resources/ConfigLoaderTest.properties")
+            .getConfig(TestConfig.class);
 
         assertThat(result.environment()).isEqualTo("fromEnv");
     }

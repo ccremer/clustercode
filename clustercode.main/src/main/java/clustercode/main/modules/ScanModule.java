@@ -10,7 +10,6 @@ import clustercode.impl.util.di.ModuleHelper;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
-import lombok.var;
 
 import java.util.HashMap;
 import java.util.Map;

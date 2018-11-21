@@ -1,9 +1,11 @@
 package clustercode.api.event;
 
 import clustercode.test.util.CompletableUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,22 +16,25 @@ public class RxEventBusImplTest implements CompletableUnitTest {
 
     private RxEventBusImpl subject;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         subject = new RxEventBusImpl();
     }
 
-    @Test(timeout = 1000)
+    @Test
     public void shouldNotifySubscriber() {
-        String message = "hello";
+        Assertions.assertTimeoutPreemptively(Duration.ofMillis(1000), () -> {
 
-        subject.listenFor(String.class, value -> {
-            assertThat(value).isEqualTo(message);
-            completeOne();
+            String message = "hello";
+
+            subject.listenFor(String.class, value -> {
+                assertThat(value).isEqualTo(message);
+                completeOne();
+            });
+            subject.emit(message);
+
+            waitForCompletion();
         });
-        subject.emit(message);
-
-        waitForCompletion();
     }
 
     @Test
@@ -43,20 +48,22 @@ public class RxEventBusImplTest implements CompletableUnitTest {
 
     }
 
-    @Test(timeout = 1000)
+    @Test
     public void register_ShouldFilter_AndNotifySubscriber() {
-        String message = "hello";
-        Object ignore = new Object();
+        Assertions.assertTimeoutPreemptively(Duration.ofMillis(1000), () -> {
+            String message = "hello";
+            Object ignore = new Object();
 
-        subject.listenFor(String.class, value -> {
-            assertThat(value).isEqualTo(message);
-            completeOne();
+            subject.listenFor(String.class, value -> {
+                assertThat(value).isEqualTo(message);
+                completeOne();
+            });
+
+            subject.emit(message);
+            subject.emit(ignore);
+
+            waitForCompletion();
         });
-
-        subject.emit(message);
-        subject.emit(ignore);
-
-        waitForCompletion();
     }
 
     @Test
@@ -83,7 +90,7 @@ public class RxEventBusImplTest implements CompletableUnitTest {
         assertThat(message.getValue()).isEqualTo(2);
     }
 
-    @Test(timeout = 1000)
+    @Test
     public void emitAsync_ShouldEmitAsynchronously() throws Exception {
         Message message = new Message();
 

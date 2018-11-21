@@ -2,8 +2,8 @@ package clustercode.impl.scan;
 
 import clustercode.api.domain.Media;
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -26,7 +26,7 @@ public class MediaScanServiceImplTest implements FileBasedUnitTest {
 
     private Map<Path, List<Media>> candidates;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();

@@ -1,7 +1,6 @@
 package clustercode.test.integration;
 
 import lombok.extern.slf4j.Slf4j;
-import lombok.var;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 

@@ -1,8 +1,8 @@
 package clustercode.impl.scan;
 
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ public class FileScannerImplTest implements FileBasedUnitTest {
 
     private FileScannerImpl subject;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         setupFileSystem();
         subject = new FileScannerImpl();

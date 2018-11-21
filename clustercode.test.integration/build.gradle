@@ -1,10 +1,11 @@
-version '1.4.0'
+version '2.0.0'
 
 dependencies {
     testCompile project(":${proj_test_util}")
 
     testCompile project(":${proj_test_util}").sourceSets.test.output
     testCompile "${dep_testcontainers}"
+    testCompile "${dep_testcontainers_junit}"
 
     testCompile "org.glassfish.jersey.core:jersey-client:2.27"
     testCompile project(":${proj_main}")

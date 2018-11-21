@@ -3,8 +3,8 @@ package clustercode.impl.constraint;
 import clustercode.api.domain.Media;
 import clustercode.impl.util.InvalidConfigurationException;
 import clustercode.test.util.ClockBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -23,7 +23,7 @@ public class TimeConstraintTest implements ClockBasedUnitTest {
     @Mock
     private ConstraintConfig config;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
     }

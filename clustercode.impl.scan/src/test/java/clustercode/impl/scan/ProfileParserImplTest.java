@@ -2,8 +2,8 @@ package clustercode.impl.scan;
 
 import clustercode.api.domain.Profile;
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,13 +13,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Index.atIndex;
 
 public class ProfileParserImplTest implements FileBasedUnitTest {
 
     private ProfileParserImpl subject;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         subject = new ProfileParserImpl();
         setupFileSystem();
@@ -28,13 +27,13 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     @Test
     public void parseFile_ShouldIgnoreEmptyLine() throws Exception {
         Path testFile = getPath("profile.ffmpeg");
-        String option1 = " option with space";
-        String option2 = "another line";
+        String option1 = " line_without_space";
+        String option2 = "line with space";
         Files.write(testFile, Arrays.asList(option1, "", option2));
 
         List<String> results = subject.parseFile(testFile).get().getArguments();
 
-        assertThat(results).containsExactly("option", "with", "space", "another", "line");
+        assertThat(results).containsExactly("line_without_space", "line with space");
     }
 
     @Test
@@ -46,7 +45,7 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
 
         List<String> results = subject.parseFile(testFile).get().getArguments();
 
-        assertThat(results).containsExactly("another", "line");
+        assertThat(results).containsExactly("another line");
     }
 
     @Test
@@ -137,29 +136,5 @@ public class ProfileParserImplTest implements FileBasedUnitTest {
     public void extractValue_ShouldReturnEmptyString_IfNoValuePresent() throws Exception {
         String testLine = "%{KEY=}";
         assertThat(subject.extractValue(testLine)).isEqualTo("");
-    }
-
-    @Test
-    public void separateWhitespace_ShouldReturnTwoElements() throws Exception {
-        String testLine = "one two";
-        assertThat(subject.separateWhitespace(testLine))
-                .contains("one", atIndex(0))
-                .contains("two", atIndex(1))
-                .hasSize(2);
-    }
-
-    @Test
-    public void separateWhitespace_ShouldReturnOneElement_IfNoWhitespace() throws Exception {
-        String testLine = "one";
-        assertThat(subject.separateWhitespace(testLine))
-                .contains("one", atIndex(0))
-                .hasSize(1);
-    }
-    @Test
-    public void separateWhitespace_ShouldReturnOneElement_IfWhitespaceIsQuoted() throws Exception {
-        String testLine = "\"one two \"";
-        assertThat(subject.separateWhitespace(testLine))
-                .contains("one two ", atIndex(0))
-                .hasSize(1);
     }
 }

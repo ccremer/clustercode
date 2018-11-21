@@ -5,8 +5,8 @@ import clustercode.api.domain.Profile;
 import clustercode.api.scan.ProfileParser;
 import clustercode.impl.scan.ProfileScanConfig;
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
@@ -31,7 +31,7 @@ public class CompanionProfileMatcherTest implements FileBasedUnitTest {
 
     private CompanionProfileMatcher subject;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();

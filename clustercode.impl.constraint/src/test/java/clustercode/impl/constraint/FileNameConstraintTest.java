@@ -2,8 +2,8 @@ package clustercode.impl.constraint;
 
 import clustercode.api.domain.Media;
 import clustercode.test.util.FileBasedUnitTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -18,7 +18,7 @@ public class FileNameConstraintTest implements FileBasedUnitTest {
     @Mock
     private ConstraintConfig config;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         setupFileSystem();

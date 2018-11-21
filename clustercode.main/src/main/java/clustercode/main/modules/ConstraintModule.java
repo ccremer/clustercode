@@ -6,7 +6,6 @@ import clustercode.impl.constraint.*;
 import clustercode.impl.util.InvalidConfigurationException;
 import clustercode.impl.util.di.ModuleHelper;
 import com.google.inject.multibindings.Multibinder;
-import lombok.var;
 
 import java.util.HashMap;
 import java.util.Map;

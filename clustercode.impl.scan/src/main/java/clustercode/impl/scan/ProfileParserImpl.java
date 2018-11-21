@@ -21,8 +21,6 @@ import java.util.stream.Stream;
 public class ProfileParserImpl implements ProfileParser {
 
     public static final Pattern FORMAT_PATTERN = Pattern.compile("%\\{([a-zA-Z]+)=(.*)\\}");
-    // (\S*?"[^"]*"|[^" ]+)\s??
-    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("(\\S*?\"[^\"]*\"|[^\" ]+)\\s??");
 
     @Override
     public Optional<Profile> parseFile(Path path) {
@@ -37,7 +35,6 @@ public class ProfileParserImpl implements ProfileParser {
                     Profile.builder()
                             .arguments(lines.stream()
                                     .filter(this::isNotFieldLine)
-                                    .flatMap(this::separateWhitespaceToStream)
                                     .collect(Collectors.toList()))
                             .fields(lines.stream()
                                     .filter(this::isFieldLine)
@@ -96,24 +93,6 @@ public class ProfileParserImpl implements ProfileParser {
      */
     boolean isNotCommentLine(String s) {
         return !isCommentLine(s);
-    }
-
-
-    /**
-     * Separates any white spaces in the given string, unless quoted in double quotes (which get removed).
-     *
-     * @param s the string, not null.
-     * @return a stream of the split substrings (escaping not supported).
-     */
-    List<String> separateWhitespace(String s) {
-        List<String> items = new ArrayList<>();
-        Matcher m = WHITESPACE_PATTERN.matcher(s);
-        while (m.find()) items.add(m.group(1).replace("\"", ""));
-        return items;
-    }
-
-    private Stream<? extends String> separateWhitespaceToStream(String s) {
-        return separateWhitespace(s).stream();
     }
 
     /**

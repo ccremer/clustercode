@@ -1,30 +1,49 @@
 # This is a ffmpeg template file which encodes in x264 in High Quality.
 # Note: Lines starting with # are comments. Comments within a line are NOT supported.
-
--hide_banner
-# Force yes when overwriting files:
--y
+# Each line is a SINGLE argument. If you provide spaces they will get quoted.
+# Trailing spaces will be removed
 
 # This option is necessary! FFMPEG has input and output options so the order of the option matters.
 # Therefore you have to specify the input in this file.
--i ${INPUT}
+-i
+ ${INPUT}
 
-# copy metadata
-#-map_metadata 0
+# copy
+# metadata
+# -map_metadata
+# 0
 
 # copy chapter markers and set languages to english
--map_chapters 0
--map 0:0 -metadata:s:v:0 language=eng
--map 0:1 -metadata:s:a:0 language=eng
+-map_chapters
+ 0
+
+-map
+ 0:0
+
+-metadata:s:v:0
+ language=eng
+
+-map
+ 0:1
+
+-metadata:s:a:0
+ language=eng
 
 # use x264 encoder
--c:v libx264
--preset medium
+-c:v
+ libx264
+
+-preset
+ medium
+
 # set parameter for libx264
--crf 24
+-crf
+ 24
 
 # copy audio
--c:a copy
+-c:a
+ copy
+
 # copy subtitles
 #-c:s
 
