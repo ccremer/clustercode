@@ -86,7 +86,7 @@ in order to have them persistent.
 
 Clustercode 2.0 is in development as of Jan 2019, no new changes will be made to 1.3 release. I thought that after 
 modularizing I could release 1.4, but that wouldn't add any new features or fixes. Instead, I will focus fully on a 
-new release, which will consist of several microservices. It will also move to a chunk-based parallelization process
+new release, which will consist of several microservices (say hello to Kubernetes!). It will also move to a chunk-based parallelization process
 (1 file chunked into smaller pieces, processed by multiple nodes), which should really bring down the time to encode
 a single job. However those are currently in WIP. Check these repos:
 
