@@ -84,9 +84,19 @@ in order to have them persistent.
 
 ## Project status
 
-Development has slowly resumed in June 2018. Version 1.4.0 will probably not contain new features, but will be an internal
-refactoring that is long overdue. I intend to modularize the design using Gradle subprojects. Maybe even switch to Java 9,
-but definitely separate the Docker images into multi-stage base and gui images.
+Clustercode 2.0 is in development as of Jan 2019, no new changes will be made to 1.3 release. I thought that after 
+modularizing I could release 1.4, but that wouldn't add any new features or fixes. Instead, I will focus fully on a 
+new release, which will consist of several microservices. It will also move to a chunk-based parallelization process
+(1 file chunked into smaller pieces, processed by multiple nodes), which should really bring down the time to encode
+a single job. However those are currently in WIP. Check these repos:
+
+* https://github.com/ccremer/clustercode-worker
+* https://github.com/ccremer/clustercode-docs
+* https://github.com/ccremer/clustercode-admin
+* https://github.com/ccremer/clustercode-api-gateway
+* https://github.com/ccremer/clustercode-netdata (I may scrap that, not sure yet)
+
+If you want to recognize my work and give me some motivation, give a Star in this repo :)
 
 ## Future Plans
 
