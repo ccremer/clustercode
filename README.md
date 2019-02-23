@@ -25,7 +25,10 @@ have a spare Raspberry Pi or NAS that is just poor at encoding.
 
 I hate long `docker run` commands with tons of arguments, so here is a docker-compose template:
 
-### Docker Compose, non-swarm mode
+### Docker Compose
+
+| WARNING: To use the latest stable release, switch to the 1.3 branch! The config below is broken. |
+| --- |
 
 ```yaml
 version: "2.2"
@@ -70,8 +73,6 @@ services:
       - N_ENABLE_NODE_D=yes
       - N_HOSTNAME=clustercode
 ```
-The external IP address is needed so that other nodes will be available to
-contact the local node. Use the physical address of the docker host.
 
 ## Configuration
 
@@ -84,8 +85,9 @@ in order to have them persistent.
 
 ## Project status
 
-Clustercode 2.0 is in development as of Jan 2019, no new changes will be made to 1.3 release. I thought that after 
-modularizing I could release 1.4, but that wouldn't add any new features or fixes. Instead, I will focus fully on a 
+Clustercode 2.0 is on hold as of March 2019 and no new changes will be made to 1.3 release. Currently I'm busy with private and work life. 
+
+I thought that after modularizing I could release 1.4, but that wouldn't add any new features or fixes. Instead, I will focus fully on a 
 new release, which will consist of several microservices (say hello to Kubernetes!). It will also move to a chunk-based parallelization process
 (1 file chunked into smaller pieces, processed by multiple nodes), which should really bring down the time to encode
 a single job. However those are currently in WIP. Check these repos:
@@ -96,16 +98,14 @@ a single job. However those are currently in WIP. Check these repos:
 * https://github.com/ccremer/clustercode-api-gateway
 * https://github.com/ccremer/clustercode-netdata (I may scrap that, not sure yet)
 
-If you want to recognize my work and give me some motivation, give a Star in this repo :)
-
 ## Future Plans
 
 Head over here: https://github.com/ccremer/clustercode/projects
 
 ## Docker Tags
 
-* experimental: latest automated build of the master branch
-* latest: stable build of a tagged commit from a release
+* dev: latest automated build of the master branch
+* 1.3.2: stable build of a tagged commit from a release
 * tagged: tags following the 1.x.x pattern are specific releases
 
 ## SSL
