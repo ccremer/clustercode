@@ -32,7 +32,7 @@ version: "2.2"
 services:
   clustercode:
     restart: always
-    image: braindoctor/clustercode:latest
+    image: braindoctor/clustercode:1.3.2
     container_name: clustercode
     cpu_shares: 512
     ports:
@@ -52,36 +52,6 @@ services:
 The external IP address is needed so that other nodes will be available to
 contact the local node. Use the physical address of the docker host.
 
-### Docker Compose, Swarm mode
-
-**This is untested**, as I don't have a Swarm. Just make sure to limit the CPU
-resources somehow, so that other containers still work reliably. I'm assuming that
-encoding is a low-priority service that takes forever anyway.
-```
-version: "3.2"
-services:
-  clustercode:
-    image: braindoctor/clustercode:stable
-    ports:
-      - "7600:7600/tcp"
-      - "7600:7600/udp"
-    volumes:
-      - "/path/to/input:/input"
-      - "/path/to/output:/output"
-      - "/path/to/profiles:/profiles"
-# If you need modifications to the xml files, persist them:
-#      - "/path/to/config:/usr/src/clustercode/config"
-    deploy:
-      restart_policy:
-        condition: any
-        max_attempts: 3
-        window: 30s
-        delay: 3s
-      resources:
-        limits:
-          cpus: "3"
-```
-
 ## Configuration
 
 When you first start the container using docker compose, it will create a default configuration
@@ -91,25 +61,9 @@ modify the settings via Environment variables (same key/values syntax). Environm
 over the ones in `clustercode.properties`. If you made changes to the XML files, you need to mount a path from outside
 in order to have them persistent.
 
-## Project status
-
-Sporadic Maintenance as of February 2018.
-
 ## Future Plans
 
-- [x] Monitoring with a REST API.
-- [x] [netdata](https://my-netdata.io/) plugin for progress monitoring.
-- [x] Smooth-ier Windows deployment.
-- [x] Web-Admin
-- [ ] Remove the state-machine library, replace it with RxJava.
-- [ ] Separate the docker image into base, backend and frontend images.
-- [ ] More node control features in Web-Admin.
-
-## Docker Tags
-
-* experimental: latest automated build of the master branch
-* latest: stable build of a tagged commit from a release
-* tagged: tags following the 1.x.x pattern are specific releases
+see master branch / github projects
 
 ## SSL
 
