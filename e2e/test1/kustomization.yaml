@@ -1,0 +1,11 @@
+resources:
+- ../../config/manager
+- ../../config/rbac
+patchesStrategicMerge:
+- deployment.yaml
+namespace: clustercode-system
+namePrefix: clustercode-
+
+commonLabels:
+  app.kubernetes.io/name: e2e
+  app.kubernetes.io/managed-by: kustomize
