@@ -1,6 +1,0 @@
-version '1.0.0'
-
-dependencies {
-    compile project(":${proj_api_domain}")
-    compile project(":${proj_impl_util}")
-}
