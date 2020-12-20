@@ -218,6 +218,11 @@ func (in *EncodeSpec) DeepCopyInto(out *EncodeSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.TranscodeFfmpegArgs != nil {
+		in, out := &in.TranscodeFfmpegArgs, &out.TranscodeFfmpegArgs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.MergeFfmpegArgs != nil {
 		in, out := &in.MergeFfmpegArgs, &out.MergeFfmpegArgs
 		*out = make([]string, len(*in))

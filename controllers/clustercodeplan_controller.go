@@ -35,11 +35,11 @@ func (r *ClustercodePlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=encodingplans,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=encodingplans/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodeplans,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodeplans/status,verbs=get;update;patch
 func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, returnErr error) {
 	rc := ReconciliationContext{
-		ctx: ctx,
+		ctx:  ctx,
 		plan: &v1alpha1.ClustercodePlan{},
 	}
 	err := r.Client.Get(ctx, req.NamespacedName, rc.plan)
@@ -51,5 +51,6 @@ func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
 	}
+
 	return ctrl.Result{}, nil
 }

@@ -54,6 +54,8 @@ spec:
                     items:
                       type: string
                     type: array
+                  sliceSize:
+                    type: integer
                   splitFfmpegArgs:
                     default:
                     - -i
@@ -70,10 +72,23 @@ spec:
                     items:
                       type: string
                     type: array
+                  transcodeArgs:
+                    default:
+                    - -i
+                    - '"${INPUT}"'
+                    - -c:v
+                    - copy
+                    - -c:a
+                    - copy
+                    - '"${OUTPUT}"'
+                    items:
+                      type: string
+                    type: array
                 required:
                 - defaultFfmpegArgs
                 - mergeFfmpegArgs
                 - splitFfmpegArgs
+                - transcodeArgs
                 type: object
               sourceUrl:
                 type: string

@@ -54,6 +54,8 @@ spec:
                     items:
                       type: string
                     type: array
+                  sliceSize:
+                    type: integer
                   splitFfmpegArgs:
                     default:
                     - -i
@@ -70,18 +72,29 @@ spec:
                     items:
                       type: string
                     type: array
+                  transcodeArgs:
+                    default:
+                    - -i
+                    - '"${INPUT}"'
+                    - -c:v
+                    - copy
+                    - -c:a
+                    - copy
+                    - '"${OUTPUT}"'
+                    items:
+                      type: string
+                    type: array
                 required:
                 - defaultFfmpegArgs
                 - mergeFfmpegArgs
                 - splitFfmpegArgs
+                - transcodeArgs
                 type: object
               maxParallelTasks:
                 default: 1
                 type: integer
-              scanIntervalMinutes:
-                default: 1
-                format: int64
-                type: integer
+              scanSchedule:
+                type: string
               scanSpec:
                 properties:
                   mediaFileExtensions:
@@ -999,6 +1012,8 @@ spec:
                 type: string
               suspend:
                 type: boolean
+            required:
+            - scanSchedule
             type: object
           status:
             properties:
