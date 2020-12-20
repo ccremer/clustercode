@@ -8,6 +8,10 @@ type (
 
 	// EncodingTaskSpec defines the desired state of Archive.
 	ClustercodeTaskSpec struct {
+		SourceUrl string `json:"sourceUrl,omitempty"`
+		TargetUrl string `json:"targetUrl,omitempty"`
+		Suspend bool `json:"suspend,omitempty"`
+		EncodeSpec `json:"encodeSpec"`
 	}
 
 	// ClustercodePlan is the Schema for the archives API
@@ -28,7 +32,10 @@ type (
 		Items           []ClustercodeTask `json:"items"`
 	}
 	ClustercodeTaskStatus struct {
-		Conditions []metav1.Condition `json:"conditions,omitempty"`
+		Conditions          []metav1.Condition `json:"conditions,omitempty"`
+		SourceMediaFileName string             `json:"sourceMediaFileName,omitempty"`
+		TargetMediaFileName string             `json:"targetMediaFileName,omitempty"`
+		SliceCount          int                `json:"sliceCount,omitempty"`
 	}
 )
 

@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,7 +40,16 @@ func (r *ClustercodePlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, returnErr error) {
 	rc := ReconciliationContext{
 		ctx: ctx,
+		plan: &v1alpha1.ClustercodePlan{},
 	}
-
+	err := r.Client.Get(ctx, req.NamespacedName, rc.plan)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
+	}
 	return ctrl.Result{}, nil
 }

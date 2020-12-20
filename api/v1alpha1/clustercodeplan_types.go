@@ -6,12 +6,39 @@ import (
 )
 
 type (
-	// ClustercodePlanSpec defines the desired state of Archive.
+	// ClustercodePlanSpec specifies a Clustercode
 	ClustercodePlanSpec struct {
-		// +kubebuilder:default=1
-		ScanIntervalSeconds int64 `json:"scanIntervalMinutes,omitempty"`
+		ScanSchedule string `json:"scanSchedule"`
 		// +kubebuilder:validation:Required
 		SourceVolume corev1.Volume `json:"sourceVolume,omitempty"`
+		// +kubebuilder:validation:Required
+		SourceVolumeSubdir string `json:"sourceVolumeSubdir,omitempty"`
+
+		// +kubebuilder:default=1
+		MaxParallelTasks int `json:"maxParallelTasks,omitempty"`
+
+		Suspend bool `json:"suspend,omitempty"`
+
+		ScanSpec   ScanSpec   `json:"scanSpec,omitempty"`
+		EncodeSpec EncodeSpec `json:"encodeSpec,omitempty"`
+	}
+
+	ScanSpec struct {
+		// +kubebuilder:default=mkv;mp4;avi
+		MediaFileExtensions []string `json:"mediaFileExtensions,omitempty"`
+	}
+
+	EncodeSpec struct {
+		// +kubebuilder:default=-y;-hide_banner;-nostats
+		DefaultFfmpegArgs []string `json:"defaultFfmpegArgs"`
+		// +kubebuilder:default=-i;"\"${INPUT}\"";-c;copy;-map;0;-segment_time;"\"${SLICE_SIZE}\"";-f;segment;"\"${OUTPUT}\""
+		SplitFfmpegArgs []string `json:"splitFfmpegArgs"`
+		// +kubebuilder:default=-i;"\"${INPUT}\"";"-c:v";copy;"-c:a";copy;"\"${OUTPUT}\""
+		TranscodeFfmpegArgs []string `json:"transcodeArgs"`
+		// +kubebuilder:default=-f;concat;-i;concat.txt;-c;copy;media_out.mkv
+		MergeFfmpegArgs []string `json:"mergeFfmpegArgs"`
+
+		SliceSize int `json:"sliceSize,omitempty"`
 	}
 
 	// ClustercodePlan is the Schema for the archives API

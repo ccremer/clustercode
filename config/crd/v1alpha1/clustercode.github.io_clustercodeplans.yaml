@@ -30,12 +30,69 @@ spec:
           metadata:
             type: object
           spec:
-            description: ClustercodePlanSpec defines the desired state of Archive.
+            description: ClustercodePlanSpec specifies a Clustercode
             properties:
+              encodeSpec:
+                properties:
+                  defaultFfmpegArgs:
+                    default:
+                    - -y
+                    - -hide_banner
+                    - -nostats
+                    items:
+                      type: string
+                    type: array
+                  mergeFfmpegArgs:
+                    default:
+                    - -f
+                    - concat
+                    - -i
+                    - concat.txt
+                    - -c
+                    - copy
+                    - media_out.mkv
+                    items:
+                      type: string
+                    type: array
+                  splitFfmpegArgs:
+                    default:
+                    - -i
+                    - '"${INPUT}"'
+                    - -c
+                    - copy
+                    - -map
+                    - "0"
+                    - -segment_time
+                    - '"${SLICE_SIZE}"'
+                    - -f
+                    - segment
+                    - '"${OUTPUT}"'
+                    items:
+                      type: string
+                    type: array
+                required:
+                - defaultFfmpegArgs
+                - mergeFfmpegArgs
+                - splitFfmpegArgs
+                type: object
+              maxParallelTasks:
+                default: 1
+                type: integer
               scanIntervalMinutes:
                 default: 1
                 format: int64
                 type: integer
+              scanSpec:
+                properties:
+                  mediaFileExtensions:
+                    default:
+                    - mkv
+                    - mp4
+                    - avi
+                    items:
+                      type: string
+                    type: array
+                type: object
               sourceVolume:
                 description: Volume represents a named volume in a pod that may be accessed by any container in the pod.
                 properties:
@@ -938,6 +995,10 @@ spec:
                 required:
                 - name
                 type: object
+              sourceVolumeSubdir:
+                type: string
+              suspend:
+                type: boolean
             type: object
           status:
             properties:

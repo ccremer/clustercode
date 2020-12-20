@@ -16,6 +16,7 @@ var (
 func NewDefaultConfig() *Configuration {
 	return &Configuration{
 		EnableLeaderElection: true,
+		MetricsBindAddress: ":9090",
 	}
 }
 
