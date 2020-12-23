@@ -24,6 +24,8 @@ func init() {
 	// +kubebuilder:scaffold:scheme
 
 	operateCmd.PersistentFlags().String("operator.metrics-bind-address", cfg.Config.Operator.MetricsBindAddress, "Prometheus metrics bind address")
+	operateCmd.PersistentFlags().String("operator.watch-namespace", cfg.Config.Operator.WatchNamespace,
+		"Restrict watching objects to the specified namespace. Watches all namespaces if left empty")
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {
@@ -35,6 +37,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		Port:               9443,
 		LeaderElection:     cfg.Config.Operator.EnableLeaderElection,
 		LeaderElectionID:   "clustercode.github.io",
+		Namespace:          cfg.Config.Operator.WatchNamespace,
 	})
 	if err != nil {
 		return fmt.Errorf("unable to start operator: %w", err)
@@ -55,4 +58,3 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	}
 	return nil
 }
-

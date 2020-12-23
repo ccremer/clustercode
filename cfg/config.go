@@ -12,6 +12,7 @@ type (
 
 		// Enabling this will ensure there is only one active controller manager.
 		EnableLeaderElection bool `koanf:"enable-leader-election"`
+		WatchNamespace string `koanf:"watch-namespace"`
 	}
 	LogConfig struct {
 		Debug bool `koanf:"debug"`
