@@ -37,7 +37,7 @@ ENABLE_LEADER_ELECTION ?= false
 # Image URL to use all building/pushing image targets
 DOCKER_IMG ?= docker.io/ccremer/clustercode:$(IMG_TAG)
 QUAY_IMG ?= quay.io/ccremer/clustercode:$(IMG_TAG)
-E2E_IMG ?= localhost:$(KIND_REGISTRY_PORT)/ccremer/clustercode:e2e
+E2E_IMG ?= localhost:$(KIND_REGISTRY_PORT)/clustercode/operator:e2e
 
 build_cmd ?= CGO_ENABLED=0 go build -o $(BIN_FILENAME) main.go
 
@@ -111,6 +111,7 @@ lint: fmt vet ## Invokes the fmt and vet targets
 	git diff --exit-code
 
 # Build the binary without running generators
+.PHONY: $(BIN_FILENAME)
 $(BIN_FILENAME):
 	$(build_cmd)
 

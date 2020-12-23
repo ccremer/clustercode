@@ -4,6 +4,7 @@ package cfg
 type (
 	Configuration struct {
 		Operator OperatorConfig
+		Scan     ScanConfig
 		Log      LogConfig
 	}
 	OperatorConfig struct {
@@ -16,7 +17,10 @@ type (
 		Debug bool `koanf:"debug"`
 	}
 	ScanConfig struct {
+		ClusterRoleName     string `koanf:"cluster-role-name"`
 		ClustercodePlanName string `koanf:"clustercode-plan-name"`
+		Namespace           string `koanf:"namespace"`
+		SourceRoot          string `koanf:"source-root"`
 	}
 )
 
@@ -28,8 +32,11 @@ var (
 func NewDefaultConfig() *Configuration {
 	return &Configuration{
 		Operator: OperatorConfig{
-			MetricsBindAddress:   ":9090",
-			EnableLeaderElection: false,
+			MetricsBindAddress: ":9090",
+		},
+		Scan: ScanConfig{
+			SourceRoot: "/clustercode",
+			ClusterRoleName: "clustercode-clustercodeplan-editor-role",
 		},
 	}
 }

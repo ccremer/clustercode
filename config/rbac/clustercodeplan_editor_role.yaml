@@ -1,0 +1,26 @@
+# permissions for end users to edit clustercodeplans.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clustercodeplan-editor-role
+rules:
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans/status
+    verbs:
+      - get
+      - patch
+      - update

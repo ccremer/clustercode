@@ -30,7 +30,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: EncodingTaskSpec defines the desired state of Archive.
+            description: EncodingTaskSpec defines the desired state of ClustercodeTask.
             properties:
               encodeSpec:
                 properties:

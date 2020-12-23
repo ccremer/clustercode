@@ -6,7 +6,14 @@ metadata:
   namespace: system
 spec:
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/version: $RANDOM
     spec:
       containers:
       - name: clustercode
-        image: localhost:5000/ccremer/clustercode:e2e
+        image: localhost:5000/clustercode/operator:e2e
+        imagePullPolicy: Always
+        args:
+        - operate
+        - -v

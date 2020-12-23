@@ -23,10 +23,5 @@ spec:
       containers:
       - name: clustercode
         image: quay.io/ccremer/clustercode:latest
-        resources:
-          limits:
-            cpu: 300m
-            memory: 100Mi
-          requests:
-            cpu: 100m
-            memory: 20Mi
+        args:
+        - operate

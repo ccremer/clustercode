@@ -4,10 +4,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/ccremer/clustercode/cfg"
@@ -16,7 +12,6 @@ import (
 
 // operateCmd represents the operate command
 var (
-	scheme     = runtime.NewScheme()
 	operateCmd = &cobra.Command{
 		Use:   "operate",
 		Short: "Starts Clustercode in Operator mode",
@@ -26,9 +21,6 @@ var (
 
 func init() {
 	rootCmd.AddCommand(operateCmd)
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-
-	utilruntime.Must(batchv1.AddToScheme(scheme))
 	// +kubebuilder:scaffold:scheme
 
 	operateCmd.PersistentFlags().String("operator.metrics-bind-address", cfg.Config.Operator.MetricsBindAddress, "Prometheus metrics bind address")
@@ -36,6 +28,7 @@ func init() {
 
 func startOperator(cmd *cobra.Command, args []string) error {
 
+	registerScheme()
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: cfg.Config.Operator.MetricsBindAddress,
@@ -62,3 +55,4 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	}
 	return nil
 }
+

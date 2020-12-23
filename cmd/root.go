@@ -45,7 +45,7 @@ func Execute() {
 }
 
 func initRootConfig() {
-	if err := bindFlags(rootCmd.Flags()); err !=nil {
+	if err := bindFlags(rootCmd.Flags()); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
