@@ -4,12 +4,21 @@ metadata:
   name: test-plan
 spec:
   scanSchedule: "*/1 * * * *"
-  sourcePvcRef: test2-claim
-  sourceVolumeSubdir: source
+  storage:
+    sourcePvc:
+      claimName: test2-claim
+      subPath: source
+    intermediatePvc:
+      claimName: test2-claim
+      subPath: intermediate
+    targetPvc:
+      claimName: test2-claim
+      subPath: target
   scanSpec:
     mediaFileExtensions:
       - mp4
   encodeSpec:
+    slizeSize: 20
     defaultCommandArgs:
       - -y
       - -hide_banner
@@ -22,7 +31,7 @@ spec:
       - map
       - "0"
       - -segment_time
-      - ${SLIZE_SIZE}
+      - ${SLICE_SIZE}
       - -f
       - segment
       - ${OUTPUT}

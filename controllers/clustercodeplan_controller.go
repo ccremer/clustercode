@@ -13,6 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
+	"k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -113,7 +114,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									},
 									Image: "localhost:5000/clustercode/operator:e2e",
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.SourceVolumeSubdir},
+										{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
 									},
 								},
 							},
@@ -122,7 +123,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									Name: "source",
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: rc.plan.Spec.SourcePvcRef,
+											ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
 										},
 									},
 								},
@@ -180,10 +181,10 @@ func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *Clusterco
 }
 
 func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ClustercodePlanContext) (rbacv1.RoleBinding, corev1.ServiceAccount) {
-	saName := rc.plan.Name + "-clustercode"
+	saName := rc.plan.GetServiceAccountName()
 	roleBinding := rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      saName + "-rolebinding",
+			Name:      strings.ShortenString(saName, 51) + "-rolebinding",
 			Namespace: rc.plan.Namespace,
 			Labels:    ClusterCodeLabels,
 		},

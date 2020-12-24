@@ -122,13 +122,44 @@ spec:
                       type: string
                     type: array
                 type: object
-              sourcePvcRef:
-                type: string
-              sourceVolumeSubdir:
-                type: string
+              storage:
+                properties:
+                  intermediatePvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                  sourcePvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                  targetPvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                required:
+                - intermediatePvc
+                - sourcePvc
+                - targetPvc
+                type: object
               suspend:
                 type: boolean
             required:
+            - maxParallelTasks
             - scanSchedule
             type: object
           status:

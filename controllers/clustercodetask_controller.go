@@ -2,15 +2,21 @@ package controllers
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
@@ -27,6 +33,7 @@ type (
 	ClustercodeTaskContext struct {
 		ctx  context.Context
 		task *v1alpha1.ClustercodeTask
+		plan *v1alpha1.ClustercodePlan
 		log  logr.Logger
 	}
 )
@@ -60,7 +67,90 @@ func (r *ClustercodeTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
 	}
 	rc.log = r.Log.WithValues("task", req.NamespacedName)
-	//r.handleTask(rc)
+
+	if err := r.handleTask(rc); err != nil {
+		return ctrl.Result{}, err
+	}
 	rc.log.Info("reconciled task")
 	return ctrl.Result{}, nil
+}
+
+func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error {
+	rc.plan = &v1alpha1.ClustercodePlan{}
+	if err := r.Client.Get(rc.ctx, r.getOwner(rc), rc.plan); err != nil {
+		return err
+	}
+	variables := map[string]string{
+		"${INPUT}":      rc.task.Spec.SourceUrl,
+		"${OUTPUT}":     rc.task.Spec.TargetUrl,
+		"${SLICE_SIZE}": strconv.Itoa(rc.task.Spec.EncodeSpec.SliceSize),
+	}
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      rc.task.Name + "-split",
+			Namespace: rc.task.Namespace,
+			Labels:    ClusterCodeLabels,
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: pointer.Int32Ptr(0),
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					ServiceAccountName: rc.plan.GetServiceAccountName(),
+					RestartPolicy:      corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:            "ffmpeg",
+							Image:           "docker.io/jrottenberg/ffmpeg:4.1-alpine",
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Args:            mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
+							VolumeMounts: []corev1.VolumeMount{
+								{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
+								{Name: "intermediate", MountPath: "/clustercode/intermediate", SubPath: rc.plan.Spec.Storage.IntermediatePvc.SubPath},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: "source",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
+								},
+							},
+						},
+						{
+							Name: "intermediate",
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: rc.plan.Spec.Storage.IntermediatePvc.ClaimName,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
+	}
+	if err := r.Client.Create(rc.ctx, job); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			rc.log.Info("skip creating job, it already exists", "job", job.Name)
+		} else {
+			rc.log.Error(err, "could not create job", "job", job.Name)
+		}
+	} else {
+		rc.log.Info("job created", "job", job.Name)
+	}
+	return nil
+}
+
+func (r *ClustercodeTaskReconciler) getOwner(rc *ClustercodeTaskContext) types.NamespacedName {
+	for _, owner := range rc.task.GetOwnerReferences() {
+		if pointer.BoolPtrDerefOr(owner.Controller, false) {
+			return types.NamespacedName{Namespace: rc.task.Namespace, Name: owner.Name}
+		}
+	}
+	return types.NamespacedName{}
 }

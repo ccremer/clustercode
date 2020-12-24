@@ -4,6 +4,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+func init() {
+	SchemeBuilder.Register(&ClustercodeTask{}, &ClustercodeTaskList{})
+}
+
 type (
 	// +kubebuilder:object:root=true
 	// +kubebuilder:subresource:status
@@ -32,18 +36,17 @@ type (
 
 	// EncodingTaskSpec defines the desired state of ClustercodeTask.
 	ClustercodeTaskSpec struct {
-		SourceUrl  string     `json:"sourceUrl,omitempty"`
-		TargetUrl  string     `json:"targetUrl,omitempty"`
-		Suspend    bool       `json:"suspend,omitempty"`
-		EncodeSpec EncodeSpec `json:"encodeSpec"`
+		StorageSpec StorageSpec `json:"storageSpec,omitempty"`
+		SourceUrl   string      `json:"sourceUrl,omitempty"`
+		TargetUrl   string      `json:"targetUrl,omitempty"`
+		Suspend     bool        `json:"suspend,omitempty"`
+		EncodeSpec  EncodeSpec  `json:"encodeSpec"`
 	}
 
 	ClustercodeTaskStatus struct {
-		Conditions []metav1.Condition `json:"conditions,omitempty"`
-		SliceCount int                `json:"sliceCount,omitempty"`
+		Conditions      []metav1.Condition `json:"conditions,omitempty"`
+		SlicesPlanned   int                `json:"slicesPlanned,omitempty"`
+		SlicesScheduled int                `json:"slicesSchedules,omitempty"`
+		SlicesFinished  int                `json:"slicesFinished,omitempty"`
 	}
 )
-
-func init() {
-	SchemeBuilder.Register(&ClustercodeTask{}, &ClustercodeTaskList{})
-}

@@ -11,6 +11,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
+	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	controllerclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -71,7 +72,13 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	files, err := scanSourceForMedia(plan)
+	tasks, err := getCurrentTasks(plan)
+	if err != nil {
+		return err
+	}
+	scanLog.Info("get list of current tasks", "tasks", tasks)
+	existingFiles := mapAndfilterTasks(tasks, plan)
+	files, err := scanSourceForMedia(plan, existingFiles)
 	if err != nil {
 		return err
 	}
@@ -84,14 +91,14 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	task := &v1alpha1.ClustercodeTask{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cfg.Config.Scan.Namespace,
-			Name: string(uuid.NewUUID()),
-			Labels: controllers.ClusterCodeLabels,
+			Name:      string(uuid.NewUUID()),
+			Labels:    controllers.ClusterCodeLabels,
 		},
-		Spec:       v1alpha1.ClustercodeTaskSpec{
+		Spec: v1alpha1.ClustercodeTaskSpec{
 			SourceUrl:  files[0],
 			TargetUrl:  files[0],
-			Suspend:    false,
 			EncodeSpec: plan.Spec.EncodeSpec,
+			StorageSpec: plan.Spec.Storage,
 		},
 	}
 	if err := controllerutil.SetControllerReference(plan, task.GetObjectMeta(), scheme); err != nil {
@@ -105,7 +112,39 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func scanSourceForMedia(plan *v1alpha1.ClustercodePlan) (files []string, funcErr error) {
+func mapAndfilterTasks(tasks []v1alpha1.ClustercodeTask, plan *v1alpha1.ClustercodePlan) []string {
+
+	var sourceFiles []string
+	for _, task := range tasks {
+		if task.GetDeletionTimestamp() != nil {
+			continue
+		}
+		sourceFiles = append(sourceFiles, task.Spec.SourceUrl)
+	}
+
+	return sourceFiles
+}
+
+func getCurrentTasks(plan *v1alpha1.ClustercodePlan) ([]v1alpha1.ClustercodeTask, error) {
+	list := v1alpha1.ClustercodeTaskList{}
+	err := client.List(context.Background(), &list,
+		controllerclient.MatchingLabels(controllers.ClusterCodeLabels),
+		controllerclient.InNamespace(plan.Namespace))
+	if err != nil {
+		return list.Items, err
+	}
+	var tasks []v1alpha1.ClustercodeTask
+	for _, task := range list.Items {
+		for _, owner := range task.GetOwnerReferences() {
+			if pointer.BoolPtrDerefOr(owner.Controller, false) && owner.Name == plan.Name {
+				tasks = append(tasks, task)
+			}
+		}
+	}
+	return list.Items, err
+}
+
+func scanSourceForMedia(plan *v1alpha1.ClustercodePlan, skipFiles []string) (files []string, funcErr error) {
 	root := cfg.Config.Scan.SourceRoot
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -118,6 +157,12 @@ func scanSourceForMedia(plan *v1alpha1.ClustercodePlan) (files []string, funcErr
 		if !containsExtension(filepath.Ext(path), plan.Spec.ScanSpec.MediaFileExtensions) {
 			scanLog.V(1).Info("file extension not accepted", "path", path)
 			return nil
+		}
+		for _, skipFile := range skipFiles {
+			if skipFile == path {
+				scanLog.V(1).Info("skipping already queued file", "path", path)
+				return nil
+			}
 		}
 
 		files = append(files, path)

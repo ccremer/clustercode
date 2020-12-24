@@ -108,6 +108,40 @@ spec:
                 type: object
               sourceUrl:
                 type: string
+              storageSpec:
+                properties:
+                  intermediatePvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                  sourcePvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                  targetPvc:
+                    properties:
+                      claimName:
+                        type: string
+                      subPath:
+                        type: string
+                    required:
+                    - claimName
+                    type: object
+                required:
+                - intermediatePvc
+                - sourcePvc
+                - targetPvc
+                type: object
               suspend:
                 type: boolean
               targetUrl:
@@ -160,7 +194,11 @@ spec:
                   - type
                   type: object
                 type: array
-              sliceCount:
+              slicesFinished:
+                type: integer
+              slicesPlanned:
+                type: integer
+              slicesSchedules:
                 type: integer
             type: object
         type: object
