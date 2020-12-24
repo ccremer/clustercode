@@ -40,7 +40,7 @@ type (
 		// +kubebuilder:validation:Required
 		Storage StorageSpec `json:"storage,omitempty"`
 		// +kubebuilder:default=1
-		MaxParallelTasks int `json:"maxParallelTasks"`
+		MaxParallelTasks int `json:"maxParallelTasks,omitempty"`
 
 		Suspend bool `json:"suspend,omitempty"`
 

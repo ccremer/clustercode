@@ -77,7 +77,7 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	scanLog.Info("get list of current tasks", "tasks", tasks)
-	existingFiles := mapAndfilterTasks(tasks, plan)
+	existingFiles := mapAndFilterTasks(tasks, plan)
 	files, err := scanSourceForMedia(plan, existingFiles)
 	if err != nil {
 		return err
@@ -88,6 +88,8 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
+	selectedFile, err := filepath.Rel(filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath), files[0])
+
 	task := &v1alpha1.ClustercodeTask{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cfg.Config.Scan.Namespace,
@@ -95,9 +97,9 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 			Labels:    controllers.ClusterCodeLabels,
 		},
 		Spec: v1alpha1.ClustercodeTaskSpec{
-			SourceUrl:  files[0],
-			TargetUrl:  files[0],
-			EncodeSpec: plan.Spec.EncodeSpec,
+			SourceUrl:   v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
+			TargetUrl:   v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
+			EncodeSpec:  plan.Spec.EncodeSpec,
 			StorageSpec: plan.Spec.Storage,
 		},
 	}
@@ -112,17 +114,21 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func mapAndfilterTasks(tasks []v1alpha1.ClustercodeTask, plan *v1alpha1.ClustercodePlan) []string {
+func mapAndFilterTasks(tasks []v1alpha1.ClustercodeTask, plan *v1alpha1.ClustercodePlan) []string {
 
 	var sourceFiles []string
 	for _, task := range tasks {
 		if task.GetDeletionTimestamp() != nil {
 			continue
 		}
-		sourceFiles = append(sourceFiles, task.Spec.SourceUrl)
+		sourceFiles = append(sourceFiles, getAbsolutePath(task.Spec.SourceUrl))
 	}
 
 	return sourceFiles
+}
+
+func getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
+	return filepath.Join(cfg.Config.Scan.SourceRoot, uri.GetRoot(), uri.GetPath())
 }
 
 func getCurrentTasks(plan *v1alpha1.ClustercodePlan) ([]v1alpha1.ClustercodeTask, error) {
@@ -145,7 +151,7 @@ func getCurrentTasks(plan *v1alpha1.ClustercodePlan) ([]v1alpha1.ClustercodeTask
 }
 
 func scanSourceForMedia(plan *v1alpha1.ClustercodePlan, skipFiles []string) (files []string, funcErr error) {
-	root := cfg.Config.Scan.SourceRoot
+	root := filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// could not access file, let's prevent a panic

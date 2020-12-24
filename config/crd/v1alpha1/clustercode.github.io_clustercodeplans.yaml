@@ -159,7 +159,6 @@ spec:
               suspend:
                 type: boolean
             required:
-            - maxParallelTasks
             - scanSchedule
             type: object
           status:

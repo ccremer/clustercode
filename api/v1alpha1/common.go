@@ -1,5 +1,13 @@
 package v1alpha1
 
+import (
+	"fmt"
+	"net/url"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/util/runtime"
+)
+
 type (
 	StorageSpec struct {
 		SourcePvc       ClusterCodeVolumeRef `json:"sourcePvc"`
@@ -23,4 +31,36 @@ type (
 
 		SliceSize int `json:"sliceSize,omitempty"`
 	}
+	ClusterCodeUrl string
 )
+
+func ToUrl(root, path string) ClusterCodeUrl {
+	newUrl, err := url.Parse(fmt.Sprintf("cc://%s/%s", root, strings.Replace(path, root, "", 1)))
+	runtime.Must(err)
+	return ClusterCodeUrl(newUrl.String())
+}
+
+func (u ClusterCodeUrl) GetRoot() string {
+	parsed, err := url.Parse(string(u))
+	if err != nil {
+		return ""
+	}
+	return parsed.Host
+}
+
+func (u ClusterCodeUrl) GetPath() string {
+	parsed, err := url.Parse(string(u))
+	if err != nil {
+		return ""
+	}
+	return parsed.Path
+}
+
+func (u ClusterCodeUrl) StripSubPath(subpath string) string {
+	path := u.GetPath()
+	return strings.Replace(path, subpath, "", 1)
+}
+
+func (u ClusterCodeUrl) String() string {
+	return string(u)
+}

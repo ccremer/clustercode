@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -76,20 +77,40 @@ func (r *ClustercodeTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 }
 
 func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error {
+	if rc.task.Status.SlicesPlanned == 0 {
+		return r.createSplitJob(rc)
+	}
+
+	return nil
+}
+
+func (r *ClustercodeTaskReconciler) getOwner(rc *ClustercodeTaskContext) types.NamespacedName {
+	for _, owner := range rc.task.GetOwnerReferences() {
+		if pointer.BoolPtrDerefOr(owner.Controller, false) {
+			return types.NamespacedName{Namespace: rc.task.Namespace, Name: owner.Name}
+		}
+	}
+	return types.NamespacedName{}
+}
+
+func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) error {
+
 	rc.plan = &v1alpha1.ClustercodePlan{}
 	if err := r.Client.Get(rc.ctx, r.getOwner(rc), rc.plan); err != nil {
 		return err
 	}
+	sourceMountRoot := filepath.Join("/clustercode)", SourceSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode)", IntermediateSubMountPath)
 	variables := map[string]string{
-		"${INPUT}":      rc.task.Spec.SourceUrl,
-		"${OUTPUT}":     rc.task.Spec.TargetUrl,
+		"${INPUT}":      filepath.Join(sourceMountRoot, rc.task.Spec.SourceUrl.GetPath()),
+		"${OUTPUT}":     getSegmentFileNameTemplate(rc, intermediateMountRoot),
 		"${SLICE_SIZE}": strconv.Itoa(rc.task.Spec.EncodeSpec.SliceSize),
 	}
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.task.Name + "-split",
 			Namespace: rc.task.Namespace,
-			Labels:    ClusterCodeLabels,
+			Labels:    mergeLabels(ClusterCodeLabels, ClusterCodeSplitLabels),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
@@ -104,14 +125,14 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
 							VolumeMounts: []corev1.VolumeMount{
-								{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
-								{Name: "intermediate", MountPath: "/clustercode/intermediate", SubPath: rc.plan.Spec.Storage.IntermediatePvc.SubPath},
+								{Name: SourceSubMountPath, MountPath: sourceMountRoot, SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
+								{Name: IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.plan.Spec.Storage.IntermediatePvc.SubPath},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: "source",
+							Name: SourceSubMountPath,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 									ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
@@ -119,7 +140,7 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 							},
 						},
 						{
-							Name: "intermediate",
+							Name: IntermediateSubMountPath,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 									ClaimName: rc.plan.Spec.Storage.IntermediatePvc.ClaimName,
@@ -146,11 +167,6 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 	return nil
 }
 
-func (r *ClustercodeTaskReconciler) getOwner(rc *ClustercodeTaskContext) types.NamespacedName {
-	for _, owner := range rc.task.GetOwnerReferences() {
-		if pointer.BoolPtrDerefOr(owner.Controller, false) {
-			return types.NamespacedName{Namespace: rc.task.Namespace, Name: owner.Name}
-		}
-	}
-	return types.NamespacedName{}
+func getSegmentFileNameTemplate(rc *ClustercodeTaskContext, intermediateMountRoot string) string {
+	return filepath.Join(intermediateMountRoot, rc.task.Name+"_%d"+filepath.Ext(rc.task.Spec.SourceUrl.GetPath()))
 }

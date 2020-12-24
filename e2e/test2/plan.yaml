@@ -6,10 +6,10 @@ spec:
   scanSchedule: "*/1 * * * *"
   storage:
     sourcePvc:
-      claimName: test2-claim
+      claimName: test2-claim1
       subPath: source
     intermediatePvc:
-      claimName: test2-claim
+      claimName: test2-claim2
       subPath: intermediate
     targetPvc:
       claimName: test2-claim
@@ -18,7 +18,7 @@ spec:
     mediaFileExtensions:
       - mp4
   encodeSpec:
-    slizeSize: 20
+    sliceSize: 2
     defaultCommandArgs:
       - -y
       - -hide_banner
@@ -28,7 +28,7 @@ spec:
       - ${INPUT}
       - -c
       - copy
-      - map
+      - -map
       - "0"
       - -segment_time
       - ${SLICE_SIZE}

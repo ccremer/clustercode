@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"path/filepath"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -84,7 +85,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.plan.Name + "-scan-job",
 			Namespace: rc.plan.Namespace,
-			Labels:    ClusterCodeLabels,
+			Labels:    mergeLabels(ClusterCodeLabels, ClusterCodeScanLabels),
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule:          rc.plan.Spec.ScanSchedule,
@@ -114,16 +115,33 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									},
 									Image: "localhost:5000/clustercode/operator:e2e",
 									VolumeMounts: []corev1.VolumeMount{
-										{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
+										{
+											Name:      SourceSubMountPath,
+											MountPath: filepath.Join("/clustercode", SourceSubMountPath),
+											SubPath:   rc.plan.Spec.Storage.SourcePvc.SubPath,
+										},
+										{
+											Name:      IntermediateSubMountPath,
+											MountPath: filepath.Join("/clustercode", IntermediateSubMountPath),
+											SubPath:   rc.plan.Spec.Storage.SourcePvc.SubPath,
+										},
 									},
 								},
 							},
 							Volumes: []corev1.Volume{
 								{
-									Name: "source",
+									Name: SourceSubMountPath,
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 											ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
+										},
+									},
+								},
+								{
+									Name: IntermediateSubMountPath,
+									VolumeSource: corev1.VolumeSource{
+										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+											ClaimName: rc.plan.Spec.Storage.IntermediatePvc.ClaimName,
 										},
 									},
 								},

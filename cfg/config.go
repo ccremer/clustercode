@@ -23,6 +23,7 @@ type (
 		ClustercodePlanName string `koanf:"clustercode-plan-name"`
 		Namespace           string `koanf:"namespace"`
 		SourceRoot          string `koanf:"source-root"`
+		TargetRoot          string `koanf:"target-root"`
 	}
 )
 

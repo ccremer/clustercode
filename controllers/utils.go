@@ -2,10 +2,25 @@ package controllers
 
 import "strings"
 
-var(
-	ClusterCodeLabels = map[string]string {
+var (
+	ClusterCodeLabels = map[string]string{
 		"app.kubernetes.io/managed-by": "clustercode",
 	}
+	ClusterCodeScanLabels = map[string]string {
+		"clustercode.github.io/type": "scan",
+	}
+	ClusterCodeSplitLabels = map[string]string {
+		"clustercode.github.io/type": "split",
+	}
+	ClusterCodeCountLabels = map[string]string {
+		"clustercode.github.io/type": "count",
+	}
+)
+
+const (
+	SourceSubMountPath       = "source"
+	TargetSubMountPath       = "target"
+	IntermediateSubMountPath = "intermediate"
 )
 
 func mergeLabels(labels ...map[string]string) map[string]string {
@@ -18,7 +33,7 @@ func mergeLabels(labels ...map[string]string) map[string]string {
 	return merged
 }
 
-func mergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]string) (merged []string)  {
+func mergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]string) (merged []string) {
 	for _, args := range argsList {
 		for _, arg := range args {
 			for k, v := range variables {
