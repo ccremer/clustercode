@@ -16,7 +16,23 @@ spec:
     singular: clustercodetask
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - description: Source file name
+      jsonPath: .spec.sourceUrl
+      name: Source
+      type: string
+    - description: Target file name
+      jsonPath: .spec.targetUrl
+      name: Target
+      type: string
+    - description: Clustercode Plan
+      jsonPath: .metadata.ownerReferences[?(@.controller)].name
+      name: Plan
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: ClustercodePlan is the Schema for the archives API
@@ -34,7 +50,7 @@ spec:
             properties:
               encodeSpec:
                 properties:
-                  defaultFfmpegArgs:
+                  defaultCommandArgs:
                     default:
                     - -y
                     - -hide_banner
@@ -42,7 +58,7 @@ spec:
                     items:
                       type: string
                     type: array
-                  mergeFfmpegArgs:
+                  mergeCommandArgs:
                     default:
                     - -f
                     - concat
@@ -56,7 +72,7 @@ spec:
                     type: array
                   sliceSize:
                     type: integer
-                  splitFfmpegArgs:
+                  splitCommandArgs:
                     default:
                     - -i
                     - '"${INPUT}"'
@@ -72,7 +88,7 @@ spec:
                     items:
                       type: string
                     type: array
-                  transcodeArgs:
+                  transcodeCommandArgs:
                     default:
                     - -i
                     - '"${INPUT}"'
@@ -85,10 +101,10 @@ spec:
                       type: string
                     type: array
                 required:
-                - defaultFfmpegArgs
-                - mergeFfmpegArgs
-                - splitFfmpegArgs
-                - transcodeArgs
+                - defaultCommandArgs
+                - mergeCommandArgs
+                - splitCommandArgs
+                - transcodeCommandArgs
                 type: object
               sourceUrl:
                 type: string
@@ -146,10 +162,6 @@ spec:
                 type: array
               sliceCount:
                 type: integer
-              sourceMediaFileName:
-                type: string
-              targetMediaFileName:
-                type: string
             type: object
         type: object
     served: true

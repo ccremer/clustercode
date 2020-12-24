@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: test2-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: hostpath
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: test2
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/name: e2e

@@ -29,8 +29,8 @@ type (
 		Log    logr.Logger
 		Scheme *runtime.Scheme
 	}
-	// ReconciliationContext holds the parameters of a single reconciliation
-	ReconciliationContext struct {
+	// ClustercodePlanContext holds the parameters of a single reconciliation
+	ClustercodePlanContext struct {
 		ctx  context.Context
 		plan *v1alpha1.ClustercodePlan
 		log  logr.Logger
@@ -52,8 +52,8 @@ func (r *ClustercodePlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;create;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;create;delete
 
-func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (result ctrl.Result, returnErr error) {
-	rc := &ReconciliationContext{
+func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	rc := &ClustercodePlanContext{
 		ctx:  ctx,
 		plan: &v1alpha1.ClustercodePlan{},
 	}
@@ -68,10 +68,11 @@ func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 	rc.log = r.Log.WithValues("plan", req.NamespacedName)
 	r.handlePlan(rc)
+	rc.log.Info("reconciled plan")
 	return ctrl.Result{}, nil
 }
 
-func (r *ClustercodePlanReconciler) handlePlan(rc *ReconciliationContext) {
+func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 
 	saName, err := r.createServiceAccountAndBinding(rc)
 	if err != nil {
@@ -82,9 +83,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ReconciliationContext) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.plan.Name + "-scan-job",
 			Namespace: rc.plan.Namespace,
-			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "clustercode",
-			},
+			Labels:    ClusterCodeLabels,
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule:          rc.plan.Spec.ScanSchedule,
@@ -93,7 +92,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ReconciliationContext) {
 
 			JobTemplate: v1beta1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
-					BackoffLimit: pointer.Int32Ptr(1),
+					BackoffLimit: pointer.Int32Ptr(0),
 					Template: corev1.PodTemplateSpec{
 						Spec: corev1.PodSpec{
 							ServiceAccountName: saName,
@@ -113,6 +112,19 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ReconciliationContext) {
 										"--scan.clustercode-plan-name=" + rc.plan.Name,
 									},
 									Image: "localhost:5000/clustercode/operator:e2e",
+									VolumeMounts: []corev1.VolumeMount{
+										{Name: "source", MountPath: "/clustercode/source", SubPath: rc.plan.Spec.SourceVolumeSubdir},
+									},
+								},
+							},
+							Volumes: []corev1.Volume{
+								{
+									Name: "source",
+									VolumeSource: corev1.VolumeSource{
+										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+											ClaimName: rc.plan.Spec.SourcePvcRef,
+										},
+									},
 								},
 							},
 						},
@@ -145,7 +157,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ReconciliationContext) {
 	}
 }
 
-func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *ReconciliationContext) (string, error) {
+func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *ClustercodePlanContext) (string, error) {
 	binding, sa := r.newRbacDefinition(rc)
 
 	err := r.Client.Create(rc.ctx, &sa)
@@ -167,12 +179,13 @@ func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *Reconcili
 	return sa.Name, nil
 }
 
-func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ReconciliationContext) (rbacv1.RoleBinding, corev1.ServiceAccount) {
+func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ClustercodePlanContext) (rbacv1.RoleBinding, corev1.ServiceAccount) {
 	saName := rc.plan.Name + "-clustercode"
 	roleBinding := rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName + "-rolebinding",
 			Namespace: rc.plan.Namespace,
+			Labels:    ClusterCodeLabels,
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -182,8 +195,8 @@ func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ReconciliationContext)
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
-			Kind:     "ClusterRole",
-			Name:     cfg.Config.Scan.ClusterRoleName,
+			Kind:     cfg.Config.Scan.RoleKind,
+			Name:     cfg.Config.Scan.RoleName,
 			APIGroup: rbacv1.GroupName,
 		},
 	}
@@ -192,6 +205,7 @@ func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ReconciliationContext)
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
 			Namespace: rc.plan.Namespace,
+			Labels:    ClusterCodeLabels,
 		},
 	}
 

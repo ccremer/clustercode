@@ -1,13 +1,20 @@
 package v1alpha1
 
 import (
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+func init() {
+	SchemeBuilder.Register(&ClustercodePlan{}, &ClustercodePlanList{})
+}
 
 type (
 	// +kubebuilder:object:root=true
 	// +kubebuilder:subresource:status
+	// +kubebuilder:printcolumn:name="Schedule",type="string",JSONPath=".spec.scanSchedule",description="Cron schedule of media scans"
+	// +kubebuilder:printcolumn:name="Suspended",type="boolean",JSONPath=".spec.suspend",description="Whether media scanning is suspended"
+	// +kubebuilder:printcolumn:name="Current Tasks",type="integer",JSONPath=".status.currentTasks",description="Currently active tasks"
+	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 	// ClustercodePlan is the Schema for the ClusterCodePlan API
 	ClustercodePlan struct {
@@ -31,7 +38,7 @@ type (
 	ClustercodePlanSpec struct {
 		ScanSchedule string `json:"scanSchedule"`
 		// +kubebuilder:validation:Required
-		SourceVolume corev1.Volume `json:"sourceVolume,omitempty"`
+		SourcePvcRef string `json:"sourcePvcRef,omitempty"`
 		// +kubebuilder:validation:Required
 		SourceVolumeSubdir string `json:"sourceVolumeSubdir,omitempty"`
 
@@ -51,22 +58,28 @@ type (
 
 	EncodeSpec struct {
 		// +kubebuilder:default=-y;-hide_banner;-nostats
-		DefaultCommandArgs []string `json:"defaultFfmpegArgs"`
+		DefaultCommandArgs []string `json:"defaultCommandArgs"`
 		// +kubebuilder:default=-i;"\"${INPUT}\"";-c;copy;-map;0;-segment_time;"\"${SLICE_SIZE}\"";-f;segment;"\"${OUTPUT}\""
-		SplitCommandArgs []string `json:"splitFfmpegArgs"`
+		SplitCommandArgs []string `json:"splitCommandArgs"`
 		// +kubebuilder:default=-i;"\"${INPUT}\"";"-c:v";copy;"-c:a";copy;"\"${OUTPUT}\""
-		TranscodeCommandArgs []string `json:"transcodeArgs"`
+		TranscodeCommandArgs []string `json:"transcodeCommandArgs"`
 		// +kubebuilder:default=-f;concat;-i;concat.txt;-c;copy;media_out.mkv
-		MergeCommandArgs []string `json:"mergeFfmpegArgs"`
+		MergeCommandArgs []string `json:"mergeCommandArgs"`
 
 		SliceSize int `json:"sliceSize,omitempty"`
 	}
 
 	ClustercodePlanStatus struct {
-		Conditions []metav1.Condition `json:"conditions,omitempty"`
+		Conditions   []metav1.Condition   `json:"conditions,omitempty"`
+		CurrentTasks []ClusterCodeTaskRef `json:"currentTasks,omitempty"`
+	}
+
+	ClusterCodeTaskRef struct {
+		TaskName string `json:"taskName,omitempty"`
 	}
 )
 
-func init() {
-	SchemeBuilder.Register(&ClustercodePlan{}, &ClustercodePlanList{})
+// IsMaxParallelTaskLimitReached will return true if the count of current task has reached MaxParallelTasks.
+func (plan *ClustercodePlan) IsMaxParallelTaskLimitReached() bool {
+	return len(plan.Status.CurrentTasks) >= plan.Spec.MaxParallelTasks
 }

@@ -2,12 +2,13 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: clustercodeplan-editor-role
+  name: clustercode-editor-role
 rules:
   - apiGroups:
       - clustercode.github.io
     resources:
       - clustercodeplans
+      - clustercodetasks
     verbs:
       - create
       - delete
@@ -20,6 +21,7 @@ rules:
       - clustercode.github.io
     resources:
       - clustercodeplans/status
+      - clustercodetasks/status
     verbs:
       - get
       - patch

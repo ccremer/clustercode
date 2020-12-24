@@ -59,6 +59,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - clustercode.github.io
+  resources:
+  - clustercodetasks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - clustercode.github.io
+  resources:
+  - clustercodetasks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - ""
   resources:
   - serviceaccounts

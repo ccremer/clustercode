@@ -7,6 +7,10 @@ import (
 type (
 	// +kubebuilder:object:root=true
 	// +kubebuilder:subresource:status
+	// +kubebuilder:printcolumn:name="Source",type="string",JSONPath=".spec.sourceUrl",description="Source file name"
+	// +kubebuilder:printcolumn:name="Target",type="string",JSONPath=".spec.targetUrl",description="Target file name"
+	// +kubebuilder:printcolumn:name="Plan",type="string",JSONPath=`.metadata.ownerReferences[?(@.controller)].name`,description="Clustercode Plan"
+	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
 	// ClustercodePlan is the Schema for the archives API
 	ClustercodeTask struct {
@@ -28,17 +32,15 @@ type (
 
 	// EncodingTaskSpec defines the desired state of ClustercodeTask.
 	ClustercodeTaskSpec struct {
-		SourceUrl  string `json:"sourceUrl,omitempty"`
-		TargetUrl  string `json:"targetUrl,omitempty"`
-		Suspend    bool   `json:"suspend,omitempty"`
-		EncodeSpec `json:"encodeSpec"`
+		SourceUrl  string     `json:"sourceUrl,omitempty"`
+		TargetUrl  string     `json:"targetUrl,omitempty"`
+		Suspend    bool       `json:"suspend,omitempty"`
+		EncodeSpec EncodeSpec `json:"encodeSpec"`
 	}
 
 	ClustercodeTaskStatus struct {
-		Conditions          []metav1.Condition `json:"conditions,omitempty"`
-		SourceMediaFileName string             `json:"sourceMediaFileName,omitempty"`
-		TargetMediaFileName string             `json:"targetMediaFileName,omitempty"`
-		SliceCount          int                `json:"sliceCount,omitempty"`
+		Conditions []metav1.Condition `json:"conditions,omitempty"`
+		SliceCount int                `json:"sliceCount,omitempty"`
 	}
 )
 

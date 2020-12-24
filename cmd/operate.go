@@ -23,9 +23,10 @@ func init() {
 	rootCmd.AddCommand(operateCmd)
 	// +kubebuilder:scaffold:scheme
 
-	operateCmd.PersistentFlags().String("operator.metrics-bind-address", cfg.Config.Operator.MetricsBindAddress, "Prometheus metrics bind address")
+	operateCmd.PersistentFlags().String("operator.metrics-bind-address", cfg.Config.Operator.MetricsBindAddress,
+		"Prometheus metrics bind address.")
 	operateCmd.PersistentFlags().String("operator.watch-namespace", cfg.Config.Operator.WatchNamespace,
-		"Restrict watching objects to the specified namespace. Watches all namespaces if left empty")
+		"Restrict watching objects to the specified namespace. Watches all namespaces if left empty.")
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {
@@ -49,6 +50,13 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create controller '%s': %w", "clustercodeplan", err)
+	}
+	if err = (&controllers.ClustercodeTaskReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("clustercodetask"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		return fmt.Errorf("unable to create controller '%s': %w", "clustercodetask", err)
 	}
 	// +kubebuilder:scaffold:builder
 
