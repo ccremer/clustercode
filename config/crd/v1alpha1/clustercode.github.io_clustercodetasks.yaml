@@ -221,6 +221,8 @@ spec:
                       type: string
                     sliceIndex:
                       type: integer
+                  required:
+                  - sliceIndex
                   type: object
                 type: array
               slicesFinishedCount:
@@ -232,6 +234,8 @@ spec:
                       type: string
                     sliceIndex:
                       type: integer
+                  required:
+                  - sliceIndex
                   type: object
                 type: array
               slicesScheduledCount:

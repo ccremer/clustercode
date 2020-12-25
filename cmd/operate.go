@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	batchv1 "k8s.io/api/batch/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
+	controllerclient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/ccremer/clustercode/cfg"
 	"github.com/ccremer/clustercode/controllers"
@@ -48,6 +50,16 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to start operator: %w", err)
 	}
 
+	uncached, err := controllerclient.NewDelegatingClient(controllerclient.NewDelegatingClientInput{
+		CacheReader: mgr.GetClient(),
+		Client:      mgr.GetClient(),
+		UncachedObjects: []controllerclient.Object{
+			&batchv1.Job{},
+		},
+	})
+	if err != nil {
+		return err
+	}
 	if err = (&controllers.ClustercodePlanReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("clustercodeplan"),
@@ -63,7 +75,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to create controller '%s': %w", "clustercodetask", err)
 	}
 	if err = (&controllers.JobReconciler{
-		Client: mgr.GetClient(),
+		Client: uncached,
 		Log:    ctrl.Log.WithName("controllers").WithName("job"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

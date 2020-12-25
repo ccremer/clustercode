@@ -132,7 +132,7 @@ e2e_test: install_bats $(SETUP_E2E_TEST) docker-build ## Runs the e2e test suite
 run_kind: export KUBECONFIG = $(KIND_KUBECONFIG)
 run_kind: export BACKUP_ENABLE_LEADER_ELECTION = $(ENABLE_LEADER_ELECTION)
 run_kind: $(SETUP_E2E_TEST) ## Runs the operator in kind
-	go run ./main.go
+	go run ./main.go -v operate --operator.clustercode-image=localhost:5000/clustercode/operator:e2e
 
 .PHONY: setup_e2e_test
 setup_e2e_test: $(SETUP_E2E_TEST) ## Run the e2e setup

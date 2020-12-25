@@ -12,7 +12,7 @@ spec:
       claimName: test2-claim2
       subPath: intermediate
     targetPvc:
-      claimName: test2-claim
+      claimName: test2-claim3
       subPath: target
   scanSpec:
     mediaFileExtensions:
@@ -49,6 +49,8 @@ spec:
     mergeCommandArgs:
       - -f
       - concat
+      - -safe
+      - "0"
       - -i
       - ${INPUT}
       - -c

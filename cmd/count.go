@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
@@ -81,29 +80,24 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	}
 	countLog.Info("updated task")
 
-	time.Sleep(5 * time.Second)
-	countLog.Info("done")
 	return nil
 }
 
 func updateTask(task *v1alpha1.ClustercodeTask, count int) error {
-	countLog.Info("got task", "task", task.GetObjectMeta())
 	task.Spec.SlicesPlannedCount = count
-
 	err := client.Update(context.Background(), task)
 	if err != nil {
 		return err
 	}
-	countLog.Info("updated copy", "task", task)
 	return nil
 }
 
 func createFileList(files []string, task *v1alpha1.ClustercodeTask) error {
 	var fileList []string
 	for _, file := range files {
-		fileList = append(fileList, fmt.Sprintf("file %s", file))
+		fileList = append(fileList, fmt.Sprintf("file '%s'", file))
 	}
-	data := strings.Join(fileList, "\n")
+	data := strings.Join(fileList, "\n") + "\n"
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      task.Spec.FileListConfigMapRef,
@@ -111,7 +105,7 @@ func createFileList(files []string, task *v1alpha1.ClustercodeTask) error {
 			Labels:    labels.Merge(controllers.ClusterCodeLabels, task.Spec.TaskId.AsLabels()),
 		},
 		Data: map[string]string{
-			"file-list.txt": data,
+			v1alpha1.ConfigMapFileName: data,
 		},
 	}
 	if err := controllerutil.SetControllerReference(task, cm.GetObjectMeta(), scheme); err != nil {
@@ -119,7 +113,7 @@ func createFileList(files []string, task *v1alpha1.ClustercodeTask) error {
 	}
 	if err := client.Create(context.Background(), cm); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			if err := client.Update(context.Background(), cm); err !=nil {
+			if err := client.Update(context.Background(), cm); err != nil {
 				return fmt.Errorf("could not update config map: %w", err)
 			}
 			countLog.Info("updated config map", "configmap", cm.Name)
@@ -157,7 +151,7 @@ func scanSegmentFiles(prefix string) ([]string, error) {
 
 func matchesTaskSegment(path string, prefix string) bool {
 	base := filepath.Base(path)
-	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaDoneSuffix)
+	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaFileDoneSuffix)
 }
 
 func getClustercodeTask() (*v1alpha1.ClustercodeTask, error) {

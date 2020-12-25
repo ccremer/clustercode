@@ -39,6 +39,8 @@ type (
 		jobType           ClusterCodeJobType
 		mountSource       bool
 		mountIntermediate bool
+		mountTarget       bool
+		mountConfig       bool
 	}
 )
 
@@ -50,7 +52,7 @@ func (r *ClustercodeTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.ClustercodeTask{}, builder.WithPredicates(pred)).
 		//Owns(&batchv1.Job{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		//WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
@@ -86,6 +88,10 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 		return r.createSplitJob(rc)
 	}
 
+	if len(rc.task.Status.SlicesFinished) >= rc.task.Spec.SlicesPlannedCount {
+		rc.log.Info("no more slices to schedule")
+		return r.createMergeJob(rc)
+	}
 	// Todo: Check condition whether more jobs are needed
 	nextSliceIndex := r.determineNextSliceIndex(rc)
 	if nextSliceIndex < 0 {
@@ -98,10 +104,6 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 
 func (r *ClustercodeTaskReconciler) determineNextSliceIndex(rc *ClustercodeTaskContext) int {
 	status := rc.task.Status
-	if len(status.SlicesFinished) >= rc.task.Spec.SlicesPlannedCount {
-		rc.log.Info("no more slices to schedule")
-		return -1
-	}
 	if rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
 		maxCount := rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
 		if len(status.SlicesScheduled) >= maxCount {
@@ -131,8 +133,8 @@ func containsSliceIndex(list []v1alpha1.ClustercodeSliceRef, index int) bool {
 }
 
 func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) error {
-	sourceMountRoot := filepath.Join("/clustercode)", SourceSubMountPath)
-	intermediateMountRoot := filepath.Join("/clustercode)", IntermediateSubMountPath)
+	sourceMountRoot := filepath.Join("/clustercode", SourceSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":      filepath.Join(sourceMountRoot, rc.task.Spec.SourceUrl.GetPath()),
 		"${OUTPUT}":     getSegmentFileNameTemplatePath(rc, intermediateMountRoot),
@@ -160,7 +162,7 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 }
 
 func (r *ClustercodeTaskReconciler) createSliceJob(rc *ClustercodeTaskContext, index int) error {
-	intermediateMountRoot := filepath.Join("/clustercode)", IntermediateSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  getSourceSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
 		"${OUTPUT}": getTargetSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
@@ -171,6 +173,7 @@ func (r *ClustercodeTaskReconciler) createSliceJob(rc *ClustercodeTaskContext, i
 		mountIntermediate: true,
 	})
 	job.Name = fmt.Sprintf("%s-%d", job.Name, index)
+	job.Labels[ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
@@ -190,6 +193,35 @@ func (r *ClustercodeTaskReconciler) createSliceJob(rc *ClustercodeTaskContext, i
 	return r.Client.Status().Update(rc.ctx, rc.task)
 }
 
+func (r *ClustercodeTaskReconciler) createMergeJob(rc *ClustercodeTaskContext) error {
+	configMountRoot := filepath.Join("/clustercode", ConfigSubMountPath)
+	targetMountRoot := filepath.Join("/clustercode", TargetSubMountPath)
+	variables := map[string]string{
+		"${INPUT}":  filepath.Join(configMountRoot, v1alpha1.ConfigMapFileName),
+		"${OUTPUT}": filepath.Join(targetMountRoot, rc.task.Spec.TargetUrl.GetPath()),
+	}
+	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
+		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
+		jobType:           ClustercodeTypeMerge,
+		mountIntermediate: true,
+		mountTarget:       true,
+		mountConfig:       true,
+	})
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+		return fmt.Errorf("could not set controller reference: %w", err)
+	}
+	if err := r.Client.Create(rc.ctx, job); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			rc.log.Info("skip creating job, it already exists", "job", job.Name)
+		} else {
+			rc.log.Error(err, "could not create job", "job", job.Name)
+		}
+	} else {
+		rc.log.Info("job created", "job", job.Name)
+	}
+	return nil
+}
+
 func getSegmentFileNameTemplatePath(rc *ClustercodeTaskContext, intermediateMountRoot string) string {
 	return filepath.Join(intermediateMountRoot, rc.task.Name+"_%d"+filepath.Ext(rc.task.Spec.SourceUrl.GetPath()))
 }
@@ -199,5 +231,5 @@ func getSourceSegmentFileNameIndexPath(rc *ClustercodeTaskContext, intermediateM
 }
 
 func getTargetSegmentFileNameIndexPath(rc *ClustercodeTaskContext, intermediateMountRoot string, index int) string {
-	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", rc.task.Name, index, v1alpha1.MediaDoneSuffix, filepath.Ext(rc.task.Spec.TargetUrl.GetPath())))
+	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", rc.task.Name, index, v1alpha1.MediaFileDoneSuffix, filepath.Ext(rc.task.Spec.TargetUrl.GetPath())))
 }

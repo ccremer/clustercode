@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -63,7 +64,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	err := r.Client.Get(ctx, req.NamespacedName, rc.job)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
-			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
+			r.Log.V(1).Info("object not found, ignoring reconcile", "object", req.NamespacedName)
 			return ctrl.Result{}, nil
 		}
 		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
@@ -85,13 +86,15 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, r.handleSplitJob(rc)
 	case ClustercodeTypeCount:
 		rc.log.Info("reconciled count job")
+	case ClustercodeTypeSlice:
+		rc.log.Info("reconciling slice job")
+		return ctrl.Result{}, r.handleSliceJob(rc)
 	}
 	return ctrl.Result{}, nil
 }
 
 func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
 	conditions := castConditions(rc.job.Status.Conditions)
-	rc.log.V(1).Info("job status", "conditions", conditions)
 	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
 		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
 		return nil
@@ -103,6 +106,35 @@ func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
 	}
 
 	return r.createCountJob(rc)
+}
+
+func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
+	indexStr, found := rc.job.Labels[ClustercodeSliceIndexLabelKey]
+	if !found {
+		return fmt.Errorf("cannot determine slice index, missing label '%s'", ClustercodeSliceIndexLabelKey)
+	}
+	index, err := strconv.Atoi(indexStr)
+	if err != nil {
+		return fmt.Errorf("cannot determine slice index from label '%s': %w", ClustercodeSliceIndexLabelKey, err)
+	}
+	conditions := castConditions(rc.job.Status.Conditions)
+	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
+		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
+		return nil
+	}
+
+	rc.task = &v1alpha1.ClustercodeTask{}
+	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+		return err
+	}
+	arr := rc.task.Status.SlicesFinished
+	arr = append(arr, v1alpha1.ClustercodeSliceRef{
+		SliceIndex: index,
+		JobName:    rc.job.Name,
+	})
+	rc.task.Status.SlicesFinished = arr
+	rc.task.Status.SlicesFinishedCount = len(arr)
+	return r.Client.Status().Update(rc.ctx, rc.task)
 }
 
 func (r *JobReconciler) createCountJob(rc *JobContext) error {

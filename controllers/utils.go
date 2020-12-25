@@ -39,16 +39,19 @@ const (
 	SourceSubMountPath       = "source"
 	TargetSubMountPath       = "target"
 	IntermediateSubMountPath = "intermediate"
+	ConfigSubMountPath       = "config"
 
-	ClustercodeTypeLabelKey                    = "clustercode.github.io/type"
-	ClustercodeTypeScan     ClusterCodeJobType = "scan"
-	ClustercodeTypeSplit    ClusterCodeJobType = "split"
-	ClustercodeTypeSlice    ClusterCodeJobType = "slice"
-	ClustercodeTypeCount    ClusterCodeJobType = "count"
+	ClustercodeTypeLabelKey                          = "clustercode.github.io/type"
+	ClustercodeSliceIndexLabelKey                    = "clustercode.github.io/slice-index"
+	ClustercodeTypeScan           ClusterCodeJobType = "scan"
+	ClustercodeTypeSplit          ClusterCodeJobType = "split"
+	ClustercodeTypeSlice          ClusterCodeJobType = "slice"
+	ClustercodeTypeCount          ClusterCodeJobType = "count"
+	ClustercodeTypeMerge          ClusterCodeJobType = "merge"
 )
 
 var (
-	ClustercodeTypes = []ClusterCodeJobType{ClustercodeTypeScan, ClustercodeTypeSplit, ClustercodeTypeCount, ClustercodeTypeSlice}
+	ClustercodeTypes = []ClusterCodeJobType{ClustercodeTypeScan, ClustercodeTypeSplit, ClustercodeTypeCount, ClustercodeTypeSlice, ClustercodeTypeMerge}
 )
 
 func (t ClusterCodeJobType) AsLabels() labels.Set {
@@ -108,15 +111,21 @@ func createFfmpegJobDefinition(task *v1alpha1.ClustercodeTask, opts *TaskOpts) *
 		},
 	}
 	if opts.mountSource {
-		addVolume(job, SourceSubMountPath, filepath.Join("/clustercode)", SourceSubMountPath), task.Spec.Storage.SourcePvc)
+		addPvcVolume(job, SourceSubMountPath, filepath.Join("/clustercode", SourceSubMountPath), task.Spec.Storage.SourcePvc)
 	}
 	if opts.mountIntermediate {
-		addVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode)", IntermediateSubMountPath), task.Spec.Storage.IntermediatePvc)
+		addPvcVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode", IntermediateSubMountPath), task.Spec.Storage.IntermediatePvc)
+	}
+	if opts.mountTarget {
+		addPvcVolume(job, TargetSubMountPath, filepath.Join("/clustercode", TargetSubMountPath), task.Spec.Storage.TargetPvc)
+	}
+	if opts.mountConfig {
+		addConfigMapVolume(job, ConfigSubMountPath, filepath.Join("/clustercode", ConfigSubMountPath), task.Spec.FileListConfigMapRef)
 	}
 	return job
 }
 
-func addVolume(job *batchv1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
+func addPvcVolume(job *batchv1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
 	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
 		corev1.VolumeMount{Name: name, MountPath: podMountRoot, SubPath: volume.SubPath})
 	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
@@ -126,4 +135,20 @@ func addVolume(job *batchv1.Job, name, podMountRoot string, volume v1alpha1.Clus
 				ClaimName: volume.ClaimName,
 			},
 		}})
+}
+
+func addConfigMapVolume(job *batchv1.Job, name, podMountRoot, configMapName string) {
+	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
+		corev1.VolumeMount{
+			Name:      name,
+			MountPath: podMountRoot,
+		})
+	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
+		Name: name,
+		VolumeSource: corev1.VolumeSource{
+			ConfigMap: &corev1.ConfigMapVolumeSource{
+				LocalObjectReference: corev1.LocalObjectReference{Name: configMapName},
+			},
+		},
+	})
 }

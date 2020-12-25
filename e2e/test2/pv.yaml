@@ -26,3 +26,17 @@ spec:
   hostPath:
     path: /pv/data
     type: Directory
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: e2e-testdata3
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: hostpath
+  hostPath:
+    path: /pv/data
+    type: Directory
