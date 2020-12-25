@@ -1,19 +1,30 @@
 package controllers
 
-import "strings"
+import (
+	"strings"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/pointer"
+)
+
+type (
+	ClusterCodeJobType string
+)
 
 var (
-	ClusterCodeLabels = map[string]string{
+	ClusterCodeLabels = labels.Set{
 		"app.kubernetes.io/managed-by": "clustercode",
 	}
-	ClusterCodeScanLabels = map[string]string {
-		"clustercode.github.io/type": "scan",
+	ClusterCodeScanLabels = labels.Set{
+		ClustercodeTypeLabelKey: string(ClustercodeTypeScan),
 	}
-	ClusterCodeSplitLabels = map[string]string {
-		"clustercode.github.io/type": "split",
+	ClusterCodeSplitLabels = labels.Set{
+		ClustercodeTypeLabelKey: string(ClustercodeTypeSplit),
 	}
-	ClusterCodeCountLabels = map[string]string {
-		"clustercode.github.io/type": "count",
+	ClusterCodeCountLabels = labels.Set{
+		ClustercodeTypeLabelKey: string(ClustercodeTypeCount),
 	}
 )
 
@@ -21,17 +32,17 @@ const (
 	SourceSubMountPath       = "source"
 	TargetSubMountPath       = "target"
 	IntermediateSubMountPath = "intermediate"
+
+	ClustercodeTypeLabelKey                      = "clustercode.github.io/type"
+	ClustercodeTaskIdLabelKey                    = "clustercode.github.io/task-id"
+	ClustercodeTypeScan       ClusterCodeJobType = "scan"
+	ClustercodeTypeSplit      ClusterCodeJobType = "split"
+	ClustercodeTypeCount      ClusterCodeJobType = "count"
 )
 
-func mergeLabels(labels ...map[string]string) map[string]string {
-	merged := make(map[string]string)
-	for _, labelMap := range labels {
-		for k, v := range labelMap {
-			merged[k] = v
-		}
-	}
-	return merged
-}
+var (
+	ClustercodeTypes = []ClusterCodeJobType{ClustercodeTypeScan, ClustercodeTypeSplit, ClustercodeTypeCount}
+)
 
 func mergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]string) (merged []string) {
 	for _, args := range argsList {
@@ -43,4 +54,13 @@ func mergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]str
 		}
 	}
 	return merged
+}
+
+func getOwner(obj v1.Object) types.NamespacedName {
+	for _, owner := range obj.GetOwnerReferences() {
+		if pointer.BoolPtrDerefOr(owner.Controller, false) {
+			return types.NamespacedName{Namespace: obj.GetNamespace(), Name: owner.Name}
+		}
+	}
+	return types.NamespacedName{}
 }

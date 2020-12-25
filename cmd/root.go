@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/pflag"
 	"go.uber.org/zap/zapcore"
 	ctrl "sigs.k8s.io/controller-runtime"
+	controllerclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/ccremer/clustercode/cfg"
@@ -33,6 +34,8 @@ var (
 	// Global koanfInstance instance. Use . as the key path delimiter.
 	koanfInstance = koanf.New(".")
 	version       = "undefined"
+	// client is the K8s client for client commands
+	client controllerclient.Client
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -53,6 +56,7 @@ func initRootConfig() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolP("log.debug", "v", cfg.Config.Log.Debug, "Enable debug log")
+	rootCmd.PersistentFlags().StringP("namespace", "n", cfg.Config.Namespace, "Clustercode Namespace for certain commands")
 	cobra.OnInitialize(initRootConfig)
 }
 

@@ -12,6 +12,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"k8s.io/utils/strings"
@@ -85,7 +86,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.plan.Name + "-scan-job",
 			Namespace: rc.plan.Namespace,
-			Labels:    mergeLabels(ClusterCodeLabels, ClusterCodeScanLabels),
+			Labels:    labels.Merge(ClusterCodeLabels, ClusterCodeScanLabels),
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule:          rc.plan.Spec.ScanSchedule,
@@ -110,10 +111,10 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									},
 									Args: []string{
 										"scan",
-										"--scan.namespace=" + rc.plan.Namespace,
+										"--namespace=" + rc.plan.Namespace,
 										"--scan.clustercode-plan-name=" + rc.plan.Name,
 									},
-									Image: "localhost:5000/clustercode/operator:e2e",
+									Image: cfg.Config.Operator.ClustercodeContainerImage,
 									VolumeMounts: []corev1.VolumeMount{
 										{
 											Name:      SourceSubMountPath,

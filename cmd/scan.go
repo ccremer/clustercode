@@ -30,16 +30,14 @@ var (
 		RunE:    scanMedia,
 	}
 	scanLog = ctrl.Log.WithName("scan")
-	// client is the K8s client for scan command
-	client controllerclient.Client
 )
 
 func validateScanCmd(cmd *cobra.Command, args []string) error {
 	if cfg.Config.Scan.ClustercodePlanName == "" {
 		return fmt.Errorf("'%s' cannot be empty", "scan.clustercode-plan-name")
 	}
-	if cfg.Config.Scan.Namespace == "" {
-		return fmt.Errorf("'%s' cannot be empty", "scan.namespace")
+	if cfg.Config.Namespace == "" {
+		return fmt.Errorf("'%s' cannot be empty", "namespace")
 	}
 	if !(cfg.Config.Scan.RoleKind == cfg.ClusterRole || cfg.Config.Scan.RoleKind == cfg.Role) {
 		return fmt.Errorf("scan.role-kind (%s) is not in %s", cfg.Config.Scan.RoleKind, []string{cfg.ClusterRole, cfg.Role})
@@ -51,7 +49,6 @@ func init() {
 	rootCmd.AddCommand(scanCmd)
 
 	scanCmd.PersistentFlags().String("scan.clustercode-plan-name", cfg.Config.Scan.ClustercodePlanName, "Clustercode Plan name (namespace/name)")
-	scanCmd.PersistentFlags().StringP("scan.namespace", "n", cfg.Config.Scan.Namespace, "Namespace")
 }
 
 func scanMedia(cmd *cobra.Command, args []string) error {
@@ -90,17 +87,21 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 
 	selectedFile, err := filepath.Rel(filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath), files[0])
 
+	taskId := string(uuid.NewUUID())
 	task := &v1alpha1.ClustercodeTask{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: cfg.Config.Scan.Namespace,
-			Name:      string(uuid.NewUUID()),
+			Namespace: cfg.Config.Namespace,
+			Name:      taskId,
 			Labels:    controllers.ClusterCodeLabels,
 		},
 		Spec: v1alpha1.ClustercodeTaskSpec{
-			SourceUrl:   v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
-			TargetUrl:   v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
-			EncodeSpec:  plan.Spec.EncodeSpec,
-			StorageSpec: plan.Spec.Storage,
+			TaskId:               taskId,
+			SourceUrl:            v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
+			TargetUrl:            v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
+			EncodeSpec:           plan.Spec.EncodeSpec,
+			Storage:              plan.Spec.Storage,
+			ServiceAccountName:   plan.GetServiceAccountName(),
+			FileListConfigMapRef: taskId + "-slice-list",
 		},
 	}
 	if err := controllerutil.SetControllerReference(plan, task.GetObjectMeta(), scheme); err != nil {
@@ -183,7 +184,7 @@ func getClustercodePlan() (*v1alpha1.ClustercodePlan, error) {
 	plan := &v1alpha1.ClustercodePlan{}
 	name := types.NamespacedName{
 		Name:      cfg.Config.Scan.ClustercodePlanName,
-		Namespace: cfg.Config.Scan.Namespace,
+		Namespace: cfg.Config.Namespace,
 	}
 	err := client.Get(ctx, name, plan)
 	if err != nil {

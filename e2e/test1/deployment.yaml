@@ -15,5 +15,6 @@ spec:
         image: localhost:5000/clustercode/operator:e2e
         imagePullPolicy: Always
         args:
-        - operate
         - -v
+        - operate
+        - --operator.clustercode-image=localhost:5000/clustercode/operator:e2e

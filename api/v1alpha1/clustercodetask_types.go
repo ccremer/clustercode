@@ -36,11 +36,14 @@ type (
 
 	// EncodingTaskSpec defines the desired state of ClustercodeTask.
 	ClustercodeTaskSpec struct {
-		StorageSpec StorageSpec    `json:"storageSpec,omitempty"`
-		SourceUrl   ClusterCodeUrl `json:"sourceUrl,omitempty"`
-		TargetUrl   ClusterCodeUrl `json:"targetUrl,omitempty"`
-		Suspend     bool           `json:"suspend,omitempty"`
-		EncodeSpec  EncodeSpec     `json:"encodeSpec"`
+		TaskId               string         `json:"taskId,omitempty"`
+		Storage              StorageSpec    `json:"storage,omitempty"`
+		SourceUrl            ClusterCodeUrl `json:"sourceUrl,omitempty"`
+		TargetUrl            ClusterCodeUrl `json:"targetUrl,omitempty"`
+		Suspend              bool           `json:"suspend,omitempty"`
+		EncodeSpec           EncodeSpec     `json:"encodeSpec"`
+		ServiceAccountName   string         `json:"serviceAccountName,omitempty"`
+		FileListConfigMapRef string         `json:"fileListConfigMapRef,omitempty"`
 	}
 
 	ClustercodeTaskStatus struct {

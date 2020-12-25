@@ -11,8 +11,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -21,6 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/cfg"
 )
 
 type (
@@ -84,21 +85,8 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 	return nil
 }
 
-func (r *ClustercodeTaskReconciler) getOwner(rc *ClustercodeTaskContext) types.NamespacedName {
-	for _, owner := range rc.task.GetOwnerReferences() {
-		if pointer.BoolPtrDerefOr(owner.Controller, false) {
-			return types.NamespacedName{Namespace: rc.task.Namespace, Name: owner.Name}
-		}
-	}
-	return types.NamespacedName{}
-}
-
 func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) error {
 
-	rc.plan = &v1alpha1.ClustercodePlan{}
-	if err := r.Client.Get(rc.ctx, r.getOwner(rc), rc.plan); err != nil {
-		return err
-	}
 	sourceMountRoot := filepath.Join("/clustercode)", SourceSubMountPath)
 	intermediateMountRoot := filepath.Join("/clustercode)", IntermediateSubMountPath)
 	variables := map[string]string{
@@ -110,23 +98,23 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.task.Name + "-split",
 			Namespace: rc.task.Namespace,
-			Labels:    mergeLabels(ClusterCodeLabels, ClusterCodeSplitLabels),
+			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClusterCodeSplitLabels, JobIdLabel(rc.task.Spec.TaskId))),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
-					ServiceAccountName: rc.plan.GetServiceAccountName(),
+					ServiceAccountName: rc.task.Spec.ServiceAccountName,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
 							Name:            "ffmpeg",
-							Image:           "docker.io/jrottenberg/ffmpeg:4.1-alpine",
+							Image:           cfg.Config.Operator.FfmpegContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
 							VolumeMounts: []corev1.VolumeMount{
-								{Name: SourceSubMountPath, MountPath: sourceMountRoot, SubPath: rc.plan.Spec.Storage.SourcePvc.SubPath},
-								{Name: IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.plan.Spec.Storage.IntermediatePvc.SubPath},
+								{Name: SourceSubMountPath, MountPath: sourceMountRoot, SubPath: rc.task.Spec.Storage.SourcePvc.SubPath},
+								{Name: IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.task.Spec.Storage.IntermediatePvc.SubPath},
 							},
 						},
 					},
@@ -135,7 +123,7 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 							Name: SourceSubMountPath,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
+									ClaimName: rc.task.Spec.Storage.SourcePvc.ClaimName,
 								},
 							},
 						},
@@ -143,7 +131,7 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 							Name: IntermediateSubMountPath,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: rc.plan.Spec.Storage.IntermediatePvc.ClaimName,
+									ClaimName: rc.task.Spec.Storage.IntermediatePvc.ClaimName,
 								},
 							},
 						},
@@ -165,6 +153,12 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 		rc.log.Info("job created", "job", job.Name)
 	}
 	return nil
+}
+
+func JobIdLabel(id string) map[string]string {
+	return map[string]string{
+		ClustercodeTaskIdLabelKey: id,
+	}
 }
 
 func getSegmentFileNameTemplate(rc *ClustercodeTaskContext, intermediateMountRoot string) string {

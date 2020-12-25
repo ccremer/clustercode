@@ -106,9 +106,13 @@ spec:
                 - splitCommandArgs
                 - transcodeCommandArgs
                 type: object
+              fileListConfigMapRef:
+                type: string
+              serviceAccountName:
+                type: string
               sourceUrl:
                 type: string
-              storageSpec:
+              storage:
                 properties:
                   intermediatePvc:
                     properties:
@@ -145,6 +149,8 @@ spec:
               suspend:
                 type: boolean
               targetUrl:
+                type: string
+              taskId:
                 type: string
             required:
             - encodeSpec

@@ -27,6 +27,10 @@ func init() {
 		"Prometheus metrics bind address.")
 	operateCmd.PersistentFlags().String("operator.watch-namespace", cfg.Config.Operator.WatchNamespace,
 		"Restrict watching objects to the specified namespace. Watches all namespaces if left empty.")
+	operateCmd.PersistentFlags().String("operator.clustercode-image", cfg.Config.Operator.ClustercodeContainerImage,
+		"Container image to be used when launching Clustercode jobs.")
+	operateCmd.PersistentFlags().String("operator.ffmpeg-image", cfg.Config.Operator.FfmpegContainerImage,
+		"Container image to be used when launching Ffmpeg jobs.")
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {
@@ -57,6 +61,13 @@ func startOperator(cmd *cobra.Command, args []string) error {
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create controller '%s': %w", "clustercodetask", err)
+	}
+	if err = (&controllers.JobReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("job"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		return fmt.Errorf("unable to create controller '%s': %w", "job", err)
 	}
 	// +kubebuilder:scaffold:builder
 

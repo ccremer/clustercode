@@ -1,0 +1,189 @@
+package controllers
+
+import (
+	"context"
+	"fmt"
+	"path/filepath"
+	"time"
+
+	"github.com/go-logr/logr"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/pointer"
+	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+
+	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/cfg"
+)
+
+type (
+	// JobReconciler reconciles Job objects
+	JobReconciler struct {
+		Client client.Client
+		Log    logr.Logger
+		Scheme *runtime.Scheme
+	}
+	// JobContext holds the parameters of a single reconciliation
+	JobContext struct {
+		ctx     context.Context
+		job     *batchv1.Job
+		jobType ClusterCodeJobType
+		task    *v1alpha1.ClustercodeTask
+		log     logr.Logger
+	}
+)
+
+func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
+	if err != nil {
+		return err
+	}
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&batchv1.Job{}, builder.WithPredicates(pred)).
+		Complete(r)
+}
+
+// +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+
+func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	rc := &JobContext{
+		job: &batchv1.Job{},
+		ctx: ctx,
+	}
+	err := r.Client.Get(ctx, req.NamespacedName, rc.job)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
+	}
+	rc.log = r.Log.WithValues("job", req.NamespacedName)
+	jobType, err := rc.getJobType()
+	if err != nil {
+		rc.log.V(1).Info("cannot determine job type, ignoring reconcile", "error", err.Error())
+		return ctrl.Result{}, nil
+	}
+	rc.jobType = jobType
+	switch jobType {
+	case ClustercodeTypeSplit:
+		return ctrl.Result{}, r.handleSplitJob(rc)
+	}
+	return ctrl.Result{}, nil
+}
+
+func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
+	conditions := castConditions(rc.job.Status.Conditions)
+	rc.log.V(1).Info("job status", "conditions", conditions)
+	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
+		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
+		return nil
+	}
+
+	rc.task = &v1alpha1.ClustercodeTask{}
+	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+		return err
+	}
+
+	return r.createCountJob(rc)
+}
+
+func (r *JobReconciler) createCountJob(rc *JobContext) error {
+
+	taskId := rc.task.Spec.TaskId
+	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount),
+			Namespace: rc.job.Namespace,
+			Labels:    labels.Merge(ClusterCodeLabels, ClusterCodeCountLabels),
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: pointer.Int32Ptr(0),
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					ServiceAccountName: rc.job.Spec.Template.Spec.ServiceAccountName,
+					RestartPolicy:      corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:            "clustercode",
+							Image:           cfg.Config.Operator.ClustercodeContainerImage,
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Args: []string{
+								"-v",
+								"count",
+								"--count.task-name=" + rc.task.Name,
+								"--namespace=" + rc.job.Namespace,
+							},
+							VolumeMounts: []corev1.VolumeMount{
+								{Name: IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.task.Spec.Storage.IntermediatePvc.SubPath},
+							},
+						},
+					},
+					Volumes: []corev1.Volume{
+						{
+							Name: IntermediateSubMountPath,
+							VolumeSource: corev1.VolumeSource{
+								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+									ClaimName: rc.task.Spec.Storage.IntermediatePvc.ClaimName,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
+	}
+	if err := r.Client.Create(rc.ctx, job); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			rc.log.Info("skip creating job, it already exists", "job", job.Name)
+		} else {
+			rc.log.Error(err, "could not create job", "job", job.Name)
+			return err
+		}
+	} else {
+		rc.log.Info("job created", "job", job.Name)
+	}
+	return nil
+}
+
+func (c JobContext) getJobType() (ClusterCodeJobType, error) {
+	set := labels.Set(c.job.Labels)
+	if !set.Has(ClustercodeTypeLabelKey) {
+		return "", fmt.Errorf("missing label key '%s", ClustercodeTypeLabelKey)
+	}
+	label := set.Get(ClustercodeTypeLabelKey)
+	for _, jobType := range ClustercodeTypes {
+		if label == string(jobType) {
+			return jobType, nil
+		}
+	}
+	return "", fmt.Errorf("value of label '%s' unrecognized: %s", ClustercodeTypeLabelKey, label)
+}
+
+func castConditions(conditions []batchv1.JobCondition) (converted []metav1.Condition) {
+	for _, c := range conditions {
+		converted = append(converted, metav1.Condition{
+			Type:               string(c.Type),
+			Status:             metav1.ConditionStatus(c.Status),
+			LastTransitionTime: c.LastTransitionTime,
+			Reason:             c.Reason,
+			Message:            c.Message,
+		})
+	}
+	return converted
+}
