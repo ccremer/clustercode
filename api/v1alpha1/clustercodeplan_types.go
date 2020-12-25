@@ -42,7 +42,8 @@ type (
 		// +kubebuilder:default=1
 		MaxParallelTasks int `json:"maxParallelTasks,omitempty"`
 
-		Suspend bool `json:"suspend,omitempty"`
+		Suspend                 bool                `json:"suspend,omitempty"`
+		TaskConcurrencyStrategy ClustercodeStrategy `json:"taskConcurrencyStrategy,omitempty"`
 
 		ScanSpec   ScanSpec   `json:"scanSpec,omitempty"`
 		EncodeSpec EncodeSpec `json:"encodeSpec,omitempty"`

@@ -1,6 +1,7 @@
 resources:
 - ../../config/manager
 - ../../config/rbac
+- ../../config/crd/v1alpha1
 patchesStrategicMerge:
 - deployment.yaml
 namespace: clustercode-system

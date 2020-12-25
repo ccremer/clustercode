@@ -17,8 +17,11 @@ spec:
   scanSpec:
     mediaFileExtensions:
       - mp4
+  taskConcurrencyStrategy:
+    concurrentCountStrategy:
+      maxCount: 1
   encodeSpec:
-    sliceSize: 2
+    sliceSize: 1
     defaultCommandArgs:
       - -y
       - -hide_banner
@@ -47,7 +50,7 @@ spec:
       - -f
       - concat
       - -i
-      - concat.txt
+      - ${INPUT}
       - -c
       - copy
-      - media_out.mkv
+      - ${OUTPUT}

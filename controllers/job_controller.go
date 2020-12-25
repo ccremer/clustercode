@@ -70,6 +70,10 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
 	}
 	rc.log = r.Log.WithValues("job", req.NamespacedName)
+	if rc.job.GetDeletionTimestamp() != nil {
+		rc.log.V(1).Info("job is being deleted, ignoring reconcile")
+		return ctrl.Result{}, nil
+	}
 	jobType, err := rc.getJobType()
 	if err != nil {
 		rc.log.V(1).Info("cannot determine job type, ignoring reconcile", "error", err.Error())
@@ -79,6 +83,8 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	switch jobType {
 	case ClustercodeTypeSplit:
 		return ctrl.Result{}, r.handleSplitJob(rc)
+	case ClustercodeTypeCount:
+		rc.log.Info("reconciled count job")
 	}
 	return ctrl.Result{}, nil
 }
@@ -107,7 +113,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount),
 			Namespace: rc.job.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, ClusterCodeCountLabels),
+			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClustercodeTypeCount.AsLabels(), taskId.AsLabels())),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),

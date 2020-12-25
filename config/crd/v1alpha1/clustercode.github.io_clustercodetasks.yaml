@@ -29,6 +29,10 @@ spec:
       jsonPath: .metadata.ownerReferences[?(@.controller)].name
       name: Plan
       type: string
+    - description: Clustercode Total Slices
+      jsonPath: .spec.slicesPlannedCount
+      name: Slices
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date
@@ -48,6 +52,14 @@ spec:
           spec:
             description: EncodingTaskSpec defines the desired state of ClustercodeTask.
             properties:
+              concurrencyStrategy:
+                properties:
+                  concurrentCountStrategy:
+                    properties:
+                      maxCount:
+                        type: integer
+                    type: object
+                type: object
               encodeSpec:
                 properties:
                   defaultCommandArgs:
@@ -110,6 +122,8 @@ spec:
                 type: string
               serviceAccountName:
                 type: string
+              slicesPlannedCount:
+                type: integer
               sourceUrl:
                 type: string
               storage:
@@ -201,10 +215,26 @@ spec:
                   type: object
                 type: array
               slicesFinished:
+                items:
+                  properties:
+                    jobName:
+                      type: string
+                    sliceIndex:
+                      type: integer
+                  type: object
+                type: array
+              slicesFinishedCount:
                 type: integer
-              slicesPlanned:
-                type: integer
-              slicesSchedules:
+              slicesScheduled:
+                items:
+                  properties:
+                    jobName:
+                      type: string
+                    sliceIndex:
+                      type: integer
+                  type: object
+                type: array
+              slicesScheduledCount:
                 type: integer
             type: object
         type: object

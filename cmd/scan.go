@@ -95,13 +95,14 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 			Labels:    controllers.ClusterCodeLabels,
 		},
 		Spec: v1alpha1.ClustercodeTaskSpec{
-			TaskId:               taskId,
+			TaskId:               v1alpha1.ClustercodeTaskId(taskId),
 			SourceUrl:            v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
 			TargetUrl:            v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
 			EncodeSpec:           plan.Spec.EncodeSpec,
 			Storage:              plan.Spec.Storage,
 			ServiceAccountName:   plan.GetServiceAccountName(),
 			FileListConfigMapRef: taskId + "-slice-list",
+			ConcurrencyStrategy:  plan.Spec.TaskConcurrencyStrategy,
 		},
 	}
 	if err := controllerutil.SetControllerReference(plan, task.GetObjectMeta(), scheme); err != nil {

@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
@@ -58,9 +61,10 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	countLog = countLog.WithValues("task", task.Name)
 	countLog.Info("found task", "task", task)
 
-	files, err := scanSegmentFiles(task.Spec.TaskId + "_")
+	files, err := scanSegmentFiles(task.Spec.TaskId.String() + "_")
 	if err != nil {
 		return err
 	}
@@ -77,38 +81,58 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	}
 	countLog.Info("updated task")
 
+	time.Sleep(5 * time.Second)
+	countLog.Info("done")
 	return nil
 }
 
 func updateTask(task *v1alpha1.ClustercodeTask, count int) error {
-	task.Status.SlicesPlanned = count
-	return client.Status().Update(context.Background(), task)
+	countLog.Info("got task", "task", task.GetObjectMeta())
+	task.Spec.SlicesPlannedCount = count
+
+	err := client.Update(context.Background(), task)
+	if err != nil {
+		return err
+	}
+	countLog.Info("updated copy", "task", task)
+	return nil
 }
 
 func createFileList(files []string, task *v1alpha1.ClustercodeTask) error {
-	fileList := strings.Join(files, "\n")
+	var fileList []string
+	for _, file := range files {
+		fileList = append(fileList, fmt.Sprintf("file %s", file))
+	}
+	data := strings.Join(fileList, "\n")
 	cm := &v1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      task.Spec.FileListConfigMapRef,
 			Namespace: task.Namespace,
-			Labels:    labels.Merge(controllers.ClusterCodeLabels, controllers.JobIdLabel(task.Spec.TaskId)),
+			Labels:    labels.Merge(controllers.ClusterCodeLabels, task.Spec.TaskId.AsLabels()),
 		},
 		Data: map[string]string{
-			"file-list.txt": fileList,
+			"file-list.txt": data,
 		},
 	}
 	if err := controllerutil.SetControllerReference(task, cm.GetObjectMeta(), scheme); err != nil {
-		countLog.Error(err, "could not set controller reference. Deleting the task might not delete this config map")
+		return fmt.Errorf("could not set controller reference: %w", err)
 	}
 	if err := client.Create(context.Background(), cm); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			if err := client.Update(context.Background(), cm); err !=nil {
+				return fmt.Errorf("could not update config map: %w", err)
+			}
+			countLog.Info("updated config map", "configmap", cm.Name)
+		}
 		return fmt.Errorf("could not create config map: %w", err)
 	} else {
-		countLog.Info("created config map", "configmap", cm.Name)
+		countLog.Info("created config map", "configmap", cm.Name, "data", cm.Data)
 	}
 	return nil
 }
 
-func scanSegmentFiles(prefix string) (files []string, funcErr error) {
+func scanSegmentFiles(prefix string) ([]string, error) {
+	var files []string
 	root := filepath.Join(cfg.Config.Scan.SourceRoot, controllers.IntermediateSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -118,13 +142,22 @@ func scanSegmentFiles(prefix string) (files []string, funcErr error) {
 		if info.IsDir() {
 			return nil
 		}
-		if !strings.HasPrefix(filepath.Base(path), prefix) {
+		if !matchesTaskSegment(path, prefix) {
 			return nil
 		}
 		files = append(files, path)
 		return nil
 	})
+	if len(files) <= 0 {
+		return files, fmt.Errorf("could not find any segments in '%s", root)
+	}
+	sort.Strings(files)
 	return files, err
+}
+
+func matchesTaskSegment(path string, prefix string) bool {
+	base := filepath.Base(path)
+	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaDoneSuffix)
 }
 
 func getClustercodeTask() (*v1alpha1.ClustercodeTask, error) {

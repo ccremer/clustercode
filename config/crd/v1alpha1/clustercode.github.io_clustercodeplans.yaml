@@ -158,6 +158,14 @@ spec:
                 type: object
               suspend:
                 type: boolean
+              taskConcurrencyStrategy:
+                properties:
+                  concurrentCountStrategy:
+                    properties:
+                      maxCount:
+                        type: integer
+                    type: object
+                type: object
             required:
             - scanSchedule
             type: object

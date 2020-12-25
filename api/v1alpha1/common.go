@@ -34,6 +34,10 @@ type (
 	ClusterCodeUrl string
 )
 
+const (
+	MediaDoneSuffix = "_done"
+)
+
 func ToUrl(root, path string) ClusterCodeUrl {
 	newUrl, err := url.Parse(fmt.Sprintf("cc://%s/%s", root, strings.Replace(path, root, "", 1)))
 	runtime.Must(err)
