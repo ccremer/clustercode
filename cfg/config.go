@@ -29,7 +29,7 @@ type (
 		TargetRoot          string `koanf:"target-root"`
 	}
 	CountConfig struct {
-		TaskName  string `koanf:"task-name"`
+		TaskName string `koanf:"task-name"`
 	}
 )
 

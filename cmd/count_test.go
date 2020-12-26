@@ -13,13 +13,13 @@ func Test_matchesTaskSegment(t *testing.T) {
 		expected bool
 	}{
 		"GivenValidSourcePath_WhenMatching_ThenReturnTrue": {
-			path: "/clustercode/intermediate/task_0.mp4",
-			prefix: "task_",
+			path:     "/clustercode/intermediate/task_0.mp4",
+			prefix:   "task_",
 			expected: true,
 		},
 		"GivenInValidSourcePath_WhenMatching_ThenReturnFalse": {
-			path: "/clustercode/intermediate/task_0_done.mp4",
-			prefix: "task_",
+			path:     "/clustercode/intermediate/task_0_done.mp4",
+			prefix:   "task_",
 			expected: false,
 		},
 	}

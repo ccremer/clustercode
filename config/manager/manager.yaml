@@ -25,3 +25,5 @@ spec:
         image: quay.io/ccremer/clustercode:latest
         args:
         - operate
+        - --operator.clustercode-image=quay.io/ccremer/clustercode:latest
+        - --operator.ffmpeg-image=docker.io/jrottenberg/ffmpeg:4.1-alpine

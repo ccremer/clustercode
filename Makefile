@@ -1,16 +1,3 @@
-# Current Operator version
-VERSION ?= 0.0.1
-# Default bundle image tag
-BUNDLE_IMG ?= controller-bundle:$(VERSION)
-# Options for 'bundle-build'
-ifneq ($(origin CHANNELS), undefined)
-BUNDLE_CHANNELS := --channels=$(CHANNELS)
-endif
-ifneq ($(origin DEFAULT_CHANNEL), undefined)
-BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
-endif
-BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
-
 IMG_TAG ?= latest
 
 BIN_FILENAME ?= clustercode
@@ -97,8 +84,7 @@ generate: ## Generate manifests e.g. CRD, RBAC etc.
 	@rm config/*.yaml
 
 crd: generate ## Generate CRD to file
-	$(KUSTOMIZE) build $(CRD_ROOT_DIR)/v1 > $(CRD_FILE)
-	$(KUSTOMIZE) build $(CRD_ROOT_DIR)/v1beta1 > $(CRD_FILE_LEGACY)
+	$(KUSTOMIZE) build $(CRD_ROOT_DIR) > $(CRD_FILE)
 
 fmt: ## Run go fmt against code
 	go fmt ./...

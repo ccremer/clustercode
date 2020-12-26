@@ -35,7 +35,7 @@ jobs:
     strategy:
       matrix:
         include:
-        - kind-node-version: v1.18.8
+        - kind-node-version: v1.19.4
           crd-spec-version: v1
     steps:
     - uses: actions/checkout@v2

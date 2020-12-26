@@ -17,12 +17,14 @@ snapshot:
 
 dockers:
 - image_templates:
-  - "docker.io/ccremer/clustercode:latest"
   - "docker.io/ccremer/clustercode:v{{ .Version }}"
-  - "docker.io/ccremer/clustercode:v{{ .Major }}"
-  - "quay.io/ccremer/clustercode:latest"
   - "quay.io/ccremer/clustercode:v{{ .Version }}"
-  - "quay.io/ccremer/clustercode:v{{ .Major }}"
+
+  - "docker.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}v{{ .Major }}{{ end }}"
+  - "quay.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}v{{ .Major }}{{ end }}"
+
+  - "docker.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}latest{{ end }}"
+  - "quay.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}latest{{ end }}"
 
 changelog:
   sort: asc

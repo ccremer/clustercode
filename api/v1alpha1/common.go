@@ -36,7 +36,7 @@ type (
 
 const (
 	MediaFileDoneSuffix = "_done"
-	ConfigMapFileName = "file-list.txt"
+	ConfigMapFileName   = "file-list.txt"
 )
 
 func ToUrl(root, path string) ClusterCodeUrl {
