@@ -4,13 +4,11 @@ on:
   push:
     branches:
     - master
-    - development
     tags-ignore:
     - "*"
   pull_request:
     branches:
     - master
-    - development
 
 jobs:
   test:

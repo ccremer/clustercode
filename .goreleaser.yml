@@ -36,6 +36,7 @@ changelog:
     - '^Merge pull request'
 
 release:
+  prerelease: auto
   github:
     owner: ccremer
     name: clustercode
