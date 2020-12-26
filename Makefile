@@ -160,3 +160,5 @@ $(SETUP_E2E_TEST): $(KIND_BIN)
 	@kubectl config use-context kind-$(KIND_CLUSTER)
 	@$(KUSTOMIZE_BUILD_CRD) | kubectl apply $(KIND_KUBECTL_ARGS) -f -
 	@touch $(SETUP_E2E_TEST)
+
+include .github/workflows/Makefile
