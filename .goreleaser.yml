@@ -15,6 +15,21 @@ checksum:
 snapshot:
   name_template: "{{ .Tag }}-snapshot"
 
+signs:
+- artifacts: checksum
+  args: ["-u", "3D25B4013DDE195CB2DF2C6569E37C3C7822E698", "--output", "${signature}", "--detach-sign", "${artifact}"]
+
+nfpms:
+- vendor: ccremer
+  homepage: https://github.com/ccremer/clustercode
+  maintainer: ccremer
+  description: Clustercode converts media files in cluster with ffmpeg
+  license: MIT
+  file_name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+  formats:
+  - deb
+  - rpm
+
 dockers:
 - image_templates:
   - "docker.io/ccremer/clustercode:v{{ .Version }}"

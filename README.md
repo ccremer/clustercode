@@ -4,6 +4,7 @@
 ![Go version](https://img.shields.io/github/go-mod/go-version/ccremer/clustercode)
 ![Kubernetes version](https://img.shields.io/badge/k8s-v1.19-blue)
 [![Version](https://img.shields.io/github/v/release/ccremer/clustercode?include_prereleases)][releases]
+[![CodeClimage](https://img.shields.io/codeclimate/maintainability/ccremer/clustercode)][codeclimate]
 [![GitHub downloads](https://img.shields.io/github/downloads/ccremer/clustercode/total)][releases]
 [![Docker image](https://img.shields.io/docker/pulls/ccremer/clustercode)][dockerhub]
 [![License](https://img.shields.io/github/license/ccremer/clustercode)][license]
@@ -125,3 +126,4 @@ But feel free to try "early access" and report stuff.
 [releases]: https://github.com/ccremer/clustercode/releases
 [license]: https://github.com/ccremer/clustercode/blob/master/LICENSE
 [dockerhub]: https://hub.docker.com/r/ccremer/clustercode
+[codeclimate]: https://codeclimate.com/github/ccremer/clustercode

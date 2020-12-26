@@ -26,8 +26,15 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
-    - name: Run tests
-      run: make test
+    - name: Test & Publish Code Coverage
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: 273b145c3b441d2abc054951c66b99a6d55f9eb4a25ddacd0731e14fcc921dc2
+      with:
+        coverageCommand: make test_codeclimate
+        prefix: ${{ github.event.repository.name }}
+        coverageLocations:
+          "${{github.workspace}}/cover.out:gocov"
   e2e-test:
     runs-on: ubuntu-latest
     strategy:
