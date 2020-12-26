@@ -1,0 +1,10 @@
+resources:
+  - pv.yaml
+  - pvc.yaml
+  - plan.yaml
+namespace: default
+
+commonLabels:
+  app.kubernetes.io/name: e2e
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/instance: test2

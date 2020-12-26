@@ -1,0 +1,58 @@
+apiVersion: clustercode.github.io/v1alpha1
+kind: ClustercodePlan
+metadata:
+  name: test-plan
+spec:
+  scanSchedule: "*/1 * * * *"
+  storage:
+    sourcePvc:
+      claimName: test2-claim1
+      subPath: source
+    intermediatePvc:
+      claimName: test2-claim2
+      subPath: intermediate
+    targetPvc:
+      claimName: test2-claim3
+      subPath: target
+  scanSpec:
+    mediaFileExtensions:
+      - mp4
+  taskConcurrencyStrategy:
+    concurrentCountStrategy:
+      maxCount: 1
+  encodeSpec:
+    sliceSize: 1
+    defaultCommandArgs:
+      - -y
+      - -hide_banner
+      - -nostats
+    splitCommandArgs:
+      - -i
+      - ${INPUT}
+      - -c
+      - copy
+      - -map
+      - "0"
+      - -segment_time
+      - ${SLICE_SIZE}
+      - -f
+      - segment
+      - ${OUTPUT}
+    transcodeCommandArgs:
+      - -i
+      - ${INPUT}
+      - -c:v
+      - copy
+      - -c:a
+      - copy
+      - ${OUTPUT}
+    mergeCommandArgs:
+      - -f
+      - concat
+      - -safe
+      - "0"
+      - -i
+      - ${INPUT}
+      - -c
+      - copy
+      - ${OUTPUT}

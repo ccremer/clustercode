@@ -1,46 +1,32 @@
-*.class
+# Created by .ignore support plugin (hsz.mobi)
+### Example user template template
+### Example user template
 
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
+# VSCode configs
+.vscode/
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
+# IntelliJ project files
+.idea
+*.iml
+out
+gen### Go template
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
 
-# maven
-target/
+# Test binary, build with `go test -c`
+*.test
 
-# gradle
-build/
-.gradle/
-out/
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
 
-# Microsoft opened files.
-~$$*.~*
-
-
-# intellij
-*.iws
-.idea/dataSources.ids
-.idea/dataSources.xml
-.idea/sqlDataSources.xml
-.idea/dynamic.xml
-desktop.ini
-.idea/*.iml
-
-.idea/*
-!.idea/codeStyleSettings.xml
-!.idea/codeStyles
-!.idea/runConfigurations
-
-# project
-/config/
-/tmp/
-/input/
-/output/
-/nginx
-
-# NPM, Webpack
-node_modules/
+bin/
 dist/
-/src/frontend/test/unit/coverage/
-package-lock.json
+clustercode-crd*.yaml
+clustercode
+testbin/
+node_modules/
+e2e/debug
+__debug_bin

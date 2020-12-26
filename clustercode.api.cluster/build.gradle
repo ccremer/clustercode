@@ -1,8 +1,0 @@
-version '1.0.0'
-
-dependencies {
-    compile project(":clustercode.api.domain")
-    compile "${dep_jgroups}"
-    //compile 'com.google.guava:guava:23.5-jre'
-    compile "${dep_rxjava}"
-}

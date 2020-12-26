@@ -1,0 +1,43 @@
+# This is an example goreleaser.yaml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+
+builds:
+- env:
+  - CGO_ENABLED=0 # this is needed otherwise the Docker image build is faulty
+  goarch:
+  - amd64
+  goos:
+  - linux
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ .Tag }}-snapshot"
+
+dockers:
+- image_templates:
+  - "docker.io/ccremer/clustercode:v{{ .Version }}"
+  - "quay.io/ccremer/clustercode:v{{ .Version }}"
+
+  - "docker.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}v{{ .Major }}{{ end }}"
+  - "quay.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}v{{ .Major }}{{ end }}"
+
+  - "docker.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}latest{{ end }}"
+  - "quay.io/ccremer/clustercode:{{ if .Prerelease }}v{{ .Version }}{{ else }}latest{{ end }}"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^(D|d)oc(s|umentation):'
+    - '^(T|t)ests?:'
+    - '^(R|r)efactor:'
+    - '^Merge pull request'
+
+release:
+  github:
+    owner: ccremer
+    name: clustercode
+  extra_files:
+  - glob: ./clustercode-crd*.yaml

@@ -1,123 +1,127 @@
 # clustercode
 
-Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
+[![Build](https://img.shields.io/github/workflow/status/ccremer/clustercode/Build)][build]
+![Go version](https://img.shields.io/github/go-mod/go-version/ccremer/clustercode)
+![Kubernetes version](https://img.shields.io/badge/k8s-v1.19-blue)
+[![Version](https://img.shields.io/github/v/release/ccremer/clustercode?include_prereleases)][releases]
+[![GitHub downloads](https://img.shields.io/github/downloads/ccremer/clustercode/total)][releases]
+[![Docker image](https://img.shields.io/docker/pulls/ccremer/clustercode)][dockerhub]
+[![License](https://img.shields.io/github/license/ccremer/clustercode)][license]
 
-![clustercode_webadmin](https://user-images.githubusercontent.com/12159026/31952107-193afa02-b8e0-11e7-9f88-8d3d20e0d84c.png)
+Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
+It's like an Ffmpeg operator.
+
+## How it works
+
+Clustercode reads an input file from a directory and splits it into multiple smaller chunks.
+Those chunks are encoded individually, but in parallel when enabling concurrency.
+That means, more nodes equals faster encoding.
+After all chunks are converted, they are merged together again and put into target directory.
+
+Ffmpeg is used in the splitting, encoding and merging jobs.
+It basically boils down to
+
+1. Splitting: `ffmpeg -i movie.mp4 -c copy -map 0 -segment_time 120 -f segment job-id_%d.mp4`
+2. Encoding: `ffmpeg -i job-id_1.mp4 -c:v copy -c:a copy job-id_1_done.mkv`
+3. Merging: `ffmpeg -f concat -i file-list.txt -c copy movie_out.mkv`
+
+The encoding step can be executed in parallel by multiple Pods.
+You can customize the arguments passed to ffmpeg (with a few rules and constraints).
+
+Under the hood, only 2 Kubernetes CRDs are used to describe the config.
+All steps with Ffmpeg are executed with Kubernetes Cronjobs and Jobs.
 
 ## Features
 
-* Scans and encodes video files from a directory and encodes them using customizable profiles.
+* Scans and encodes video files from a directory and encodes them using customizable plans.
 * Encoded files are stored in an output directory.
-* Take advantage of having multiple computers: Each node encodes a video, enabling parallelization.
-* Works as a single node too.
-* No designated master. All nodes share the same state.
-* Supports arbiter nodes for providing a quorum. Quorums are needed to prevent a split-brain. Useful if you
-have a spare Raspberry Pi or NAS that is just poor at encoding.
-* Several and different cleanup strategies.
-* Supports Handbrake and ffmpeg
-* Basic REST API
+* Schedule Scans for new files with Cron.
+* Take advantage of having multiple computers: Each Pod encodes a segment, enabling parallelization.
+* Works on single nodes too, but you might not get any speed benefits (in fact it's generating overhead).
 
 ## Installation
 
-* The recommended platform is Docker.
-* Windows (download zip from releases tab).
-* Build it using Gradle if you prefer it another way.
+Currently, there is Kustomize support. Helm is planned.
+Install with `kustomize build config/default | kubectl apply -f -`.
 
-I hate long `docker run` commands with tons of arguments, so here is a docker-compose template:
+## Supported storage types
 
-### Docker Compose
-
-| WARNING: To use the latest stable release, switch to the 1.3 branch! The config below is broken. |
-| --- |
-
-```yaml
-version: "2.2"
-services:
-  # The backend
-  clustercode:
-    restart: unless-stopped
-    image: braindoctor/clustercode:latest
-    container_name: clustercode
-    cpu_shares: 512
-    volumes:
-      - "/path/to/input:/input"
-      - "/path/to/output:/output"
-      - "/path/to/profiles:/profiles"
-# If you need modifications to the xml files, persist them:
-#      - "/path/to/config:/usr/src/clustercode/config"
-    environment:
-    # overwrite any settings from the default using env vars!
-      - CC_CLUSTER_JGROUPS_TCP_INITIAL_HOSTS=your.other.docker.node[7600],another.one[7600]
-      - CC_CLUSTER_JGROUPS_EXT_ADDR=192.168.1.100
-
-  # The frontend
-  clustercode-admin:
-    restart: unless-stopped
-    image: braindoctor/clustercode-admin:latest
-    container_name: clustercode-admin
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "8080:8080"
-
-  # This is entirely optional!
-  clustercode-netdata:
-    restart: unless-stopped
-    image: braindoctor/clustercode-netdata:latest
-    container_name: clustercode-netdata
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "19999:19999"
-    environment:
-      - N_ENABLE_NODE_D=yes
-      - N_HOSTNAME=clustercode
-```
+All file-writable ReadWriteMany volumes available in Kubernetes PersistentVolumeClaims.
 
 ## Configuration
 
-When you first start the container using docker compose, it will create a default configuration
-file in `/usr/src/clustercode/config` (in the container). You can view the settings in the
-`clustercode.properties` file and deviate from the default behaviour of the software. However, you should
-modify the settings via Environment variables (same key/values syntax). Environment variables **always take precedence**
-over the ones in `clustercode.properties`. If you made changes to the XML files, you need to mount a path from outside
-in order to have them persistent.
+```yaml
+apiVersion: clustercode.github.io/v1alpha1
+kind: ClustercodePlan
+metadata:
+  name: test-plan
+spec:
+  scanSchedule: "*/30 * * * *"
+  storage:
+    sourcePvc:
+      claimName: my-nfs-source
+      #subPath: source
+    intermediatePvc:
+      claimName: some-other-storage-claim
+      #subPath: intermediate
+    targetPvc:
+      claimName: my-nfs-target
+      #subPath: target
+  scanSpec:
+    mediaFileExtensions:
+      - mp4
+  taskConcurrencyStrategy:
+    concurrentCountStrategy:
+      maxCount: 1
+  encodeSpec:
+    sliceSize: 120 # after how many seconds to split
+    defaultCommandArgs: ["-y","-hide_banner","-nostats"]
+    splitCommandArgs:
+      - -i
+      - ${INPUT}
+      - -c
+      - copy
+      - -map
+      - "0"
+      - -segment_time
+      - ${SLICE_SIZE}
+      - -f
+      - segment
+      - ${OUTPUT}
+    transcodeCommandArgs:
+      - -i
+      - ${INPUT}
+      - -c:v
+      - copy
+      - -c:a
+      - copy
+      - ${OUTPUT}
+    mergeCommandArgs:
+      - -f
+      - concat
+      - -safe
+      - "0"
+      - -i
+      - ${INPUT}
+      - -c
+      - copy
+      - ${OUTPUT}
+```
 
 ## Project status
 
-Clustercode 2.0 is on hold as of March 2019 and no new changes will be made to 1.3 release. Currently I'm busy with private and work life. 
+Clustercode 2.0 is released **as a Proof-of-concept** and no new changes will be made to old [1.3 release](https://github.com/ccremer/clustercode/tree/1.3.1).
 
-I thought that after modularizing I could release 1.4, but that wouldn't add any new features or fixes. Instead, I will focus fully on a 
-new release, which will consist of several microservices (say hello to Kubernetes!). It will also move to a chunk-based parallelization process
-(1 file chunked into smaller pieces, processed by multiple nodes), which should really bring down the time to encode
-a single job. However those are currently in WIP. Check these repos:
-
-* https://github.com/ccremer/clustercode-worker
-* https://github.com/ccremer/clustercode-docs
-* https://github.com/ccremer/clustercode-admin
-* https://github.com/ccremer/clustercode-api-gateway
-* https://github.com/ccremer/clustercode-netdata (I may scrap that, not sure yet)
-
-## Future Plans
-
-Head over here: https://github.com/ccremer/clustercode/projects
+The code is ugly, documentation inexistent and only the Happy Path works.
+But feel free to try "early access" and report stuff.
 
 ## Docker Tags
 
-* dev: latest automated build of the master branch
-* 1.3.2: stable build of a tagged commit from a release
-* tagged: tags following the 1.x.x pattern are specific releases
+* master: Floating image tag that points to the image built from master branch, usually unreleased changes.
+* latest: Floating image tag that points to the latest stable release
+* tagged: tags following the x.y.z pattern are specific releases
 
-## SSL
-
-The REST API and WebAdmin are easy to support with SSL/https. Just put a reverse proxy in front of clustercode
-that handles https client connections and forwards the request via http to clustercode.
-Check out https://github.com/jwilder/nginx-proxy for an excellent docker nginx proxy with SSL support.
-
-The cluster communication is more difficult to set up with encryption. Even though the
-traffic is binary and hard enough to intercept, it is not encrypted by default. You need
-to change the JGroups configuration. Instructions can be found
-[in the manual](http://jgroups.org/manual4/index.html#Security).
-
-Generally this image and software is built with flexibility and simplicity in mind, not security.
-Use it at your own risk.
+[build]: https://github.com/ccremer/clustercode/actions?query=workflow%3ABuild
+[releases]: https://github.com/ccremer/clustercode/releases
+[license]: https://github.com/ccremer/clustercode/blob/master/LICENSE
+[dockerhub]: https://hub.docker.com/r/ccremer/clustercode

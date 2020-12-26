@@ -1,8 +1,0 @@
-version '1.0.0'
-
-dependencies {
-    compile project(":${proj_api_cleanup}")
-    compile project(":${proj_api_config}")
-    compile project(":${proj_api_process}")
-    testCompile project(":${proj_test_util}").sourceSets.test.output
-}
