@@ -1,0 +1,35 @@
+{
+  "pr_template": "- ${{TITLE}} (PR #${{NUMBER}})",
+  "categories": [
+    {
+      "title": "## 🚀 Features",
+      "labels": [
+        "enhancement",
+        "feature"
+      ]
+    },
+    {
+      "title": "## 🛠️ Changes",
+      "labels": [
+        "change"
+      ]
+    },
+    {
+      "title": "## 🐛 Fixes",
+      "labels": [
+        "bug",
+        "fix"
+      ]
+    },
+    {
+      "title": "## 📄 Documentation",
+      "labels": [
+        "documentation"
+      ]
+    }
+  ],
+  "ignore_labels": [
+    "ignore"
+  ],
+  "template": "${{CHANGELOG}}\n\n<details><summary>Uncategorized</summary><p>\n\n${{UNCATEGORIZED}}\n</p></details>"
+}
