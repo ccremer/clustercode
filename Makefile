@@ -101,7 +101,7 @@ lint: fmt vet ## Invokes the fmt and vet targets
 $(BIN_FILENAME):
 	$(build_cmd)
 
-docker-build: $(BIN_FILENAME) $(KIND_KUBECONFIG) ## Build the docker image
+docker-build: $(BIN_FILENAME) ## Build the docker image
 	docker build . -t $(DOCKER_IMG) -t $(QUAY_IMG) -t $(E2E_IMG)
 
 docker-push: ## Push the docker image
@@ -111,7 +111,7 @@ docker-push: ## Push the docker image
 install_bats: ## Installs the bats util via NPM
 	$(MAKE) -C e2e install_bats
 
-e2e_test: install_bats $(SETUP_E2E_TEST) docker-build ## Runs the e2e test suite
+e2e_test: install_bats $(SETUP_E2E_TEST) $(KIND_KUBECONFIG) docker-build ## Runs the e2e test suite
 	docker push $(E2E_IMG)
 	$(MAKE) -C e2e run_bats -e KUBECONFIG=../$(KIND_KUBECONFIG)
 

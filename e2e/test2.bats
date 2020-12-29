@@ -12,12 +12,12 @@ DEBUG_DETIK="true"
 	reset_debug
 }
 
-@test "verify the clustercode plan" {
+@test "verify the clustercode plan cronjob" {
   go run sigs.k8s.io/kustomize/kustomize/v3 build test2 > debug/test2.yaml
   sed -i "s/\$RANDOM/'$RANDOM'/" debug/test2.yaml
   run kubectl apply -f debug/test2.yaml
   debug "$output"
 
-  try "at most 20 times every 2s to find 1 cronjob named 'test-plan-scan-job' with '.status.active[*].kind' being 'Job'"
+  try "at most 20 times every 5s to find 1 pod named 'test-plan-scan-job' with 'status' being 'Succeeded'"
 
 }
