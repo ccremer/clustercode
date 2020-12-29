@@ -30,7 +30,15 @@ The encoding step can be executed in parallel by multiple Pods.
 You can customize the arguments passed to ffmpeg (with a few rules and constraints).
 
 Under the hood, only 2 Kubernetes CRDs are used to describe the config.
-All steps with Ffmpeg are executed with Kubernetes Cronjobs and Jobs.
+All steps with Ffmpeg are executed with Kubernetes Jobs.
+
+Clustercode operates in either in "operator" or "client" mode.
+As an operator, clustercode "translates" Clustercode Plans into Tasks, which in turn control the spawning CronJobs and Jobs.
+There is only one operator on the cluster across all namespaces.
+In Jobs and CronJobs, Clustercode is launched as a client, interacting with Kubernetes API.
+CronJobs and Jobs are launched in the same namespace as the ClusterCode plan is in.
+
+![Process diagram in BPMN 2.0](clustercode-process.png)
 
 ## Features
 
