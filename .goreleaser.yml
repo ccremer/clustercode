@@ -37,11 +37,11 @@ dockers:
   # For prereleases, updating `latest` and the floating tags of the major
   # version does not make sense. Only the image for the exact version should
   # be pushed.
-  - "{{ if .Prerelease }}docker.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
-  - "{{ if .Prerelease }}quay.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
+  - "{{ if not .Prerelease }}docker.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
+  - "{{ if not .Prerelease }}quay.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
 
-  - "{{ if .Prerelease }}docker.io/ccremer/clustercode:latest{{ end }}"
-  - "{{ if .Prerelease }}quay.io/ccremer/clustercode:latest{{ end }}"
+  - "{{ if not .Prerelease }}docker.io/ccremer/clustercode:latest{{ end }}"
+  - "{{ if not .Prerelease }}quay.io/ccremer/clustercode:latest{{ end }}"
 
 release:
   prerelease: auto
