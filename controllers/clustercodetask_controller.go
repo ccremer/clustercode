@@ -73,7 +73,7 @@ func (r *ClustercodeTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
 	}
-	rc.log = r.Log.WithValues("task", req.NamespacedName).WithValues("meta", rc.task.GetObjectMeta())
+	rc.log = r.Log.WithValues("task", req.NamespacedName)
 
 	if err := r.handleTask(rc); err != nil {
 		rc.log.Error(err, "could not reconcile task")

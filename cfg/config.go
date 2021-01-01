@@ -7,6 +7,7 @@ type (
 		Scan      ScanConfig
 		Log       LogConfig
 		Count     CountConfig
+		Cleanup   CleanupConfig
 		Namespace string `koanf:"namespace"`
 	}
 	OperatorConfig struct {
@@ -29,6 +30,9 @@ type (
 		TargetRoot          string `koanf:"target-root"`
 	}
 	CountConfig struct {
+		TaskName string `koanf:"task-name"`
+	}
+	CleanupConfig struct {
 		TaskName string `koanf:"task-name"`
 	}
 )
