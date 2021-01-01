@@ -1,0 +1,16 @@
+site:
+  title: Clustercode Docs
+  start_page: clustercode::index.adoc
+content:
+  sources:
+    - url: https://github.com/ccremer/clustercode.git
+      branches: []
+      start_path: docs
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
+  supplemental_files: ./supplemental-ui
+output:
+  dir: public/
+  clean: true
