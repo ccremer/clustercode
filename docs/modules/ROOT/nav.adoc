@@ -1,0 +1,13 @@
+* xref:index.adoc[Home]
+
+.Tutorials
+include::partial$nav-tutorials.adoc[]
+
+.How-to guides
+include::partial$nav-howtos.adoc[]
+
+.Technical reference
+include::partial$nav-reference.adoc[]
+
+.Explanation
+include::partial$nav-explanation.adoc[]

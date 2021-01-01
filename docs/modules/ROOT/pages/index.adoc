@@ -1,0 +1,21 @@
+= Clustercode - Kubernetes Movie and Series Operator
+
+[discrete]
+== Introduction
+
+Clustercode is written in https://golang.org/[Go] and is an Open Source project https://github.com/ccremer/clustercode[hosted in GitHub].
+
+TIP: The xref:tutorials/tutorial.adoc[tutorial] gives you a glimpse into Clustercode. Give it a try!
+
+[discrete]
+== Documentation
+
+The documentation is inspired by the https://documentation.divio.com/[Divio's documentation structure]:
+
+Tutorials:: _Learning-oriented_: Simple lessons to learn about Clustercode.
+
+How-to guides:: _Problem-oriented_: step-by-step guides to achieve a goal.
+
+Technical reference:: _Information-oriented_: explaining the inner ongoings of Clustercode.
+
+Explanation:: _Understanding-oriented_: puts Clustercode in context.

@@ -1,0 +1,8 @@
+name: clustercode
+title: Clustercode Documentation
+version: 2.0.0
+prerelease: -master
+display_version: master
+start_page: ROOT:index.adoc
+nav:
+- modules/ROOT/nav.adoc
