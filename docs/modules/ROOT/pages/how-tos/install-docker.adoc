@@ -1,0 +1,7 @@
+= Install On Docker
+
+The Alpine-based image is available on Docker Hub.
+
+https://hub.docker.com/r/braindoctor/clustercode/[Docker Hub]
+
+`docker pull braindoctor/clustercode`

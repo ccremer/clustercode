@@ -1,0 +1,10 @@
+= API Settings
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_REST_API_ENABLED |Boolean |`+true+` |(De)Activate the REST API.
+
+|CC_REST_API_PORT |Integer |`+7700+` |The port to connect to the internal API. Do not change his, since nginx connects to it.
+|===

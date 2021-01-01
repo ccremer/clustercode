@@ -1,0 +1,18 @@
+= Constraints
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_CONSTRAINTS_ACTIVE |Unordered Enum |`+FILE_SIZE+` |List of enabled constraints.
+
+|CC_CONSTRAINT_FILE_MIN_SIZE |Integer |`+150+` |Do not include video files smaller than this value in MB.
+
+|CC_CONSTRAINT_FILE_MAX_SIZE |Integer |`+0+` |Do not include video files larger than this value in MB.
+
+|CC_CONSTRAINT_TIME_BEGIN |String |`+08:00+` |Do not start converting video files before this time of day.
+
+|CC_CONSTRAINT_TIME_STOP |String |`+16:00+` |Do not start converting video files after this time of day.
+
+|CC_CONSTRAINT_FILE_REGEX |String |_`+empty+`_ |Do not include video files matching this regular expression.
+|===

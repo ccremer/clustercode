@@ -1,0 +1,14 @@
+= Encoder Settings
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_TRANSCODE_CLI |String |`+/usr/bin/ffmpeg+` |The path to the ffmpeg binary.
+
+|CC_TRANSCODE_IO_REDIRECTED |Boolean |`+false+` |Redirects ffmpeg/handbrake output to the java process (combined output).
+
+|CC_TRANSCODE_DEFAULT_FORMAT |String |`+.mkv+` |The default container file format if not overridden by a profile.
+
+|CC_TRANSCODE_TYPE |Enum |`+FFMPEG+` |The type of Encoder. Available encoders: `+FFMPEG+`, `+HANDBRAKE+`
+|===

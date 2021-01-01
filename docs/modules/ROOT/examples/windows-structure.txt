@@ -1,0 +1,37 @@
+clustercode
+│   clustercode.cmd
+│   clustercode.jar
+│   log4j2.xml
+│   start-clustercode-admin.cmd
+│   stop-clustercode-admin.cmd
+├───clustercode-admin
+│   │   index.html
+│   └───static
+│       │   favicon.png
+│       │   swagger.html
+│       │   swagger.json
+│       ├───css
+│       ├───fonts
+│       ├───img
+│       └───js
+├───config
+│       clustercode.properties
+│       log4j2-debug.xml
+│       tcp.xml
+│       udp.xml
+├───nginx
+│   │   nginx.exe
+│   ├───conf
+│   │       nginx.conf
+│   ├───contrib
+│   ├───docs
+│   ├───html
+│   ├───logs
+│   └───temp
+├───profiles
+│       default.ffmpeg
+│       default.handbrake
+│       x265.ffmpeg
+│       x265.handbrake
+└───tmp
+        README.md

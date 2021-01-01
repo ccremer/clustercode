@@ -1,0 +1,17 @@
+= Encoder
+
+== CLI
+
+Currently, only `+ffmpeg+` is supported.
+It needs to be installed on the system, though it is included in the Docker image.
+
+== IO Redirection
+
+When `+ffmpeg+` is invoked, by default the output is not displayed in the console of the clustercode process.
+You can enable it to debug problems with a profile or video file, however, the REST API will not be able to get the progress information.
+
+== Default file format
+
+This is the *file* extension of converted files.
+Be aware that you need to specify the *container* format in the profiles.
+An `+.mkv+` file extension does not make it playable if there's `+mp4+` in it.

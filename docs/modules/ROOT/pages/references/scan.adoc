@@ -1,0 +1,20 @@
+= Scan Settings
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_MEDIA_EXTENSIONS |Array[String] |`+mkv,mp4,avi+` |The list of extensions that will be recognised as video files.
+
+|CC_MEDIA_SKIP_NAME |String |`+.done+` |The extension for dummy files to mark the source files as complete.
+
+|CC_PROFILE_FILE_NAME |String |`+profile+` |The name of the profile to look for.
+
+|CC_PROFILE_FILE_EXTENSION |String |`+.ffmpeg+` |The file extensions of the profile file.
+
+|CC_PROFILE_FILE_DEFAULT |String |`+default+` |File name of the last-resort profile if no other could be matched.
+
+|CC_PROFILE_STRATEGY |Ordered Enum |`+COMPANION DIRECTORY_STRUCTURE DEFAULT+` |The profile scan strategies.
+
+|CC_MEDIA_SCAN_INTERVAL |Integer |The amount of minutes to scan after encoding of no next video found. |
+|===

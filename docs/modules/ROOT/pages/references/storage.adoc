@@ -1,0 +1,14 @@
+= Storage Settings
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_MEDIA_INPUT_DIR |String |`+/input+` |The root path of your input folder. See below.
+
+|CC_MEDIA_OUTPUT_DIR |String |`+/output+` |The root path of your output folder.
+
+|CC_PROFILE_DIR |String |`+/profiles+` |The root path of your profiles directory.
+
+|CC_TRANSCODE_TEMP_DIR |String |`+/var/tmp/clustercode+` |The location of the temporary files during conversion.
+|===

@@ -1,0 +1,26 @@
+= Cluster Settings
+
+.Environment Variables
+[options="header"]
+|===
+|KEY |Type |Default |Description
+|CC_CLUSTER_NAME |String |`+clustercode+` |The cluster name.
+
+|CC_CLUSTER_JGROUPS_CONFIG |String |`+config/tcp.xml+` |The path to the JGroups config file.
+
+|CC_CLUSTER_JGROUPS_PREFER_IPV4 |Boolean |`+true+` |Whether IPv4 is preferred. Otherwise IPv6 is used.
+
+|CC_CLUSTER_JGROUPS_BIND_PORT |Integer |`+7600+` |The port to bind JGroups
+
+|CC_CLUSTER_JGROUPS_BIND_ADDR |String |`+SITE_LOCAL+` |The IP address to bind JGroups.
+
+|CC_CLUSTER_JGROUPS_EXT_ADDR |String |`+-+` |The address under which other nodes can find the local one.
+
+|CC_CLUSTER_JGROUPS_TCP_INITIAL_HOSTS |String |`+localhost[7600]+` |The initial hosts to check for an existing cluster.
+
+|CC_CLUSTER_JGROUPS_HOSTNAME |String |_`+empty+`_ |Override the hostname for the cluster.
+
+|CC_CLUSTER_TASK_TIMEOUT |Integer |`+24+` |The amount of hours to remove tasks from the cluster.
+
+|CC_ARBITER_NODE |Boolean |`+false+` |If the local node should run as an arbiter node.
+|===

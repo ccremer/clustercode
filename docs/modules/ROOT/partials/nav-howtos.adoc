@@ -1,0 +1,4 @@
+* xref:how-tos/install-docker.adoc[Install On Docker]
+* xref:how-tos/install-windows.adoc[Install On Windows]
+* xref:how-tos/install-netdata.adoc[Install Netdata]
+* xref:how-tos/upgrade.adoc[Upgrade]

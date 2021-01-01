@@ -1,0 +1,9 @@
+# VSCode configs
+.vscode/
+
+# IntelliJ project files
+.idea
+
+# Antora project files
+public/
+node_modules/

@@ -1,0 +1,7 @@
+* xref:explanations/storage.adoc[Storage]
+* xref:explanations/scan.adoc[Scan]
+* xref:explanations/encoder.adoc[Encoder]
+* xref:explanations/cluster.adoc[Cluster]
+* xref:explanations/cleanup.adoc[Cleanup]
+* xref:explanations/constraints.adoc[Constraints]
+* xref:explanations/api.adoc[API]
