@@ -4,7 +4,7 @@ site:
 content:
   sources:
     - url: https://github.com/ccremer/clustercode.git
-      branches: []
+      branches: [documentation]
       start_path: docs
 ui:
   bundle:
@@ -14,3 +14,5 @@ ui:
 output:
   dir: public/
   clean: true
+runtime:
+  fetch: true
