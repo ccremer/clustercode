@@ -1,6 +1,10 @@
 # Set Shell to bash, otherwise some targets fail with dash/zsh etc.
 SHELL := /bin/bash
 
+include Makevariables.mk
+include .github/workflows/Makefile
+include docs/Makefile
+
 build_cmd ?= CGO_ENABLED=0 go build -o $(BIN_FILENAME) main.go
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
@@ -129,7 +133,3 @@ $(SETUP_E2E_TEST): $(KIND_BIN)
 	@kubectl config use-context kind-$(KIND_CLUSTER)
 	@$(KUSTOMIZE_BUILD_CRD) | kubectl apply $(KIND_KUBECTL_ARGS) -f -
 	@touch $(SETUP_E2E_TEST)
-
-include Makevariables.mk
-include .github/workflows/Makefile
-include docs/Makefile

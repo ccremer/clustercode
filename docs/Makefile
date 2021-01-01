@@ -10,7 +10,6 @@ ANTORA_OUTPUT_DIR ?= $(DOCS_DIR)/public
 
 docs-build: $(DOCS_DIR)/node_modules ## Install dependencies to create docs
 	cd $(DOCS_DIR) && node_modules/@antora/cli/bin/antora $(ANTORA_PLAYBOOK_PATH)
-	@touch $(ANTORA_OUTPUT_DIR)/.nojekyll
 
 $(DOCS_DIR)/node_modules:
 	cd $(DOCS_DIR) && npm install
