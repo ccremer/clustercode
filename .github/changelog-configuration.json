@@ -9,9 +9,15 @@
       ]
     },
     {
-      "title": "## 🛠️ Changes",
+      "title": "## 🛠️ Minor Changes",
       "labels": [
         "change"
+      ]
+    },
+    {
+      "title": "## 🔎 Breaking Changes",
+      "labels": [
+        "breaking"
       ]
     },
     {
@@ -26,10 +32,16 @@
       "labels": [
         "documentation"
       ]
+    },
+    {
+      "title": "## 🔗 Dependency Updates",
+      "labels": [
+        "dependency"
+      ]
     }
   ],
   "ignore_labels": [
     "ignore"
   ],
-  "template": "${{CHANGELOG}}\n\n<details><summary>Uncategorized</summary><p>\n\n${{UNCATEGORIZED}}\n</p></details>"
+  "template": "${{CATEGORIZED_COUNT}} changes since ${{FROM_TAG}}\n\n${{CHANGELOG}}"
 }
