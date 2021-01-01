@@ -50,3 +50,22 @@ jobs:
         args: release --release-notes .github/release-notes.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      with:
+        path: docs/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    - uses: chrisdickinson/setup-yq@latest
+      with:
+        yq-version: v4.2.0
+    - name: build antora site
+      run: make docs-add-tag docs-build NEW_TAG=${GITHUB_REF##*/}
+    - name: Push Antora build to gh-pages
+      run: .github/antora.sh
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

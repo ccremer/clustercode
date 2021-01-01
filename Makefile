@@ -1,31 +1,9 @@
-IMG_TAG ?= latest
+# Set Shell to bash, otherwise some targets fail with dash/zsh etc.
+SHELL := /bin/bash
 
-BIN_FILENAME ?= clustercode
-
-CRD_SPEC_VERSION ?= v1
-
-CRD_ROOT_DIR ?= config/crd/v1alpha1
-CRD_FILE ?= clustercode-crd.yaml
-
-TESTBIN_DIR ?= ./testbin/bin
-KIND_BIN ?= $(TESTBIN_DIR)/kind
-KIND_VERSION ?= 0.9.0
-KIND_KUBECONFIG ?= ./testbin/kind-kubeconfig
-KIND_NODE_VERSION ?= v1.19.4
-KIND_CLUSTER ?= clustercode-$(KIND_NODE_VERSION)
-KIND_KUBECTL_ARGS ?= --validate=true
-KIND_REGISTRY_NAME ?= kind-registry
-KIND_REGISTRY_PORT ?= 5000
-
-SETUP_E2E_TEST := testbin/.setup_e2e_test
-
-ENABLE_LEADER_ELECTION ?= false
-
-# Image URL to use all building/pushing image targets
-DOCKER_IMG ?= docker.io/ccremer/clustercode:$(IMG_TAG)
-QUAY_IMG ?= quay.io/ccremer/clustercode:$(IMG_TAG)
-E2E_IMG ?= localhost:$(KIND_REGISTRY_PORT)/clustercode/operator:e2e
-FFMPEG_IMG ?= docker.io/jrottenberg/ffmpeg:4.1-alpine
+include Makevariables.mk
+include .github/workflows/Makefile
+include docs/Makefile
 
 build_cmd ?= CGO_ENABLED=0 go build -o $(BIN_FILENAME) main.go
 
@@ -36,25 +14,14 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-# Set Shell to bash, otherwise some targets fail with dash/zsh etc.
-SHELL := /bin/bash
-
-KUSTOMIZE ?= go run sigs.k8s.io/kustomize/kustomize/v3
-KUSTOMIZE_BUILD_CRD ?= $(KUSTOMIZE) build $(CRD_ROOT_DIR)
-
 all: build ## Invokes the build target
 
 test: fmt vet ## Run tests
 	go test ./... -coverprofile cover.out
 
-# Run tests (see https://sdk.operatorframework.io/docs/building-operators/golang/references/envtest-setup)
-ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-
 $(TESTBIN_DIR):
 	mkdir -p $(TESTBIN_DIR)
 
-# See https://storage.googleapis.com/kubebuilder-tools/ for list of supported K8s versions
-# No, there's no 1.18 support, so we're going for 1.19
 integration_test: export ENVTEST_K8S_VERSION = 1.19.2
 integration_test: generate fmt vet $(TESTBIN_DIR) ## Run integration tests with envtest
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
@@ -62,9 +29,6 @@ integration_test: generate fmt vet $(TESTBIN_DIR) ## Run integration tests with 
 
 build: generate fmt vet ## Build manager binary
 	$(build_cmd)
-
-dist: generate fmt vet ## Generates a release
-	goreleaser release --snapshot --rm-dist --skip-sign
 
 run: export BACKUP_ENABLE_LEADER_ELECTION = $(ENABLE_LEADER_ELECTION)
 run: fmt vet ## Run against the configured Kubernetes cluster in ~/.kube/config
@@ -169,5 +133,3 @@ $(SETUP_E2E_TEST): $(KIND_BIN)
 	@kubectl config use-context kind-$(KIND_CLUSTER)
 	@$(KUSTOMIZE_BUILD_CRD) | kubectl apply $(KIND_KUBECTL_ARGS) -f -
 	@touch $(SETUP_E2E_TEST)
-
-include .github/workflows/Makefile
