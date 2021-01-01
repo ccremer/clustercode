@@ -86,7 +86,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.plan.Name + "-scan-job",
 			Namespace: rc.plan.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, ClusterCodeScanLabels),
+			Labels:    labels.Merge(ClusterCodeLabels, ClustercodeTypeScan.AsLabels()),
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule:          rc.plan.Spec.ScanSchedule,

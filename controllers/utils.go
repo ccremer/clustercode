@@ -24,15 +24,6 @@ var (
 	ClusterCodeLabels = labels.Set{
 		"app.kubernetes.io/managed-by": "clustercode",
 	}
-	ClusterCodeScanLabels = labels.Set{
-		ClustercodeTypeLabelKey: string(ClustercodeTypeScan),
-	}
-	ClusterCodeSplitLabels = labels.Set{
-		ClustercodeTypeLabelKey: string(ClustercodeTypeSplit),
-	}
-	ClusterCodeCountLabels = labels.Set{
-		ClustercodeTypeLabelKey: string(ClustercodeTypeCount),
-	}
 )
 
 const (
@@ -48,10 +39,13 @@ const (
 	ClustercodeTypeSlice          ClusterCodeJobType = "slice"
 	ClustercodeTypeCount          ClusterCodeJobType = "count"
 	ClustercodeTypeMerge          ClusterCodeJobType = "merge"
+	ClustercodeTypeCleanup        ClusterCodeJobType = "cleanup"
 )
 
 var (
-	ClustercodeTypes = []ClusterCodeJobType{ClustercodeTypeScan, ClustercodeTypeSplit, ClustercodeTypeCount, ClustercodeTypeSlice, ClustercodeTypeMerge}
+	ClustercodeTypes = []ClusterCodeJobType{
+		ClustercodeTypeScan, ClustercodeTypeSplit, ClustercodeTypeCount, ClustercodeTypeSlice,
+		ClustercodeTypeMerge, ClustercodeTypeCleanup}
 )
 
 func (t ClusterCodeJobType) AsLabels() labels.Set {
@@ -96,6 +90,11 @@ func createFfmpegJobDefinition(task *v1alpha1.ClustercodeTask, opts *TaskOpts) *
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsUser:  pointer.Int64Ptr(1000),
+						RunAsGroup: pointer.Int64Ptr(0),
+						FSGroup:    pointer.Int64Ptr(0),
+					},
 					ServiceAccountName: task.Spec.ServiceAccountName,
 					RestartPolicy:      corev1.RestartPolicyNever,
 					Containers: []corev1.Container{

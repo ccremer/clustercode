@@ -80,6 +80,11 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		rc.log.V(1).Info("cannot determine job type, ignoring reconcile", "error", err.Error())
 		return ctrl.Result{}, nil
 	}
+	conditions := castConditions(rc.job.Status.Conditions)
+	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
+		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
+		return ctrl.Result{}, nil
+	}
 	rc.jobType = jobType
 	switch jobType {
 	case ClustercodeTypeSplit:
@@ -89,17 +94,14 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	case ClustercodeTypeSlice:
 		rc.log.Info("reconciling slice job")
 		return ctrl.Result{}, r.handleSliceJob(rc)
+	case ClustercodeTypeMerge:
+		rc.log.Info("reconciling merge job")
+		return ctrl.Result{}, r.handleMergeJob(rc)
 	}
 	return ctrl.Result{}, nil
 }
 
 func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
-	conditions := castConditions(rc.job.Status.Conditions)
-	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
-		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
-		return nil
-	}
-
 	rc.task = &v1alpha1.ClustercodeTask{}
 	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
 		return err
@@ -117,23 +119,26 @@ func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
 	if err != nil {
 		return fmt.Errorf("cannot determine slice index from label '%s': %w", ClustercodeSliceIndexLabelKey, err)
 	}
-	conditions := castConditions(rc.job.Status.Conditions)
-	if !meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue) {
-		rc.log.V(1).Info("job is not completed yet, ignoring reconcile")
-		return nil
-	}
 
 	rc.task = &v1alpha1.ClustercodeTask{}
 	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
 		return err
 	}
-	arr := rc.task.Status.SlicesFinished
-	arr = append(arr, v1alpha1.ClustercodeSliceRef{
+	finished := rc.task.Status.SlicesFinished
+	finished = append(finished, v1alpha1.ClustercodeSliceRef{
 		SliceIndex: index,
 		JobName:    rc.job.Name,
 	})
-	rc.task.Status.SlicesFinished = arr
-	rc.task.Status.SlicesFinishedCount = len(arr)
+	rc.task.Status.SlicesFinished = finished
+	rc.task.Status.SlicesFinishedCount = len(finished)
+
+	var scheduled []v1alpha1.ClustercodeSliceRef
+	for _, ref := range rc.task.Status.SlicesScheduled {
+		if ref.SliceIndex != index {
+			scheduled = append(scheduled, ref)
+		}
+	}
+	rc.task.Status.SlicesScheduled = scheduled
 	return r.Client.Status().Update(rc.ctx, rc.task)
 }
 
@@ -183,6 +188,70 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 			},
 		},
 	}
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
+	}
+	if err := r.Client.Create(rc.ctx, job); err != nil {
+		if apierrors.IsAlreadyExists(err) {
+			rc.log.Info("skip creating job, it already exists", "job", job.Name)
+		} else {
+			rc.log.Error(err, "could not create job", "job", job.Name)
+			return err
+		}
+	} else {
+		rc.log.Info("job created", "job", job.Name)
+	}
+	return nil
+}
+
+func (r *JobReconciler) handleMergeJob(rc *JobContext) error {
+	rc.task = &v1alpha1.ClustercodeTask{}
+	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+		return err
+	}
+
+	return r.createCleanupJob(rc)
+}
+
+func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
+
+	taskId := rc.task.Spec.TaskId
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCleanup), taskId, ClustercodeTypeCleanup),
+			Namespace: rc.job.Namespace,
+			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClustercodeTypeCleanup.AsLabels(), taskId.AsLabels())),
+		},
+		Spec: batchv1.JobSpec{
+			BackoffLimit: pointer.Int32Ptr(0),
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					SecurityContext: &corev1.PodSecurityContext{
+						RunAsUser:  pointer.Int64Ptr(1000),
+						RunAsGroup: pointer.Int64Ptr(0),
+						FSGroup:    pointer.Int64Ptr(0),
+					},
+					ServiceAccountName: rc.job.Spec.Template.Spec.ServiceAccountName,
+					RestartPolicy:      corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:            "clustercode",
+							Image:           cfg.Config.Operator.ClustercodeContainerImage,
+							ImagePullPolicy: corev1.PullIfNotPresent,
+							Args: []string{
+								"-v",
+								"--namespace=" + rc.job.Namespace,
+								"cleanup",
+								"--cleanup.task-name=" + rc.task.Name,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	addPvcVolume(job, SourceSubMountPath, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc)
+	addPvcVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc)
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}

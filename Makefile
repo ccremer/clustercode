@@ -25,6 +25,7 @@ ENABLE_LEADER_ELECTION ?= false
 DOCKER_IMG ?= docker.io/ccremer/clustercode:$(IMG_TAG)
 QUAY_IMG ?= quay.io/ccremer/clustercode:$(IMG_TAG)
 E2E_IMG ?= localhost:$(KIND_REGISTRY_PORT)/clustercode/operator:e2e
+FFMPEG_IMG ?= docker.io/jrottenberg/ffmpeg:4.1-alpine
 
 build_cmd ?= CGO_ENABLED=0 go build -o $(BIN_FILENAME) main.go
 
@@ -96,6 +97,14 @@ lint: fmt vet ## Invokes the fmt and vet targets
 	@echo 'Check for uncommitted changes ...'
 	git diff --exit-code
 
+blank-media:
+	@mkdir data/source data/intermediate data/target || true
+	docker run --rm -it -u $(shell id -u) -v $(PWD)/data/source:/data $(FFMPEG_IMG) -y -hide_banner -t 30 -f lavfi -i color=c=black:s=320x240 -c:v libx264 -tune stillimage -pix_fmt yuv420p /data/blank_video.mp4
+	@docker run --rm -it -v $(PWD)/data/source:/data --entrypoint /bin/sh $(FFMPEG_IMG) -c "chmod -R 664 /data/*"
+
+clean-media:
+	sudo rm -r data/intermediate data/target || true
+
 # Build the binary without running generators
 .PHONY: $(BIN_FILENAME)
 $(BIN_FILENAME):
@@ -131,7 +140,7 @@ clean_e2e_setup: ## Clean the e2e setup (e.g. to rerun the setup_e2e_test)
 	@rm $(SETUP_E2E_TEST) || true
 
 clean: export KUBECONFIG = $(KIND_KUBECONFIG)
-clean: ## Cleans up the generated resources
+clean: clean-media ## Cleans up the generated resources
 	$(KIND_BIN) delete cluster --name $(KIND_CLUSTER) || true
 	docker stop "$(KIND_REGISTRY_NAME)" || true
 	docker rm "$(KIND_REGISTRY_NAME)" || true
