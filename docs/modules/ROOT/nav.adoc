@@ -1,9 +1,9 @@
-* xref:index.adoc[Home]
+* xref:index.adoc[Introduction]
 
 .Tutorials
 include::partial$nav-tutorials.adoc[]
 
-.How-to guides
+.How To
 include::partial$nav-howtos.adoc[]
 
 .Technical reference

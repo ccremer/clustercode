@@ -1,0 +1,59 @@
+ifndef::env-github[:icons: font]
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+:ext-relative: {outfilesuffix}
+endif::[]
+
+= clustercode
+
+image:https://img.shields.io/github/workflow/status/ccremer/clustercode/Build[Build,link=https://github.com/ccremer/clustercode/actions?query=workflow%3ABuild]
+image:https://img.shields.io/github/go-mod/go-version/ccremer/clustercode[Go version]
+image:https://img.shields.io/badge/k8s-v1.19-blue[Kubernetes version]
+image:https://img.shields.io/github/v/release/ccremer/clustercode?include_prereleases[Version,link=https://github.com/ccremer/clustercode/releases]
+image:https://img.shields.io/codeclimate/maintainability/ccremer/clustercode[Maintainability,link=https://codeclimate.com/github/ccremer/clustercode]
+image:https://img.shields.io/github/downloads/ccremer/clustercode/total[GitHub downloads,link=https://img.shields.io/docker/pulls/ccremer/clustercode]
+image:https://img.shields.io/docker/pulls/ccremer/clustercode[Docker Hub,link=https://hub.docker.com/r/ccremer/clustercode]
+image:https://img.shields.io/github/license/ccremer/clustercode[License,link=https://github.com/ccremer/clustercode/blob/master/LICENSE]
+
+Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
+It's like an Ffmpeg operator!
+
+== Features
+
+* Scans and encodes video files from a directory and encodes them using customizable plans.
+* Encoded files are stored in an output directory.
+* Schedule Scans for new files with Cron.
+* Take advantage of having multiple computers: Each Pod encodes a segment, enabling parallelization.
+* Works on single nodes too, but you might not get any speed benefits (in fact it's generating overhead).
+
+== Documentation
+
+See https://ccremer.github.io/clustercode[ccremer.github.io/clustercode]
+
+== Installation
+
+Currently, there is Kustomize support.
+Install with `kustomize build config/default | kubectl apply -f -`.
+
+NOTE: Helm is also planned.
+
+=== Supported storage types
+
+All file-writable ReadWriteMany volumes available in Kubernetes PersistentVolumeClaims.
+
+== Project status
+
+Clustercode 2.0 is released **as a Proof-of-concept** and no new changes will be made to old https://github.com/ccremer/clustercode/tree/1.3.1[1.3 release].
+
+The code is ugly, documentation inexistent and only the Happy Path works.
+But feel free to try "early access" and report stuff.
+
+== Image Tags
+
+* `master`: Floating image tag that points to the image built from master branch, usually unreleased changes.
+* `latest`: Floating image tag that points to the latest stable release.
+* `vx.y.z`: tags following the x.y.z pattern are specific releases following the SemVer scheme.
