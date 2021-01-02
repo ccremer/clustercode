@@ -32,7 +32,7 @@ It's like an Ffmpeg operator!
 
 == Documentation
 
-See https://ccremer.github.io/clustercode[ccremer.github.io/clustercode]
+See https://ccremer.github.io/clustercode-docs[ccremer.github.io/clustercode-docs]
 
 == Installation
 

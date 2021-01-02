@@ -1,7 +1,9 @@
 name: clustercode
 title: Clustercode
-#start_page: ROOT:index.adoc
 nav:
 - modules/ROOT/nav.adoc
+
+# This will be overridden from the playbook, only relevant for local preview now
+version: HEAD
 # This is a custom property using an Antora hack:
 use_ref: true

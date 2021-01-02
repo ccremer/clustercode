@@ -1,9 +1,11 @@
 {
   "dependencies": {
     "@antora/cli": "2.3.4",
-    "@antora/site-generator-default": "2.3.4"
+    "@antora/site-generator-default": "2.3.4",
+    "http-server": "^0.12.3"
   },
   "scripts": {
-    "postinstall": "cp --force aggregate-content.js node_modules/@antora/content-aggregator/lib/"
+    "serve": "http-server public/ -c-1",
+    "build": "antora ${ANTORA_PLAYBOOK_PATH:-local-antora-playbook.yml} ${ANTORA_ARGS}"
   }
 }

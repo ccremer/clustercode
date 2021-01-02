@@ -4,3 +4,5 @@ exclude_patterns:
 - 'e2e/lib/'
 - '**/zz_generated.deepcopy.go'
 - 'docs/*.js'
+# This is a custom property:
+reporter_id: 273b145c3b441d2abc054951c66b99a6d55f9eb4a25ddacd0731e14fcc921dc2
