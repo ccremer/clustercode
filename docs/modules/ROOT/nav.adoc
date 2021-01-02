@@ -1,4 +1,7 @@
 * xref:index.adoc[Introduction]
+ifeval::['{page-origin-reftype}' == 'tag']
+* https://github.com/ccremer/clustercode/releases/tag/{page-origin-refname}[Changelog,window=_blank]
+endif::[]
 
 .Tutorials
 include::partial$nav-tutorials.adoc[]
