@@ -90,5 +90,5 @@ jobs:
     - uses: chrisdickinson/setup-yq@latest
       with:
         yq-version: v4.2.0
-    - name: build antora site
+    - name: Build Antora site
       run: make docs-add-tag docs-build NEW_TAG=${{ github.event.pull_request.head.ref }}

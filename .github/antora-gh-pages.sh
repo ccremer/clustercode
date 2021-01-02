@@ -10,7 +10,7 @@ cp -r --force docs/public/. "${gh_pages_worktree}"/
 
 pushd "${gh_pages_worktree}" > /dev/null
 
-tree "${gh_pages_worktree}"
+ls -lah "${gh_pages_worktree}"/*
 
 git add *
 echo "Finding changed files..."

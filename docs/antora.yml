@@ -1,7 +1,7 @@
 name: clustercode
 title: Clustercode
-start_page: ROOT:index.adoc
+#start_page: ROOT:index.adoc
 nav:
-  - modules/ROOT/nav.adoc
+- modules/ROOT/nav.adoc
 # This is a custom property using an Antora hack:
 use_ref: true

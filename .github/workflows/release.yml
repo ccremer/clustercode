@@ -54,6 +54,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - uses: actions/cache@v2
       with:
         path: docs/node_modules
@@ -63,9 +65,13 @@ jobs:
     - uses: chrisdickinson/setup-yq@latest
       with:
         yq-version: v4.2.0
-    - name: build antora site
+    - name: Configure Git
+      run: |
+        git config user.name "$GITHUB_ACTOR"
+        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+    - name: Build Antora site
       run: make docs-add-tag docs-build NEW_TAG=${GITHUB_REF##*/}
     - name: Push Antora build to gh-pages
-      run: .github/antora.sh
+      run: .github/antora-gh-pages.sh
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
