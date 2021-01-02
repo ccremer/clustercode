@@ -54,24 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/cache@v2
-      with:
-        path: docs/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-    - uses: chrisdickinson/setup-yq@latest
-      with:
-        yq-version: v4.2.0
-    - name: Configure Git
-      run: |
-        git config user.name "$GITHUB_ACTOR"
-        git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-    - name: Build Antora site
-      run: make docs-add-tag docs-build NEW_TAG=${GITHUB_REF##*/}
-    - name: Push Antora build to gh-pages
-      run: .github/antora-gh-pages.sh
+    - name: Trigger tag workflow in clustercode-docs
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
+      run: make trigger_workflow DOCUMENTATION_TAG=${GITHUB_REF##*/} DOCUMENTATION_WORKFLOW=tag.yml

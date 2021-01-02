@@ -3,7 +3,15 @@
     "@antora/cli": "2.3.4",
     "@antora/site-generator-default": "2.3.4"
   },
+  "devDependencies": {
+    "npm-run-all": "4.1.5",
+    "reload": "3.1.1",
+    "watch": "1.0.2"
+  },
   "scripts": {
-    "postinstall": "cp --force aggregate-content.js node_modules/@antora/content-aggregator/lib/"
+    "build": "antora ${ANTORA_PLAYBOOK_PATH:-local-antora-playbook.yml} ${ANTORA_ARGS}",
+    "watch": "watch 'npm run build' modules",
+    "serve": "reload -d public -b",
+    "preview": "run-p watch serve"
   }
 }
