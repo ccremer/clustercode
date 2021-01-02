@@ -15,5 +15,3 @@ ui:
 output:
   dir: public/
   clean: true
-runtime:
-  fetch: true

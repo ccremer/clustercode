@@ -16,4 +16,4 @@ docs-clean:
 	cd $(DOCS_DIR) && rm -r $(ANTORA_OUTPUT_DIR) node_modules || true
 
 docs-preview: docs-build ## Preview Antora build in local web server
-	cd $(DOCS_DIR) && npm run serve
+	cd $(DOCS_DIR) && npm run preview

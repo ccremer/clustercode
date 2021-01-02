@@ -1,24 +1,19 @@
 = Documentation with Antora
 
-== Patch Antora
-
-Since we keep documentation in the same repo as code, we need to make some adjustments.
-It's generally not possible in Antora 2.x to set the component version to the one defined in the `branches` in the playbook YAML file.
-
-Thus, with the help of https://gitlab.com/antora/antora/-/merge_requests/580/diffs, there's a patched file that enables us this behaviour.
-
-WARNING: It's a hack!
-
-Create/update the patched file:
-
-. Remove the `postinstall` script from `package.json`
-. Install dependencies with `npm install`
-. `cp node_modules/@antora/content-aggregator/lib/aggregate-content.js aggregate-content.js`
-. Edit the file so it works with `ref` again (see https://gitlab.com/antora/antora/-/merge_requests/580/diffs[gitlab.com/antora/antora!580])
-. Activate the `postinstall` script again in `package.json`
-
-Now, when installing Antora, the patch should be applied automatically.
+This documentation is built with https://docs.antora.org/[Antora].
 
 == Build Documentation
 
 `make docs-build`
+
+== Live Reload and Preview
+
+This will run a web server on port 8080 and open your browser.
+Meanwhile you can make changes to the local `modules` dir and view your change 2-3s later without browser plugins.
+
+`make docs-preview`
+
+== Requirements
+
+* node v12
+* npm v6
