@@ -1,9 +1,6 @@
 ## Summary
 
-<!--
-Thank you for your pull request. Please provide a description above and
-review the checklist below.
--->
+
 
 ## Checklist
 <!--
