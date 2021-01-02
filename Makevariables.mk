@@ -39,7 +39,6 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 # Trigger Documentation workflow in another repository
 #
 DOCUMENTATION_REPOSITORY ?= ccremer/clustercode-docs
-DOCUMENTATION_WORKFLOW ?= build.yml
 # The git ref to run the workflow in
 DOCUMENTATION_REF ?= master
 # The new git tag to add

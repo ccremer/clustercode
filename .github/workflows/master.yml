@@ -37,7 +37,7 @@ jobs:
     - name: Trigger documentation build in documentation repository
       env:
         DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-      run: make trigger_workflow
+      run: make trigger_workflow_master
   dist:
     runs-on: ubuntu-latest
     steps:

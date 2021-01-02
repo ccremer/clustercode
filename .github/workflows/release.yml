@@ -57,4 +57,4 @@ jobs:
     - name: Trigger tag workflow in clustercode-docs
       env:
         DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-      run: make trigger_workflow DOCUMENTATION_TAG=${GITHUB_REF##*/} DOCUMENTATION_WORKFLOW=tag.yml
+      run: make trigger_workflow_tag DOCUMENTATION_TAG=${GITHUB_REF##*/}
