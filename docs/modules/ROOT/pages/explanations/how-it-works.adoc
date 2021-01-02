@@ -1,0 +1,38 @@
+= How Clustercode Works
+
+== High level workflow
+
+Clustercode reads an input file from a directory and splits it into multiple smaller chunks.
+Those chunks are encoded individually, but in parallel when enabling concurrency.
+That means, more nodes equals faster encoding.
+After all chunks are converted, they are merged together again and put into target directory.
+
+Ffmpeg is used in the splitting, encoding and merging jobs.
+It basically boils down to
+
+. Splitting: `ffmpeg -i movie.mp4 -c copy -map 0 -segment_time 120 -f segment job-id_%d.mp4`
+. Encoding: `ffmpeg -i job-id_1.mp4 -c:v copy -c:a copy job-id_1_done.mkv`
+. Merging: `ffmpeg -f concat -i file-list.txt -c copy movie_out.mkv`
+
+You can customize the arguments passed to ffmpeg (with a few rules and constraints).
+
+== Enter Kubernetes
+
+Under the hood, 2 Kubernetes CRDs are used to describe the config.
+All steps with Ffmpeg are executed with Kubernetes Jobs, while the encoding step can be executed in parallel by scheduling multiple Jobs at the same time.
+
+Clustercode operates in either in "operator" or "client" mode.
+As an operator, clustercode "translates" Clustercode Plans into Tasks, which in turn control the spawning CronJobs and Jobs.
+There is only one operator on the cluster across all namespaces.
+In Jobs and CronJobs, Clustercode is launched as a client, interacting with Kubernetes API. CronJobs and Jobs are launched in the same namespace as the ClusterCode plan is in.
+
+== Process Diagram
+
+If you understand BPMN 2.0, the following graphic should give a more insights how Clustercode works on Kubernetes.
+Even if you don't fully understand it, this should give a gist.
+
+NOTE: The BPMN experts will notice that this is not 100% valid BPMN, because it's made for humans.
+
+TIP: The image is an SVG vector graphic, so you should be able to zoom in to read it.
+
+image::clustercode-process.drawio.svg[]

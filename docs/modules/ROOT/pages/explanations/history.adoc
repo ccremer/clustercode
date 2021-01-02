@@ -1,0 +1,22 @@
+= Clustercode Architecture History
+
+In Clustercode 1.x, the stack consists of a Java-based Master node and several Slave nodes.
+However, parallelization was not achieved by splitting the media file.
+Instead, each Slave would get assigned a media file on its own, enabling parallelization only when having multiple media files to convert.
+The file system itself served as database when it comes to remember which files were already converted.
+
+This became soon difficult to maintain.
+
+Some time later, another attempt was made by using a message based architecture.
+There would be a Java-based Master for scheduling, a CouchDB database and Go-based Slaves.
+At least the same split-encode-merge parallelization concept was planned.
+However, the code grew much into solving infrastructure problems: How to connect to each other, what database scheme, error handling, logging, synchronization etc.
+The actual, more interesting business code was never completed or released.
+
+Another year or two passed without activity.
+
+Meanwhile the original maintainer gained a lot of knowledge on Kubernetes and its concept of Operators.
+Soon, the decision was taken try yet another attempt, this time using Kubernetes both as database and scheduler.
+The big advantage of this architecture is reduce maintenance to the actual business logic.
+Clustercode itself would become stateless, everything is stored in Kubernetes.
+However, requiring Kubernetes definitely increases installation complexity, and some users might actually not install it due to this.
