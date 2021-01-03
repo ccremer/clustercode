@@ -6,15 +6,12 @@ metadata:
   namespace: system
 spec:
   template:
-    metadata:
-      labels:
-        app.kubernetes.io/version: $RANDOM
     spec:
       containers:
       - name: clustercode
-        image: localhost:5000/clustercode/operator:e2e
-        imagePullPolicy: Always
+        image: $E2E_IMAGE
         args:
         - -v
         - operate
-        - --operator.clustercode-image=localhost:5000/clustercode/operator:e2e
+        - --operator.clustercode-image
+        - $E2E_IMAGE
