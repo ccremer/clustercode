@@ -74,6 +74,7 @@ clean-media:
 $(BIN_FILENAME):
 	$(build_cmd)
 
+docker-build: export GOOS = linux
 docker-build: $(BIN_FILENAME) ## Build the docker image
 	docker build . -t $(DOCKER_IMG) -t $(QUAY_IMG) -t $(E2E_IMG)
 
@@ -84,8 +85,10 @@ docker-push: ## Push the docker image
 install_bats: ## Installs the bats util via NPM
 	$(MAKE) -C e2e install_bats
 
+e2e_test: export E2E_IMAGE = $(E2E_IMG)
 e2e_test: install_bats $(SETUP_E2E_TEST) $(KIND_KUBECONFIG) docker-build ## Runs the e2e test suite
-	docker push $(E2E_IMG)
+	@$(KIND_BIN) load docker-image --name $(KIND_CLUSTER) $(E2E_IMG)
+	@docker rmi $(E2E_IMG)
 	$(MAKE) -C e2e run_bats -e KUBECONFIG=../$(KIND_KUBECONFIG)
 
 run_kind: export KUBECONFIG = $(KIND_KUBECONFIG)
@@ -106,9 +109,7 @@ clean_e2e_setup: ## Clean the e2e setup (e.g. to rerun the setup_e2e_test)
 clean: export KUBECONFIG = $(KIND_KUBECONFIG)
 clean: clean-media ## Cleans up the generated resources
 	$(KIND_BIN) delete cluster --name $(KIND_CLUSTER) || true
-	docker stop "$(KIND_REGISTRY_NAME)" || true
-	docker rm "$(KIND_REGISTRY_NAME)" || true
-	docker rmi "$(E2E_IMG)" || true
+	docker images --filter "reference=$(E2E_REPO)" --format "{{.Repository }}:{{ .Tag }}" | xargs --no-run-if-empty docker rmi || true
 	rm -r testbin/ dist/ bin/ cover.out $(BIN_FILENAME) || true
 	$(MAKE) -C e2e clean
 
@@ -120,7 +121,6 @@ $(KIND_BIN): export KUBECONFIG = $(KIND_KUBECONFIG)
 $(KIND_BIN): $(TESTBIN_DIR)
 	curl -Lo $(KIND_BIN) "https://kind.sigs.k8s.io/dl/v$(KIND_VERSION)/kind-$$(uname)-amd64"
 	@chmod +x $(KIND_BIN)
-	docker run -d --restart=always -p "$(KIND_REGISTRY_PORT):5000" --name "$(KIND_REGISTRY_NAME)" docker.io/library/registry:2
 	$(KIND_BIN) create cluster --name $(KIND_CLUSTER) --image kindest/node:$(KIND_NODE_VERSION) --config=e2e/kind-config.yaml
 	@docker network connect "kind" "$(KIND_REGISTRY_NAME)" || true
 	@kubectl version

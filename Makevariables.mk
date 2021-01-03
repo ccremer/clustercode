@@ -1,9 +1,13 @@
-
+VERSION ?= $(shell date +%Y-%m-%d_%H-%M-%S)
 BIN_FILENAME ?= clustercode
 
 DOCS_DIR := docs
 
 IMG_TAG ?= latest
+E2E_TAG ?= e2e_$(VERSION)
+E2E_REPO ?= local.dev/clustercode/e2e
+
+E2E_IMG := $(E2E_REPO):$(E2E_TAG)
 
 CRD_SPEC_VERSION ?= v1
 
@@ -17,8 +21,6 @@ KIND_KUBECONFIG ?= ./testbin/kind-kubeconfig
 KIND_NODE_VERSION ?= v1.19.4
 KIND_CLUSTER ?= clustercode-$(KIND_NODE_VERSION)
 KIND_KUBECTL_ARGS ?= --validate=true
-KIND_REGISTRY_NAME ?= kind-registry
-KIND_REGISTRY_PORT ?= 5000
 
 KUSTOMIZE ?= go run sigs.k8s.io/kustomize/kustomize/v3
 KUSTOMIZE_BUILD_CRD ?= $(KUSTOMIZE) build $(CRD_ROOT_DIR)

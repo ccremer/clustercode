@@ -14,7 +14,7 @@ DEBUG_DETIK="true"
 
 @test "verify the deployment" {
   go run sigs.k8s.io/kustomize/kustomize/v3 build test1 > debug/test1.yaml
-  run sed -i "s/\$RANDOM/'$RANDOM'/" debug/test1.yaml
+  sed -i -e "s|\$E2E_IMAGE|${E2E_IMAGE}|" debug/test1.yaml
   debug "$output"
   run kubectl apply -f debug/test1.yaml
   debug "$output"
