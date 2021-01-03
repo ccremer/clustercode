@@ -1,5 +1,5 @@
 .PHONY: test_codeclimate
-test_codeclimate: integration_test ## Run tests for CodeClimate
+test_codeclimate: integration_test ## Run tests for CodeClimate reporting
 	@sed -i "s%github.com/ccremer/%%" cover.out
 
 workflow_master_url := 	https://api.github.com/repos/$(DOCUMENTATION_REPOSITORY)/actions/workflows/build.yml/dispatches
