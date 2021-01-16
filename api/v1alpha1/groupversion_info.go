@@ -1,6 +1,9 @@
 // Package v1alpha1 contains API Schema definitions for the sync v1alpha1 API group
 // +kubebuilder:object:generate=true
 // +groupName=clustercode.github.io
+
+// +kubebuilder:rbac:groups=coordination.k8s.io,resources=leases,verbs=get;list;create;update
+
 package v1alpha1
 
 import (

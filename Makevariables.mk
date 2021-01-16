@@ -17,9 +17,11 @@ CRD_FILE ?= clustercode-crd.yaml
 OPERATOR_NAMESPACE ?= clustercode-system
 
 TESTBIN_DIR ?= ./testbin/bin
+# See https://storage.googleapis.com/kubebuilder-tools/ for list of supported K8s versions
+INTEGRATIONTEST_K8S_VERSION ?= 1.20.2
 KIND_VERSION ?= 0.9.0
 KIND_KUBECONFIG ?= testbin/kind-kubeconfig
-KIND_NODE_VERSION ?= v1.19.4
+KIND_NODE_VERSION ?= v1.20.0
 KIND_CLUSTER ?= clustercode-$(KIND_NODE_VERSION)
 KIND_KUBECTL_ARGS ?= --validate=true
 
