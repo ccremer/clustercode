@@ -27,10 +27,12 @@ run_kind: $(setup_e2e_test) ## Runs the operator in kind
 #### Everything BATS related
 .PHONY: run_bats install_bats
 
+bats_args ?=
+
 run_bats: export KUBECONFIG = ../$(KIND_KUBECONFIG)
 run_bats: install_bats ## Actually runs the bats test
 	@mkdir -p $(E2E_DIR)/debug || true
-	@cd $(E2E_DIR) && node_modules/.bin/bats .
+	@cd $(E2E_DIR) && node_modules/.bin/bats . $(bats_args)
 
 install_bats: $(E2E_DIR)/node_modules/.bin/bats ## Installs the bats util via NPM
 
