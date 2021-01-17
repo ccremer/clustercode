@@ -1,42 +1,38 @@
-VERSION ?= $(shell date +%Y-%m-%d_%H-%M-%S)
-BIN_FILENAME ?= clustercode
-
-DOCS_DIR := docs
-E2E_DIR := e2e
-
 IMG_TAG ?= latest
-E2E_TAG ?= e2e_$(VERSION)
-E2E_REPO ?= local.dev/clustercode/e2e
 
-E2E_IMG := $(E2E_REPO):$(E2E_TAG)
+BIN_FILENAME ?= $(PROJECT_ROOT_DIR)/clustercode
+TESTBIN_DIR ?= $(PROJECT_ROOT_DIR)/testbin/bin
 
-CRD_SPEC_VERSION ?= v1
-CRD_ROOT_DIR ?= config/crd/v1alpha1
 CRD_FILE ?= clustercode-crd.yaml
+CRD_ROOT_DIR ?= config/crd/v1alpha1
+CRD_SPEC_VERSION ?= v1
 
-OPERATOR_NAMESPACE ?= clustercode-system
-
-TESTBIN_DIR ?= ./testbin/bin
 # See https://storage.googleapis.com/kubebuilder-tools/ for list of supported K8s versions
 INTEGRATIONTEST_K8S_VERSION ?= 1.20.2
+
 KIND_VERSION ?= 0.9.0
-KIND_KUBECONFIG ?= testbin/kind-kubeconfig
 KIND_NODE_VERSION ?= v1.20.0
+KIND ?= $(TESTBIN_DIR)/kind
+
+ENABLE_LEADER_ELECTION ?= false
+
+KIND_KUBECONFIG ?= $(TESTBIN_DIR)/kind-kubeconfig-$(KIND_NODE_VERSION)
 KIND_CLUSTER ?= clustercode-$(KIND_NODE_VERSION)
 KIND_KUBECTL_ARGS ?= --validate=true
 
-KUSTOMIZE ?= go run sigs.k8s.io/kustomize/kustomize/v3
-KUSTOMIZE_BUILD_CRD ?= $(KUSTOMIZE) build $(CRD_ROOT_DIR)
+E2E_TAG ?= e2e_$(shell sha1sum $(BIN_FILENAME) | cut -b-8)
+E2E_REPO ?= local.dev/clustercode/e2e
+E2E_IMG = $(E2E_REPO):$(E2E_TAG)
+OPERATOR_NAMESPACE ?= clustercode-system
 
+KUSTOMIZE ?= go run sigs.k8s.io/kustomize/kustomize/v3
 
 # Image URL to use all building/pushing image targets
 DOCKER_IMG ?= docker.io/ccremer/clustercode:$(IMG_TAG)
 QUAY_IMG ?= quay.io/ccremer/clustercode:$(IMG_TAG)
-E2E_IMG ?= localhost:$(KIND_REGISTRY_PORT)/clustercode/operator:e2e
 FFMPEG_IMG ?= docker.io/jrottenberg/ffmpeg:4.1-alpine
 
-# Run tests (see https://sdk.operatorframework.io/docs/building-operators/golang/references/envtest-setup)
-ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
+testbin_created = $(TESTBIN_DIR)/.created
 
 # Trigger Documentation workflow in another repository
 #

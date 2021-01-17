@@ -13,12 +13,13 @@ DEBUG_DETIK="true"
 }
 
 @test "verify the deployment" {
-  go run sigs.k8s.io/kustomize/kustomize/v3 build test1 > debug/test1.yaml
+  go run sigs.k8s.io/kustomize/kustomize/v3 build test1 -o debug/test1.yaml
   sed -i -e "s|\$E2E_IMAGE|${E2E_IMAGE}|" debug/test1.yaml
   debug "$output"
   run kubectl apply -f debug/test1.yaml
   debug "$output"
 
-  try "at most 20 times every 2s to find 1 pod named 'clustercode-operator' with 'status' being 'running'"
+  try "at most 10 times every 2s to find 1 pod named 'clustercode-operator' with '.spec.containers[*].image' being '${E2E_IMAGE}'"
+  try "at most 10 times every 2s to find 1 pod named 'clustercode-operator' with 'status' being 'running'"
 
 }

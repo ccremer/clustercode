@@ -26,7 +26,7 @@ jobs:
     - name: Test & Publish Code Coverage
       uses: paambaati/codeclimate-action@v2.7.5
       with:
-        coverageCommand: make test_codeclimate
+        coverageCommand: make codeclimate-test
         prefix: ${{ github.event.repository.name }}
         coverageLocations:
           "${{github.workspace}}/cover.out:gocov"
@@ -51,7 +51,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
     - name: Run e2e tests
-      run: make crd e2e_test -e CRD_SPEC_VERSION=${{ matrix.crd-spec-version }} -e KIND_NODE_VERSION=${{ matrix.kind-node-version }} -e KIND_KUBECTL_ARGS=--validate=false -e bats_args="-F junit"
+      run: make crd e2e-test -e CRD_SPEC_VERSION=${{ matrix.crd-spec-version }} -e KIND_NODE_VERSION=${{ matrix.kind-node-version }} -e KIND_KUBECTL_ARGS=--validate=false -e bats_args="-F junit"
     - name: Publish Test Report
       uses: mikepenz/action-junit-report@v1
       if: success() || failure()
