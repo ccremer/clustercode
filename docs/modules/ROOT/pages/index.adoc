@@ -6,6 +6,8 @@
 Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
 It's like an ffmpeg operator.
 
+image::clustercode-overview.drawio.svg[]
+
 Clustercode is written in https://golang.org/[Go] and is an {page-origin-url}[Open Source project].
 
 TIP: The xref:tutorials/tutorial.adoc[tutorial] gives you a glimpse into Clustercode. Give it a try!

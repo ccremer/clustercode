@@ -22,6 +22,8 @@ image:https://img.shields.io/github/license/ccremer/clustercode[License,link=htt
 Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
 It's like an Ffmpeg operator!
 
+image::docs/modules/ROOT/assets/images/clustercode-overview.drawio.svg[]
+
 == Features
 
 * Scans and encodes video files from a directory and encodes them using customizable plans.
