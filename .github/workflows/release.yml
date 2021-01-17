@@ -3,58 +3,59 @@ name: Release
 on:
   push:
     tags:
-    - "*"
+      - "*"
 
 jobs:
   dist:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Determine Go version from go.mod
-      run: echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - name: Import GPG signing key
-      uses: crazy-max/ghaction-import-gpg@v3
-      with:
-        gpg-private-key: ${{ secrets.SIGNING_KEY }}
-    - name: Login to Docker hub
-      run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-    - name: Login to quay.io
-      run: docker login -u "${{ secrets.QUAY_IO_USERNAME }}" -p "${{ secrets.QUAY_IO_PASSWORD }}" quay.io
-    - name: Generate artifacts
-      run: make crd
-    - name: Build changelog from PRs with labels
-      id: build_changelog
-      uses: mikepenz/release-changelog-builder-action@v1.4.1
-      with:
-        configuration: ".github/changelog-configuration.json"
-        outputFile: .github/release-notes.md
-        # Prereleases still get a changelog, but the next full release gets a diff since the last full release,
-        # combining possible changelogs of all previous prereleases inbetween.
-        ignorePreReleases: "true"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish releases
-      uses: goreleaser/goreleaser-action@v2
-      with:
-        args: release --release-notes .github/release-notes.md
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Determine Go version from go.mod
+        run: echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Import GPG signing key
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.SIGNING_KEY }}
+      - name: Login to Docker hub
+        run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+      - name: Login to quay.io
+        run: docker login -u "${{ secrets.QUAY_IO_USERNAME }}" -p "${{ secrets.QUAY_IO_PASSWORD }}" quay.io
+      - name: Generate artifacts
+        run: make crd
+      - name: Build changelog from PRs with labels
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v1.4.1
+        with:
+          configuration: ".github/changelog-configuration.json"
+          outputFile: .github/release-notes.md
+          # PreReleases still get a changelog, but the next full release gets a diff since the last full release,
+          # combining possible changelogs of all previous PreReleases in between. PreReleases show a partial changelog
+          # since last PreRelease.
+          ignorePreReleases: "${{ !contains(github.ref, '-rc') }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish releases
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          args: release --release-notes .github/release-notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Trigger tag workflow in clustercode-docs
-      env:
-        DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-      run: make trigger_workflow_tag DOCUMENTATION_TAG=${GITHUB_REF##*/}
+      - uses: actions/checkout@v2
+      - name: Trigger tag workflow in clustercode-docs
+        env:
+          DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
+        run: make trigger_workflow_tag DOCUMENTATION_TAG=${GITHUB_REF##*/}

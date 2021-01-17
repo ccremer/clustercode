@@ -25,12 +25,12 @@ all: build ## Invokes the build target
 
 .PHONY: test
 test: fmt vet ## Run tests
-	go test ./... -coverprofile cover.out
+	go test ./...
 
 integration-test: export ENVTEST_K8S_VERSION = $(INTEGRATIONTEST_K8S_VERSION)
 integration-test: generate fmt vet $(testbin_created) ## Run integration tests with envtest
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/master/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test -tags=integration -v ./... -coverprofile cover.out
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test -tags=integration -v ./... $(test_args)
 
 .PHONY: build
 build: generate fmt vet $(BIN_FILENAME) ## Build manager binary

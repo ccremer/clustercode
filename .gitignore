@@ -25,6 +25,7 @@ gen### Go template
 bin/
 dist/
 .github/release-notes.md
+.github/cover.out
 clustercode-crd*.yaml
 clustercode
 testbin/
