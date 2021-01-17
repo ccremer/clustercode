@@ -1,74 +1,57 @@
-
 # Set Shell to bash, otherwise some targets fail with dash/zsh etc.
 SHELL := /bin/bash
 
-E2E_DIR ?= .
+# Disable built-in rules
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --no-builtin-variables
+.SUFFIXES:
+.SECONDARY:
 
-#### Usable for the developer
-setup_e2e_test: $(setup_e2e_test) ## Run the e2e setup
+PROJECT_ROOT_DIR = ..
+include ../Makefile.vars.mk
+include kind.mk
 
-e2e_test: export E2E_IMAGE = $(E2E_IMG)
-e2e_test: install_bats $(setup_e2e_test) $(KIND_KUBECONFIG)  ## Runs the e2e test suite (this is the one you want)
-e2e_test: docker-build kind_load_image run_bats
+ifeq ($(shell uname -s),Linux)
+	xargs := xargs --no-run-if-empty
+else
+	xargs := xargs
+endif
 
-clean_e2e_setup: export KUBECONFIG = $(KIND_KUBECONFIG)
-clean_e2e_setup: ## Clean the e2e setup (e.g. to rerun the setup_e2e_test)
-	kubectl delete ns $(OPERATOR_NAMESPACE) --ignore-not-found --force --grace-period=0 || true
-	@$(KUSTOMIZE_BUILD_CRD) | kubectl delete -f - || true
-	@rm $(setup_e2e_test) $(E2E_DIR)/debug $(E2E_DIR)/node_modules || true
-
-run_kind: export KUBECONFIG = $(KIND_KUBECONFIG)
-run_kind: $(setup_e2e_test) ## Runs the operator in kind
-	go run ./main.go -v operate --operator.clustercode-image=$(E2E_IMG)
-####
-
-
-
-#### Everything BATS related
-.PHONY: run_bats install_bats
-
+bats := node_modules/.bin/bats
 bats_args ?=
 
-run_bats: export KUBECONFIG = ../$(KIND_KUBECONFIG)
-run_bats: install_bats ## Actually runs the bats test
-	@mkdir -p $(E2E_DIR)/debug || true
-	@cd $(E2E_DIR) && node_modules/.bin/bats . $(bats_args)
+.DEFAULT_GOAL := help
 
-install_bats: $(E2E_DIR)/node_modules/.bin/bats ## Installs the bats util via NPM
+.PHONY: test
+test: export KUBECONFIG = $(KIND_KUBECONFIG)
+test: export E2E_IMAGE = $(E2E_IMG)
+test: setup kind-e2e-image ## Run the E2E tests
+	@mkdir -p debug
+	@$(bats) . $(bats_args)
 
-$(E2E_DIR)/node_modules/.bin/bats: $(E2E_DIR)/node_modules
+kind-e2e-image: kind-setup ## Load the e2e container image onto e2e cluster
+	@$(KIND) load docker-image --name $(KIND_CLUSTER) $(E2E_IMG)
 
-$(E2E_DIR)/node_modules:
-	@cd $(E2E_DIR) && npm install
-####
+.PHONY: setup
+setup: export KUBECONFIG = $(KIND_KUBECONFIG)
+setup: $(bats) kind-setup ## Run the e2e setup
 
+.PHONY: clean-setup
+clean-setup: export KUBECONFIG = $(KIND_KUBECONFIG)
+clean-setup: kind-clean ## Clean the e2e setup (e.g. to rerun the setup)
 
+.PHONY: clean
+clean: clean-setup ## Remove all e2e-related resources (incl. all e2e Docker images)
+	docker images --filter "reference=$(E2E_REPO)" --format "{{.Repository }}:{{ .Tag }}" | $(xargs) docker rmi || true
+	rm -r debug node_modules || true
 
-#### Everything KIND related
-kind_bin ?= $(TESTBIN_DIR)/kind
-setup_e2e_test := testbin/.setup_e2e_test
+.PHONY: help
+help: ## Show this help
+	@grep -E -h '\s##\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-kind_load_image:
-	@$(kind_bin) load docker-image --name $(KIND_CLUSTER) $(E2E_IMG)
-	@docker rmi $(E2E_IMG)
+###
+### Artifacts
+###
 
-$(kind_bin): export KUBECONFIG = $(KIND_KUBECONFIG)
-$(kind_bin): $(TESTBIN_DIR)
-	curl -fLo $(kind_bin) "https://kind.sigs.k8s.io/dl/v$(KIND_VERSION)/kind-$$(uname)-amd64"
-	@chmod +x $(kind_bin)
-	$(kind_bin) create cluster --name $(KIND_CLUSTER) --image kindest/node:$(KIND_NODE_VERSION) --config=e2e/kind-config.yaml
-	@kubectl version
-	@kubectl cluster-info
-
-$(KIND_KUBECONFIG): $(kind_bin)
-
-$(setup_e2e_test): export KUBECONFIG = $(KIND_KUBECONFIG)
-$(setup_e2e_test): $(kind_bin)
-	@kubectl config use-context kind-$(KIND_CLUSTER)
-	@$(KUSTOMIZE_BUILD_CRD) | kubectl apply $(KIND_KUBECTL_ARGS) -f -
-	@touch $(setup_e2e_test)
-
-clean-e2e:
-	$(kind_bin) delete cluster --name $(KIND_CLUSTER) || true
-	docker images --filter "reference=$(E2E_REPO)" --format "{{.Repository }}:{{ .Tag }}" | xargs --no-run-if-empty docker rmi || true
-####
+$(bats):
+	@npm install

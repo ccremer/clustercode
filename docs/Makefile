@@ -1,19 +1,30 @@
 # Set Shell to bash, otherwise some targets fail with dash/zsh etc.
 SHELL := /bin/bash
 
-DOCS_DIR ?= .
+# Disable built-in rules
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --no-builtin-variables
+.SUFFIXES:
+.SECONDARY:
 
 ANTORA_PLAYBOOK_PATH ?= local-antora-playbook.yml
-ANTORA_OUTPUT_DIR ?= $(shell cd $(DOCS_DIR) && grep dir $(ANTORA_PLAYBOOK_PATH) | cut -d " " -f 4)
+ANTORA_OUTPUT_DIR ?= $(shell grep "dir" $(ANTORA_PLAYBOOK_PATH) | cut -d " " -f 4)
 
-docs-build: $(DOCS_DIR)/node_modules
-	cd $(DOCS_DIR) && npm run build
+.PHONY: build
+build: node_modules ## Build Antora documentation
+	npm run build
 
-$(DOCS_DIR)/node_modules:
-	cd $(DOCS_DIR) && npm install
+node_modules:
+	npm install
 
-docs-clean:
-	cd $(DOCS_DIR) && rm -r $(ANTORA_OUTPUT_DIR) node_modules || true
+.PHONY: clean
+clean: ## Clean documentation artifacts
+	rm -r $(ANTORA_OUTPUT_DIR) node_modules || true
 
-docs-preview: docs-build ## Preview Antora build in local web server
-	cd $(DOCS_DIR) && npm run preview
+.PHONY: preview
+preview: build ## Preview Antora build in local web server and browser
+	npm run preview
+
+.PHONY: help
+help: ## Show this help
+	@grep -E -h '\s##\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
