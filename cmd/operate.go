@@ -33,6 +33,7 @@ func init() {
 		"Container image to be used when launching Clustercode jobs.")
 	operateCmd.PersistentFlags().String("operator.ffmpeg-image", cfg.Config.Operator.FfmpegContainerImage,
 		"Container image to be used when launching Ffmpeg jobs.")
+	operateCmd.PersistentFlags().String("scan.role-name", cfg.Config.Scan.RoleName, "role name to be used for creating dynamic ServiceAccounts")
 }
 
 func startOperator(cmd *cobra.Command, args []string) error {

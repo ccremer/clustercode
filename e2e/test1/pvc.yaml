@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: test2-claim1
+  name: source
 spec:
   accessModes:
     - ReadWriteMany
@@ -13,14 +13,14 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/instance: test2
       app.kubernetes.io/managed-by: kustomize
       app.kubernetes.io/name: e2e
+      pv.kubernetes.io/type: source
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: test2-claim2
+  name: intermediate
 spec:
   accessModes:
     - ReadWriteMany
@@ -31,15 +31,15 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/instance: test2
       app.kubernetes.io/managed-by: kustomize
       app.kubernetes.io/name: e2e
+      pv.kubernetes.io/type: intermediate
 
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: test2-claim3
+  name: target
 spec:
   accessModes:
     - ReadWriteMany
@@ -50,6 +50,6 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/instance: test2
       app.kubernetes.io/managed-by: kustomize
       app.kubernetes.io/name: e2e
+      pv.kubernetes.io/type: target

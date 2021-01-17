@@ -1,6 +1,9 @@
 resources:
-- pvc.yaml
-- plan.yaml
+- ../../config/manager
+- ../../config/rbac
+- pv.yaml
+patchesStrategicMerge:
+- deployment.yaml
 namespace: TEST_NAMESPACE
 namePrefix: TEST_FILE_ID-
 

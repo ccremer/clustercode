@@ -26,6 +26,7 @@ bats_args ?=
 test: export KUBECONFIG = $(KIND_KUBECONFIG)
 test: export E2E_IMAGE = $(E2E_IMG)
 test: setup kind-e2e-image ## Run the E2E tests
+	@rm -r debug || true
 	@mkdir -p debug
 	@$(bats) . $(bats_args)
 
