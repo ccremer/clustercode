@@ -3,61 +3,37 @@ name: Master
 on:
   push:
     branches:
-    - master
+      - master
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Determine env variables from local files
-      run: |
-        echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
-        echo "CC_TEST_REPORTER_ID=$(grep "reporter_id" .codeclimate.yml | cut -d " " -f 2)" >> $GITHUB_ENV
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - name: Test & Publish Code Coverage
-      uses: paambaati/codeclimate-action@v2.7.5
-      with:
-        coverageCommand: make codeclimate-test
-        prefix: ${{ github.event.repository.name }}
-        coverageLocations:
-          "${{github.workspace}}/cover.out:gocov"
-  docs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Trigger documentation build in documentation repository
-      env:
-        DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-      run: make trigger_workflow_master
   dist:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Determine Go version from go.mod
-      run: echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - name: Build docker images
-      run: make docker-build -e IMG_TAG=${GITHUB_REF#refs/heads/}
-    - name: Login to Docker hub
-      run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
-    - name: Login to quay.io
-      run: docker login -u "${{ secrets.QUAY_IO_USERNAME }}" -p "${{ secrets.QUAY_IO_PASSWORD }}" quay.io
-    - name: Push docker images
-      run: make docker-push -e IMG_TAG=${GITHUB_REF#refs/heads/}
+      - uses: actions/checkout@v2
+      - name: Determine Go version from go.mod
+        run: echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Build docker images
+        run: make docker-build -e IMG_TAG=${GITHUB_REF#refs/heads/}
+      - name: Login to Docker hub
+        run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}"
+      - name: Login to quay.io
+        run: docker login -u "${{ secrets.QUAY_IO_USERNAME }}" -p "${{ secrets.QUAY_IO_PASSWORD }}" quay.io
+      - name: Push docker images
+        run: make docker-push -e IMG_TAG=${GITHUB_REF#refs/heads/}
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Trigger documentation build in documentation repository
+        env:
+          DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
+        run: make trigger_workflow_master

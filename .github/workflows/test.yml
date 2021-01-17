@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Determine env variables from local files
+        run: |
+          echo "GO_VERSION=$(grep "go 1." go.mod | cut -d " " -f 2)" >> $GITHUB_ENV
+          echo "CC_TEST_REPORTER_ID=$(grep "reporter_id" .codeclimate.yml | cut -d " " -f 2)" >> $GITHUB_ENV
+      - uses: actions/setup-go@v2
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Run tests
+        run: make integration-test -e test_args="-coverprofile .github/cover.out"
+      - name: Publish Code Coverage
+        if: success() || failure()
+        uses: paambaati/codeclimate-action@v2.7.5
+        with:
+          coverageCommand: sed -i "s%github.com/ccremer/%%" .github/cover.out
+          prefix: ${{ github.event.repository.name }}
+          coverageLocations:
+            "${{github.workspace}}/.github/cover.out:gocov"
