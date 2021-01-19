@@ -10,8 +10,6 @@ MAKEFLAGS += --no-builtin-variables
 PROJECT_ROOT_DIR = .
 include Makefile.vars.mk
 
-include .github/workflows/Makefile
-
 e2e_make := $(MAKE) -C e2e
 docs_make := $(MAKE) -C docs
 media_make := $(MAKE) -C data

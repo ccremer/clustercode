@@ -32,8 +32,10 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Trigger documentation build in documentation repository
-        env:
-          DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-        run: make trigger_workflow_master
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Build
+          repo: ccremer/clustercode-docs
+          token: ${{ secrets.CLUSTERCODE_DOCS_TOKEN }}
+          inputs: '{"ref": "${GITHUB_REF#refs/heads/}"}'

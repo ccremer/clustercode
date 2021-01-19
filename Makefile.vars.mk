@@ -33,13 +33,3 @@ QUAY_IMG ?= quay.io/ccremer/clustercode:$(IMG_TAG)
 FFMPEG_IMG ?= docker.io/jrottenberg/ffmpeg:4.1-alpine
 
 testbin_created = $(TESTBIN_DIR)/.created
-
-# Trigger Documentation workflow in another repository
-#
-DOCUMENTATION_REPOSITORY ?= ccremer/clustercode-docs
-# The git ref to run the workflow in
-DOCUMENTATION_REF ?= master
-# The new git tag to add
-DOCUMENTATION_TAG ?=
-# Set this in GH Action
-DOCUMENTATION_API_TOKEN ?=
