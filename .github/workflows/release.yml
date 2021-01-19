@@ -56,6 +56,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Trigger tag workflow in clustercode-docs
-        env:
-          DOCUMENTATION_API_TOKEN: "${{ secrets.CLUSTERCODE_DOCS_TOKEN }}"
-        run: make trigger_workflow_tag DOCUMENTATION_TAG=${GITHUB_REF##*/}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Build
+          repo: ccremer/clustercode-docs
+          token: ${{ secrets.CLUSTERCODE_DOCS_TOKEN }}
+          inputs: '{"ref": "master", "inputs": {"new_tag": "${GITHUB_REF##*/}}'
