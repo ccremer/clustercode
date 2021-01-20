@@ -54,11 +54,13 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Determine git tag
+        run: echo "TAG=${GITHUB_REF##*/}" >> $GITHUB_ENV
       - name: Trigger tag workflow in clustercode-docs
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: Build
+          workflow: Tag
           repo: ccremer/clustercode-docs
           token: ${{ secrets.CLUSTERCODE_DOCS_TOKEN }}
-          inputs: '{"ref": "master", "inputs": {"new_tag": "${GITHUB_REF##*/}}'
+          ref: master
+          inputs: '{"new_tag": "${{ env.TAG }}}'
