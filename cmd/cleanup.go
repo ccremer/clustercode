@@ -29,7 +29,7 @@ var (
 func init() {
 	rootCmd.AddCommand(cleanupCmd)
 
-	cleanupCmd.PersistentFlags().String("cleanup.task-name", cfg.Config.Cleanup.TaskName, "ClustercodeTask Name")
+	cleanupCmd.PersistentFlags().String("cleanup.task-name", cfg.Config.Cleanup.TaskName, "Task Name")
 }
 
 func validateCleanupCmd(cmd *cobra.Command, args []string) error {
@@ -49,8 +49,8 @@ func runCleanupCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	nsName := types.NamespacedName{Namespace: cfg.Config.Namespace, Name: cfg.Config.Cleanup.TaskName}
-	task := &v1alpha1.ClustercodeTask{}
-	cleanupLog.Info("get clustercode task", "name", nsName.String())
+	task := &v1alpha1.Task{}
+	cleanupLog.Info("get task", "name", nsName.String())
 	if err := client.Get(context.Background(), nsName, task); err != nil {
 		return err
 	}

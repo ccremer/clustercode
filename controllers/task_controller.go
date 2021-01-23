@@ -21,16 +21,16 @@ import (
 )
 
 type (
-	// ClustercodeTaskReconciler reconciles ClustercodeTask objects
-	ClustercodeTaskReconciler struct {
+	// TaskReconciler reconciles Task objects
+	TaskReconciler struct {
 		Client client.Client
 		Log    logr.Logger
 		Scheme *runtime.Scheme
 	}
-	// ClustercodeTaskContext holds the parameters of a single reconciliation
-	ClustercodeTaskContext struct {
+	// TaskContext holds the parameters of a single reconciliation
+	TaskContext struct {
 		ctx       context.Context
-		task      *v1alpha1.ClustercodeTask
+		task      *v1alpha1.Task
 		blueprint *v1alpha1.Blueprint
 		log       logr.Logger
 	}
@@ -44,25 +44,25 @@ type (
 	}
 )
 
-func (r *ClustercodeTaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *TaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.ClustercodeTask{}, builder.WithPredicates(pred)).
+		For(&v1alpha1.Task{}, builder.WithPredicates(pred)).
 		//Owns(&batchv1.Job{}).
 		//WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodetasks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodetasks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status,verbs=get;update;patch
 
-func (r *ClustercodeTaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	rc := &ClustercodeTaskContext{
+func (r *TaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	rc := &TaskContext{
 		ctx:  ctx,
-		task: &v1alpha1.ClustercodeTask{},
+		task: &v1alpha1.Task{},
 	}
 	err := r.Client.Get(ctx, req.NamespacedName, rc.task)
 	if err != nil {
@@ -83,7 +83,7 @@ func (r *ClustercodeTaskReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	return ctrl.Result{}, nil
 }
 
-func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error {
+func (r *TaskReconciler) handleTask(rc *TaskContext) error {
 	if rc.task.Spec.SlicesPlannedCount == 0 {
 		return r.createSplitJob(rc)
 	}
@@ -102,7 +102,7 @@ func (r *ClustercodeTaskReconciler) handleTask(rc *ClustercodeTaskContext) error
 	}
 }
 
-func (r *ClustercodeTaskReconciler) determineNextSliceIndex(rc *ClustercodeTaskContext) int {
+func (r *TaskReconciler) determineNextSliceIndex(rc *TaskContext) int {
 	status := rc.task.Status
 	if rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
 		maxCount := rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
@@ -132,7 +132,7 @@ func containsSliceIndex(list []v1alpha1.ClustercodeSliceRef, index int) bool {
 	return false
 }
 
-func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) error {
+func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
 	sourceMountRoot := filepath.Join("/clustercode", SourceSubMountPath)
 	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
 	variables := map[string]string{
@@ -161,7 +161,7 @@ func (r *ClustercodeTaskReconciler) createSplitJob(rc *ClustercodeTaskContext) e
 	return nil
 }
 
-func (r *ClustercodeTaskReconciler) createSliceJob(rc *ClustercodeTaskContext, index int) error {
+func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
 	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  getSourceSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
@@ -193,7 +193,7 @@ func (r *ClustercodeTaskReconciler) createSliceJob(rc *ClustercodeTaskContext, i
 	return r.Client.Status().Update(rc.ctx, rc.task)
 }
 
-func (r *ClustercodeTaskReconciler) createMergeJob(rc *ClustercodeTaskContext) error {
+func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
 	configMountRoot := filepath.Join("/clustercode", ConfigSubMountPath)
 	targetMountRoot := filepath.Join("/clustercode", TargetSubMountPath)
 	variables := map[string]string{
@@ -222,14 +222,14 @@ func (r *ClustercodeTaskReconciler) createMergeJob(rc *ClustercodeTaskContext) e
 	return nil
 }
 
-func getSegmentFileNameTemplatePath(rc *ClustercodeTaskContext, intermediateMountRoot string) string {
+func getSegmentFileNameTemplatePath(rc *TaskContext, intermediateMountRoot string) string {
 	return filepath.Join(intermediateMountRoot, rc.task.Name+"_%d"+filepath.Ext(rc.task.Spec.SourceUrl.GetPath()))
 }
 
-func getSourceSegmentFileNameIndexPath(rc *ClustercodeTaskContext, intermediateMountRoot string, index int) string {
+func getSourceSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
 	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s", rc.task.Name, index, filepath.Ext(rc.task.Spec.SourceUrl.GetPath())))
 }
 
-func getTargetSegmentFileNameIndexPath(rc *ClustercodeTaskContext, intermediateMountRoot string, index int) string {
+func getTargetSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
 	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", rc.task.Name, index, v1alpha1.MediaFileDoneSuffix, filepath.Ext(rc.task.Spec.TargetUrl.GetPath())))
 }

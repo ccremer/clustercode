@@ -79,7 +79,7 @@ func getOwner(obj metav1.Object) types.NamespacedName {
 	return types.NamespacedName{}
 }
 
-func createFfmpegJobDefinition(task *v1alpha1.ClustercodeTask, opts *TaskOpts) *batchv1.Job {
+func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.jobType),

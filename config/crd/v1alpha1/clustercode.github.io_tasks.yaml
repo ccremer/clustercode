@@ -6,14 +6,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: clustercodetasks.clustercode.github.io
+  name: tasks.clustercode.github.io
 spec:
   group: clustercode.github.io
   names:
-    kind: ClustercodeTask
-    listKind: ClustercodeTaskList
-    plural: clustercodetasks
-    singular: clustercodetask
+    kind: Task
+    listKind: TaskList
+    plural: tasks
+    singular: task
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -39,7 +39,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Blueprint is the Schema for the archives API
+        description: Task is a projection out of a Blueprint
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -50,7 +50,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: EncodingTaskSpec defines the desired state of ClustercodeTask.
+            description: TaskSpec defines the desired state of Task.
             properties:
               concurrencyStrategy:
                 properties:
