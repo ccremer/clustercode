@@ -12,7 +12,7 @@ type (
 	}
 
 	MetaBuilder struct {
-		ObjectMeta metav1.Object
+		Object metav1.Object
 	}
 
 	WithName           string
@@ -20,6 +20,7 @@ type (
 	WithNamespacedName types.NamespacedName
 	WithLabels         labels.Set
 	AddLabel           KeyValueTuple
+	AddLabels          labels.Set
 )
 
 func NewMetaBuilder() MetaBuilder {
@@ -27,7 +28,7 @@ func NewMetaBuilder() MetaBuilder {
 }
 
 func NewMetaBuilderWith(obj metav1.Object) MetaBuilder {
-	return MetaBuilder{ObjectMeta: obj}
+	return MetaBuilder{Object: obj}
 }
 
 func (b MetaBuilder) Build(props ...MetaProperty) MetaBuilder {
@@ -38,26 +39,35 @@ func (b MetaBuilder) Build(props ...MetaProperty) MetaBuilder {
 }
 
 func (w WithName) Apply(b *MetaBuilder) {
-	b.ObjectMeta.SetName(string(w))
+	b.Object.SetName(string(w))
 }
 
 func (w WithNamespace) Apply(b *MetaBuilder) {
-	b.ObjectMeta.SetNamespace(string(w))
+	b.Object.SetNamespace(string(w))
 }
 
 func (w WithNamespacedName) Apply(b *MetaBuilder) {
-	b.ObjectMeta.SetNamespace(w.Namespace)
-	b.ObjectMeta.SetName(w.Name)
+	b.Object.SetNamespace(w.Namespace)
+	b.Object.SetName(w.Name)
 }
 
 func (w AddLabel) Apply(b *MetaBuilder) {
-	l := b.ObjectMeta.GetLabels()
+	l := b.Object.GetLabels()
 	if l == nil {
 		l = labels.Set{}
 	}
 	l[w.Key] = w.Value
-	b.ObjectMeta.SetLabels(l)
+	b.Object.SetLabels(l)
 }
+
 func (w WithLabels) Apply(b *MetaBuilder) {
-	b.ObjectMeta.SetLabels(w)
+	b.Object.SetLabels(w)
+}
+
+func (w AddLabels) Apply(b *MetaBuilder) {
+	l := b.Object.GetLabels()
+	if l == nil {
+		l = labels.Set{}
+	}
+	b.Object.SetLabels(labels.Merge(l, labels.Set(w)))
 }

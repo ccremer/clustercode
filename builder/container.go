@@ -78,6 +78,14 @@ func (p AddVolumeMount) Apply(b *ContainerBuilder) {
 	b.Container.VolumeMounts = append(b.Container.VolumeMounts, corev1.VolumeMount(p))
 }
 
+func (b *ContainerBuilder) AddMountPath(volumeName, mountPath, subPath string) {
+	AddVolumeMount{
+		Name:      volumeName,
+		MountPath: mountPath,
+		SubPath:   subPath,
+	}.Apply(b)
+}
+
 func (p AddEnvFromConfigMap) Apply(b *ContainerBuilder) {
 	b.Container.EnvFrom = append(b.Container.EnvFrom, corev1.EnvFromSource{
 		Prefix: p.Prefix,

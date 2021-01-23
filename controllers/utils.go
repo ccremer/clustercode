@@ -13,6 +13,7 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/builder"
 	"github.com/ccremer/clustercode/cfg"
 )
 
@@ -80,74 +81,47 @@ func getOwner(obj metav1.Object) types.NamespacedName {
 }
 
 func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job {
+	cb := builder.NewContainerBuilder("ffmpeg").Build(
+		builder.WithContainerImage(cfg.Config.Operator.FfmpegContainerImage),
+		builder.WithImagePullPolicy(corev1.PullIfNotPresent),
+		builder.WithArgs(opts.args),
+	)
+	pb := builder.NewPodSpecBuilder(cb).Build()
+	pb.PodSpec.ServiceAccountName = task.Spec.ServiceAccountName
+	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
+		RunAsUser:  pointer.Int64Ptr(1000),
+		RunAsGroup: pointer.Int64Ptr(0),
+		FSGroup:    pointer.Int64Ptr(0),
+	}
+	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
+
+	if opts.mountSource {
+		pvc := task.Spec.Storage.SourcePvc
+		pb.AddPvcMount(SourceSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), pvc.SubPath)
+	}
+	if opts.mountIntermediate {
+		pvc := task.Spec.Storage.IntermediatePvc
+		pb.AddPvcMount(IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
+	}
+	if opts.mountTarget {
+		pvc := task.Spec.Storage.TargetPvc
+		pb.AddPvcMount(TargetSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", TargetSubMountPath), pvc.SubPath)
+	}
+	if opts.mountConfig {
+		pb.AddConfigMapMount(ConfigSubMountPath, task.Spec.FileListConfigMapRef, filepath.Join("/clustercode", ConfigSubMountPath))
+	}
+
 	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.jobType),
-			Namespace: task.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(opts.jobType.AsLabels(), task.Spec.TaskId.AsLabels())),
-		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
-				Spec: corev1.PodSpec{
-					SecurityContext: &corev1.PodSecurityContext{
-						RunAsUser:  pointer.Int64Ptr(1000),
-						RunAsGroup: pointer.Int64Ptr(0),
-						FSGroup:    pointer.Int64Ptr(0),
-					},
-					ServiceAccountName: task.Spec.ServiceAccountName,
-					RestartPolicy:      corev1.RestartPolicyNever,
-					Containers: []corev1.Container{
-						{
-							Name:            "ffmpeg",
-							Image:           cfg.Config.Operator.FfmpegContainerImage,
-							ImagePullPolicy: corev1.PullIfNotPresent,
-							Args:            opts.args,
-						},
-					},
-				},
+				Spec: *pb.Build().PodSpec,
 			},
 		},
 	}
-	if opts.mountSource {
-		addPvcVolume(job, SourceSubMountPath, filepath.Join("/clustercode", SourceSubMountPath), task.Spec.Storage.SourcePvc)
-	}
-	if opts.mountIntermediate {
-		addPvcVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode", IntermediateSubMountPath), task.Spec.Storage.IntermediatePvc)
-	}
-	if opts.mountTarget {
-		addPvcVolume(job, TargetSubMountPath, filepath.Join("/clustercode", TargetSubMountPath), task.Spec.Storage.TargetPvc)
-	}
-	if opts.mountConfig {
-		addConfigMapVolume(job, ConfigSubMountPath, filepath.Join("/clustercode", ConfigSubMountPath), task.Spec.FileListConfigMapRef)
-	}
+	builder.NewMetaBuilderWith(job).Build(
+		builder.WithNamespacedName{Namespace: task.Namespace, Name: fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.jobType)},
+		builder.WithLabels(ClusterCodeLabels), builder.AddLabels(opts.jobType.AsLabels()), builder.AddLabels(task.Spec.TaskId.AsLabels()),
+	)
 	return job
-}
-
-func addPvcVolume(job *batchv1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
-		corev1.VolumeMount{Name: name, MountPath: podMountRoot, SubPath: volume.SubPath})
-	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
-		Name: name,
-		VolumeSource: corev1.VolumeSource{
-			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-				ClaimName: volume.ClaimName,
-			},
-		}})
-}
-
-func addConfigMapVolume(job *batchv1.Job, name, podMountRoot, configMapName string) {
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
-		corev1.VolumeMount{
-			Name:      name,
-			MountPath: podMountRoot,
-		})
-	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
-		Name: name,
-		VolumeSource: corev1.VolumeSource{
-			ConfigMap: &corev1.ConfigMapVolumeSource{
-				LocalObjectReference: corev1.LocalObjectReference{Name: configMapName},
-			},
-		},
-	})
 }

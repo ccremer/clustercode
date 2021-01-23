@@ -69,10 +69,10 @@ func (p AddVolume) Apply(b *PodSpecBuilder) {
 func (p AddConfigMapMount) Apply(b *PodSpecBuilder) {
 	if p.ContainerBuilder == nil {
 		for _, cb := range b.ContainerBuilders {
-			addMount(&cb, p.Name, p.MountPath, "")
+			cb.AddMountPath(p.Name, p.MountPath, "")
 		}
 	} else {
-		addMount(p.ContainerBuilder, p.Name, p.MountPath, "")
+		p.ContainerBuilder.AddMountPath(p.Name, p.MountPath, "")
 	}
 	AddVolume{
 		Name: p.Name,
@@ -88,10 +88,10 @@ func (p AddConfigMapMount) Apply(b *PodSpecBuilder) {
 func (p AddPvcMount) Apply(b *PodSpecBuilder) {
 	if p.ContainerBuilder == nil {
 		for _, cb := range b.ContainerBuilders {
-			addMount(&cb, p.VolumeName, p.MountPath, p.SubPath)
+			cb.AddMountPath(p.VolumeName, p.MountPath, p.SubPath)
 		}
 	} else {
-		addMount(p.ContainerBuilder, p.VolumeName, p.MountPath, p.SubPath)
+		p.ContainerBuilder.AddMountPath(p.VolumeName, p.MountPath, p.SubPath)
 	}
 	AddVolume{
 		Name: p.VolumeName,
@@ -101,10 +101,19 @@ func (p AddPvcMount) Apply(b *PodSpecBuilder) {
 	}.Apply(b)
 }
 
-func addMount(cb *ContainerBuilder, name, mountPath, subPath string) {
-	cb.Build(AddVolumeMount{
-		Name:      name,
-		MountPath: mountPath,
-		SubPath:   subPath,
-	})
+func (b *PodSpecBuilder) AddConfigMapMount(volumeName, configMapName, podMountPath string) {
+	AddConfigMapMount{
+		ConfigMapName: configMapName,
+		Name:          volumeName,
+		MountPath:     podMountPath,
+	}.Apply(b)
+}
+
+func (b *PodSpecBuilder) AddPvcMount(volumeName, claimName, podMountPath, subPath string) {
+	AddPvcMount{
+		ClaimName:  claimName,
+		VolumeName: volumeName,
+		MountPath:  podMountPath,
+		SubPath:    subPath,
+	}.Apply(b)
 }
