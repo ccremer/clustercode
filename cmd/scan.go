@@ -88,13 +88,13 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	selectedFile, err := filepath.Rel(filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath), files[0])
 
 	taskId := string(uuid.NewUUID())
-	task := &v1alpha1.ClustercodeTask{
+	task := &v1alpha1.Task{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cfg.Config.Namespace,
 			Name:      taskId,
 			Labels:    controllers.ClusterCodeLabels,
 		},
-		Spec: v1alpha1.ClustercodeTaskSpec{
+		Spec: v1alpha1.TaskSpec{
 			TaskId:               v1alpha1.ClustercodeTaskId(taskId),
 			SourceUrl:            v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
 			TargetUrl:            v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
@@ -116,7 +116,7 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func mapAndFilterTasks(tasks []v1alpha1.ClustercodeTask, bp *v1alpha1.Blueprint) []string {
+func mapAndFilterTasks(tasks []v1alpha1.Task, bp *v1alpha1.Blueprint) []string {
 
 	var sourceFiles []string
 	for _, task := range tasks {
@@ -133,15 +133,15 @@ func getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
 	return filepath.Join(cfg.Config.Scan.SourceRoot, uri.GetRoot(), uri.GetPath())
 }
 
-func getCurrentTasks(bp *v1alpha1.Blueprint) ([]v1alpha1.ClustercodeTask, error) {
-	list := v1alpha1.ClustercodeTaskList{}
+func getCurrentTasks(bp *v1alpha1.Blueprint) ([]v1alpha1.Task, error) {
+	list := v1alpha1.TaskList{}
 	err := client.List(context.Background(), &list,
 		controllerclient.MatchingLabels(controllers.ClusterCodeLabels),
 		controllerclient.InNamespace(bp.Namespace))
 	if err != nil {
 		return list.Items, err
 	}
-	var tasks []v1alpha1.ClustercodeTask
+	var tasks []v1alpha1.Task
 	for _, task := range list.Items {
 		for _, owner := range task.GetOwnerReferences() {
 			if pointer.BoolPtrDerefOr(owner.Controller, false) && owner.Name == bp.Name {

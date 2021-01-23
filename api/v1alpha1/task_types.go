@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	SchemeBuilder.Register(&ClustercodeTask{}, &ClustercodeTaskList{})
+	SchemeBuilder.Register(&Task{}, &TaskList{})
 }
 
 type (
@@ -18,26 +18,26 @@ type (
 	// +kubebuilder:printcolumn:name="Slices",type="string",JSONPath=`.spec.slicesPlannedCount`,description="Clustercode Total Slices"
 	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-	// Blueprint is the Schema for the archives API
-	ClustercodeTask struct {
+	// Task is a projection out of a Blueprint
+	Task struct {
 		metav1.TypeMeta   `json:",inline"`
 		metav1.ObjectMeta `json:"metadata,omitempty"`
 
-		Spec   ClustercodeTaskSpec   `json:"spec,omitempty"`
-		Status ClustercodeTaskStatus `json:"status,omitempty"`
+		Spec   TaskSpec   `json:"spec,omitempty"`
+		Status TaskStatus `json:"status,omitempty"`
 	}
 
 	// +kubebuilder:object:root=true
 
-	// ClustercodeTaskList contains a list of ClusterCodeTasks
-	ClustercodeTaskList struct {
+	// TaskList contains a list of Task
+	TaskList struct {
 		metav1.TypeMeta `json:",inline"`
 		metav1.ListMeta `json:"metadata,omitempty"`
-		Items           []ClustercodeTask `json:"items"`
+		Items           []Task `json:"items"`
 	}
 
-	// EncodingTaskSpec defines the desired state of ClustercodeTask.
-	ClustercodeTaskSpec struct {
+	// TaskSpec defines the desired state of Task.
+	TaskSpec struct {
 		TaskId               ClustercodeTaskId   `json:"taskId,omitempty"`
 		Storage              StorageSpec         `json:"storage,omitempty"`
 		SourceUrl            ClusterCodeUrl      `json:"sourceUrl,omitempty"`
@@ -50,7 +50,7 @@ type (
 		SlicesPlannedCount   int                 `json:"slicesPlannedCount,omitempty"`
 	}
 
-	ClustercodeTaskStatus struct {
+	TaskStatus struct {
 		Conditions           []metav1.Condition    `json:"conditions,omitempty"`
 		SlicesScheduledCount int                   `json:"slicesScheduledCount,omitempty"`
 		SlicesFinishedCount  int                   `json:"slicesFinishedCount,omitempty"`

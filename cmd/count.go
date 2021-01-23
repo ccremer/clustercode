@@ -36,7 +36,7 @@ var (
 func init() {
 	rootCmd.AddCommand(countCmd)
 
-	countCmd.PersistentFlags().String("count.task-name", cfg.Config.Count.TaskName, "ClustercodeTask Name")
+	countCmd.PersistentFlags().String("count.task-name", cfg.Config.Count.TaskName, "Task Name")
 }
 
 func validateCountCmd(cmd *cobra.Command, args []string) error {
@@ -56,7 +56,7 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	task, err := getClustercodeTask()
+	task, err := getTask()
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func updateTask(task *v1alpha1.ClustercodeTask, count int) error {
+func updateTask(task *v1alpha1.Task, count int) error {
 	task.Spec.SlicesPlannedCount = count
 	err := client.Update(context.Background(), task)
 	if err != nil {
@@ -92,7 +92,7 @@ func updateTask(task *v1alpha1.ClustercodeTask, count int) error {
 	return nil
 }
 
-func createFileList(files []string, task *v1alpha1.ClustercodeTask) error {
+func createFileList(files []string, task *v1alpha1.Task) error {
 	var fileList []string
 	for _, file := range files {
 		fileList = append(fileList, fmt.Sprintf("file '%s'", file))
@@ -154,16 +154,16 @@ func matchesTaskSegment(path string, prefix string) bool {
 	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaFileDoneSuffix)
 }
 
-func getClustercodeTask() (*v1alpha1.ClustercodeTask, error) {
+func getTask() (*v1alpha1.Task, error) {
 	ctx := context.Background()
-	task := &v1alpha1.ClustercodeTask{}
+	task := &v1alpha1.Task{}
 	name := types.NamespacedName{
 		Name:      cfg.Config.Count.TaskName,
 		Namespace: cfg.Config.Namespace,
 	}
 	err := client.Get(ctx, name, task)
 	if err != nil {
-		return &v1alpha1.ClustercodeTask{}, err
+		return &v1alpha1.Task{}, err
 	}
 	return task, nil
 }

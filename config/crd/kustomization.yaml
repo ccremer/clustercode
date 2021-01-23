@@ -3,7 +3,7 @@
 # It should be run by config/default
 resources:
 - v1alpha1/clustercode.github.io_blueprints.yaml
-- v1alpha1/clustercode.github.io_clustercodetasks.yaml
+- v1alpha1/clustercode.github.io_tasks.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

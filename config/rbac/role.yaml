@@ -61,7 +61,7 @@ rules:
 - apiGroups:
   - clustercode.github.io
   resources:
-  - clustercodetasks
+  - tasks
   verbs:
   - create
   - delete
@@ -73,7 +73,7 @@ rules:
 - apiGroups:
   - clustercode.github.io
   resources:
-  - clustercodetasks/status
+  - tasks/status
   verbs:
   - get
   - patch

@@ -38,7 +38,7 @@ type (
 		ctx     context.Context
 		job     *batchv1.Job
 		jobType ClusterCodeJobType
-		task    *v1alpha1.ClustercodeTask
+		task    *v1alpha1.Task
 		log     logr.Logger
 	}
 )
@@ -102,7 +102,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 }
 
 func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
-	rc.task = &v1alpha1.ClustercodeTask{}
+	rc.task = &v1alpha1.Task{}
 	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
 		return fmt.Errorf("cannot determine slice index from label '%s': %w", ClustercodeSliceIndexLabelKey, err)
 	}
 
-	rc.task = &v1alpha1.ClustercodeTask{}
+	rc.task = &v1alpha1.Task{}
 	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 }
 
 func (r *JobReconciler) handleMergeJob(rc *JobContext) error {
-	rc.task = &v1alpha1.ClustercodeTask{}
+	rc.task = &v1alpha1.Task{}
 	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
 		return err
 	}

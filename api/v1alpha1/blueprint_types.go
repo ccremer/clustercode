@@ -55,11 +55,11 @@ type (
 	}
 
 	BlueprintStatus struct {
-		Conditions   []metav1.Condition   `json:"conditions,omitempty"`
-		CurrentTasks []ClusterCodeTaskRef `json:"currentTasks,omitempty"`
+		Conditions   []metav1.Condition `json:"conditions,omitempty"`
+		CurrentTasks []TaskRef          `json:"currentTasks,omitempty"`
 	}
 
-	ClusterCodeTaskRef struct {
+	TaskRef struct {
 		TaskName string `json:"taskName,omitempty"`
 	}
 )
