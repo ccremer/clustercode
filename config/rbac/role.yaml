@@ -41,7 +41,7 @@ rules:
 - apiGroups:
   - clustercode.github.io
   resources:
-  - clustercodeplans
+  - blueprints
   verbs:
   - create
   - delete
@@ -53,7 +53,7 @@ rules:
 - apiGroups:
   - clustercode.github.io
   resources:
-  - clustercodeplans/status
+  - blueprints/status
   verbs:
   - get
   - patch

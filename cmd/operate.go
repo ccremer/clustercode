@@ -61,12 +61,12 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err = (&controllers.ClustercodePlanReconciler{
+	if err = (&controllers.BlueprintReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("clustercodeplan"),
+		Log:    ctrl.Log.WithName("controllers").WithName("blueprint"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		return fmt.Errorf("unable to create controller '%s': %w", "clustercodeplan", err)
+		return fmt.Errorf("unable to create controller '%s': %w", "blueprint", err)
 	}
 	if err = (&controllers.ClustercodeTaskReconciler{
 		Client: mgr.GetClient(),

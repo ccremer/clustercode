@@ -1,8 +1,0 @@
-= How To Create A Clustercode Plan
-
-This is an example of Clustercode Plan
-
-[source,yaml]
-----
-include::example$clustercode-plan.yaml[]
-----

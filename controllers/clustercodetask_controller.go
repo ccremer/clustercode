@@ -29,10 +29,10 @@ type (
 	}
 	// ClustercodeTaskContext holds the parameters of a single reconciliation
 	ClustercodeTaskContext struct {
-		ctx  context.Context
-		task *v1alpha1.ClustercodeTask
-		plan *v1alpha1.ClustercodePlan
-		log  logr.Logger
+		ctx       context.Context
+		task      *v1alpha1.ClustercodeTask
+		blueprint *v1alpha1.Blueprint
+		log       logr.Logger
 	}
 	TaskOpts struct {
 		args              []string

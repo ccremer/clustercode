@@ -17,13 +17,27 @@ rules:
   - patch
   - delete
 - apiGroups:
-  - ""
+    - ""
   resources:
-  - configmaps/status
+    - configmaps/finalizers
   verbs:
-  - get
-  - update
-  - patch
+    - update
+- apiGroups:
+    - ""
+  resources:
+    - events
+  verbs:
+    - create
+    - patch
+- apiGroups:
+    - coordination.k8s.io
+  resources:
+    - leases
+  verbs:
+    - create
+    - get
+    - list
+    - update
 - apiGroups:
   - ""
   resources:

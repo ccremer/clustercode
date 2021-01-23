@@ -26,41 +26,41 @@ import (
 )
 
 type (
-	// ClustercodePlanReconciler reconciles ClustercodePlan objects
-	ClustercodePlanReconciler struct {
+	// BlueprintReconciler reconciles Blueprint objects
+	BlueprintReconciler struct {
 		Client client.Client
 		Log    logr.Logger
 		Scheme *runtime.Scheme
 	}
-	// ClustercodePlanContext holds the parameters of a single reconciliation
-	ClustercodePlanContext struct {
-		ctx  context.Context
-		plan *v1alpha1.ClustercodePlan
-		log  logr.Logger
+	// BlueprintContext holds the parameters of a single reconciliation
+	BlueprintContext struct {
+		ctx       context.Context
+		blueprint *v1alpha1.Blueprint
+		log       logr.Logger
 	}
 )
 
-func (r *ClustercodePlanReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *BlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.ClustercodePlan{}).
+		For(&v1alpha1.Blueprint{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodeplans,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=clustercodeplans/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=batch,resources=cronjobs/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;create;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;create;delete
 
-func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	rc := &ClustercodePlanContext{
-		ctx:  ctx,
-		plan: &v1alpha1.ClustercodePlan{},
+func (r *BlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	rc := &BlueprintContext{
+		ctx:       ctx,
+		blueprint: &v1alpha1.Blueprint{},
 	}
-	err := r.Client.Get(ctx, req.NamespacedName, rc.plan)
+	err := r.Client.Get(ctx, req.NamespacedName, rc.blueprint)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
@@ -69,13 +69,13 @@ func (r *ClustercodePlanReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
 	}
-	rc.log = r.Log.WithValues("plan", req.NamespacedName)
-	r.handlePlan(rc)
-	rc.log.Info("reconciled plan")
+	rc.log = r.Log.WithValues("blueprint", req.NamespacedName)
+	r.handleBlueprint(rc)
+	rc.log.Info("reconciled blueprint")
 	return ctrl.Result{}, nil
 }
 
-func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
+func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 
 	saName, err := r.createServiceAccountAndBinding(rc)
 	if err != nil {
@@ -84,14 +84,14 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 
 	cronJob := v1beta1.CronJob{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      rc.plan.Name + "-scan-job",
-			Namespace: rc.plan.Namespace,
+			Name:      rc.blueprint.Name + "-scan-job",
+			Namespace: rc.blueprint.Namespace,
 			Labels:    labels.Merge(ClusterCodeLabels, ClustercodeTypeScan.AsLabels()),
 		},
 		Spec: v1beta1.CronJobSpec{
-			Schedule:          rc.plan.Spec.ScanSchedule,
+			Schedule:          rc.blueprint.Spec.ScanSchedule,
 			ConcurrencyPolicy: v1beta1.ForbidConcurrent,
-			Suspend:           &rc.plan.Spec.Suspend,
+			Suspend:           &rc.blueprint.Spec.Suspend,
 
 			JobTemplate: v1beta1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
@@ -111,20 +111,20 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									},
 									Args: []string{
 										"scan",
-										"--namespace=" + rc.plan.Namespace,
-										"--scan.clustercode-plan-name=" + rc.plan.Name,
+										"--namespace=" + rc.blueprint.Namespace,
+										"--scan.blueprint-name=" + rc.blueprint.Name,
 									},
 									Image: cfg.Config.Operator.ClustercodeContainerImage,
 									VolumeMounts: []corev1.VolumeMount{
 										{
 											Name:      SourceSubMountPath,
 											MountPath: filepath.Join("/clustercode", SourceSubMountPath),
-											SubPath:   rc.plan.Spec.Storage.SourcePvc.SubPath,
+											SubPath:   rc.blueprint.Spec.Storage.SourcePvc.SubPath,
 										},
 										{
 											Name:      IntermediateSubMountPath,
 											MountPath: filepath.Join("/clustercode", IntermediateSubMountPath),
-											SubPath:   rc.plan.Spec.Storage.SourcePvc.SubPath,
+											SubPath:   rc.blueprint.Spec.Storage.SourcePvc.SubPath,
 										},
 									},
 								},
@@ -134,7 +134,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									Name: SourceSubMountPath,
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: rc.plan.Spec.Storage.SourcePvc.ClaimName,
+											ClaimName: rc.blueprint.Spec.Storage.SourcePvc.ClaimName,
 										},
 									},
 								},
@@ -142,7 +142,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 									Name: IntermediateSubMountPath,
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: rc.plan.Spec.Storage.IntermediatePvc.ClaimName,
+											ClaimName: rc.blueprint.Spec.Storage.IntermediatePvc.ClaimName,
 										},
 									},
 								},
@@ -155,8 +155,8 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 			FailedJobsHistoryLimit:     pointer.Int32Ptr(1),
 		},
 	}
-	if err := controllerutil.SetControllerReference(rc.plan, cronJob.GetObjectMeta(), r.Scheme); err != nil {
-		rc.log.Error(err, "could not set controller reference, deleting the plan will not delete the cronjob", "cronjob", cronJob.Name)
+	if err := controllerutil.SetControllerReference(rc.blueprint, cronJob.GetObjectMeta(), r.Scheme); err != nil {
+		rc.log.Error(err, "could not set controller reference, deleting the blueprint will not delete the cronjob", "cronjob", cronJob.Name)
 	}
 
 	if err := r.Client.Create(rc.ctx, &cronJob); err != nil {
@@ -177,7 +177,7 @@ func (r *ClustercodePlanReconciler) handlePlan(rc *ClustercodePlanContext) {
 	}
 }
 
-func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *ClustercodePlanContext) (string, error) {
+func (r *BlueprintReconciler) createServiceAccountAndBinding(rc *BlueprintContext) (string, error) {
 	binding, sa := r.newRbacDefinition(rc)
 
 	err := r.Client.Create(rc.ctx, &sa)
@@ -199,18 +199,18 @@ func (r *ClustercodePlanReconciler) createServiceAccountAndBinding(rc *Clusterco
 	return sa.Name, nil
 }
 
-func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ClustercodePlanContext) (rbacv1.RoleBinding, corev1.ServiceAccount) {
-	saName := rc.plan.GetServiceAccountName()
+func (r *BlueprintReconciler) newRbacDefinition(rc *BlueprintContext) (rbacv1.RoleBinding, corev1.ServiceAccount) {
+	saName := rc.blueprint.GetServiceAccountName()
 	roleBinding := rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      strings.ShortenString(saName, 51) + "-rolebinding",
-			Namespace: rc.plan.Namespace,
+			Namespace: rc.blueprint.Namespace,
 			Labels:    ClusterCodeLabels,
 		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Namespace: rc.plan.Namespace,
+				Namespace: rc.blueprint.Namespace,
 				Name:      saName,
 			},
 		},
@@ -224,15 +224,15 @@ func (r *ClustercodePlanReconciler) newRbacDefinition(rc *ClustercodePlanContext
 	account := corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
-			Namespace: rc.plan.Namespace,
+			Namespace: rc.blueprint.Namespace,
 			Labels:    ClusterCodeLabels,
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(rc.plan, roleBinding.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.blueprint, roleBinding.GetObjectMeta(), r.Scheme); err != nil {
 		rc.log.Error(err, "could not set controller reference on role", "roleBinding", roleBinding.Name)
 	}
-	if err := controllerutil.SetControllerReference(rc.plan, account.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.blueprint, account.GetObjectMeta(), r.Scheme); err != nil {
 		rc.log.Error(err, "could not set controller reference on service account", "sa", account.Name)
 	}
 	return roleBinding, account

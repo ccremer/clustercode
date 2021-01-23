@@ -27,7 +27,7 @@ image::docs/modules/ROOT/assets/images/clustercode-overview.drawio.svg[]
 
 == Features
 
-* Scans and encodes video files from a directory and encodes them using customizable plans.
+* Scans and encodes video files from a directory and encodes them using customizable blueprints.
 * Encoded files are stored in an output directory.
 * Schedule Scans for new files with Cron.
 * Take advantage of having multiple computers: Each Pod encodes a segment, enabling parallelization.

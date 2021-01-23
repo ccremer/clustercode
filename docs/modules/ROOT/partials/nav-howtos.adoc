@@ -1,1 +1,1 @@
-* xref:clustercode:ROOT:how-tos/create-clustercode-plan.adoc[Create Clustercode Plan]
+* xref:clustercode:ROOT:how-tos/create-blueprint.adoc[Create Blueprint]

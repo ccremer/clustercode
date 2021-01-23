@@ -1,19 +1,19 @@
 apiVersion: clustercode.github.io/v1alpha1
-kind: ClustercodePlan
+kind: Blueprint
 metadata:
-  name: test-plan
+  name: test-blueprint
 spec:
-  scanSchedule: "*/30 * * * *"
+  scanSchedule: "*/1 * * * *"
   storage:
     sourcePvc:
-      claimName: my-nfs-source
-      #subPath: source
+      claimName: test1-source
+      subPath: source
     intermediatePvc:
-      claimName: some-other-storage-claim
-      #subPath: intermediate
+      claimName: test1-intermediate
+      subPath: intermediate
     targetPvc:
-      claimName: my-nfs-target
-      #subPath: target
+      claimName: test1-target
+      subPath: target
   scanSpec:
     mediaFileExtensions:
       - mp4
@@ -21,8 +21,11 @@ spec:
     concurrentCountStrategy:
       maxCount: 1
   encodeSpec:
-    sliceSize: 120 # after how many seconds to split
-    defaultCommandArgs: ["-y","-hide_banner","-nostats"]
+    sliceSize: 1
+    defaultCommandArgs:
+      - -y
+      - -hide_banner
+      - -nostats
     splitCommandArgs:
       - -i
       - ${INPUT}
