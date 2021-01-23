@@ -25,9 +25,9 @@ spec:
       jsonPath: .spec.targetUrl
       name: Target
       type: string
-    - description: Clustercode Plan
+    - description: Blueprint reference
       jsonPath: .metadata.ownerReferences[?(@.controller)].name
-      name: Plan
+      name: Blueprint
       type: string
     - description: Clustercode Total Slices
       jsonPath: .spec.slicesPlannedCount
@@ -39,7 +39,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ClustercodePlan is the Schema for the archives API
+        description: Blueprint is the Schema for the archives API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'

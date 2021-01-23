@@ -2,8 +2,8 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- clustercode.github.io_clustercodeplans.yaml
-- clustercode.github.io_clustercodetasks.yaml
+- v1alpha1/clustercode.github.io_blueprints.yaml
+- v1alpha1/clustercode.github.io_clustercodetasks.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:

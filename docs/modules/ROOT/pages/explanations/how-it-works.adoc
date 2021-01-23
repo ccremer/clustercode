@@ -22,9 +22,10 @@ Under the hood, 2 Kubernetes CRDs are used to describe the config.
 All steps with Ffmpeg are executed with Kubernetes Jobs, while the encoding step can be executed in parallel by scheduling multiple Jobs at the same time.
 
 Clustercode operates in either in "operator" or "client" mode.
-As an operator, clustercode "translates" Clustercode Plans into Tasks, which in turn control the spawning CronJobs and Jobs.
+As an operator, clustercode creates Tasks from Blueprints, which in turn control the spawning CronJobs and Jobs.
 There is only one operator on the cluster across all namespaces.
-In Jobs and CronJobs, Clustercode is launched as a client, interacting with Kubernetes API. CronJobs and Jobs are launched in the same namespace as the ClusterCode plan is in.
+In Jobs and CronJobs, Clustercode is launched as a client, interacting with Kubernetes API.
+CronJobs and Jobs are launched in the same namespace as the Blueprint is in.
 
 == Process Diagram
 

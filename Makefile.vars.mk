@@ -4,7 +4,7 @@ BIN_FILENAME ?= $(PROJECT_ROOT_DIR)/clustercode
 TESTBIN_DIR ?= $(PROJECT_ROOT_DIR)/testbin/bin
 
 CRD_FILE ?= clustercode-crd.yaml
-CRD_ROOT_DIR ?= config/crd/v1alpha1
+CRD_ROOT_DIR ?= config/crd
 CRD_SPEC_VERSION ?= v1
 
 # See https://storage.googleapis.com/kubebuilder-tools/ for list of supported K8s versions

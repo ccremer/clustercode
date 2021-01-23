@@ -1,4 +1,4 @@
-# permissions for end users to edit clustercodeplans.
+# permissions for end users to edit blueprints.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
@@ -7,7 +7,7 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans
+      - blueprints
       - clustercodetasks
     verbs:
       - create
@@ -20,7 +20,7 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans/status
+      - blueprints/status
       - clustercodetasks/status
     verbs:
       - get

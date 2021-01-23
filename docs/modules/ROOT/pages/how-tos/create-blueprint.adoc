@@ -1,0 +1,8 @@
+= How To Create A Blueprint
+
+This is an example of Blueprint
+
+[source,yaml]
+----
+include::example$blueprint.yaml[]
+----

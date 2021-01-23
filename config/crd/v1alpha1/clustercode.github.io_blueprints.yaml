@@ -6,14 +6,14 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: clustercodeplans.clustercode.github.io
+  name: blueprints.clustercode.github.io
 spec:
   group: clustercode.github.io
   names:
-    kind: ClustercodePlan
-    listKind: ClustercodePlanList
-    plural: clustercodeplans
-    singular: clustercodeplan
+    kind: Blueprint
+    listKind: BlueprintList
+    plural: blueprints
+    singular: blueprint
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
@@ -35,7 +35,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: ClustercodePlan is the Schema for the ClusterCodePlan API
+        description: Blueprint is the Schema for the Blueprint API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
@@ -46,7 +46,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: ClustercodePlanSpec specifies a Clustercode
+            description: BlueprintSpec specifies Clustercode settings
             properties:
               encodeSpec:
                 properties:

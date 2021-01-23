@@ -23,11 +23,11 @@ type (
 		Debug bool `koanf:"debug"`
 	}
 	ScanConfig struct {
-		RoleKind            string `koanf:"role-kind"`
-		RoleName            string `koanf:"role-name"`
-		ClustercodePlanName string `koanf:"clustercode-plan-name"`
-		SourceRoot          string `koanf:"source-root"`
-		TargetRoot          string `koanf:"target-root"`
+		RoleKind      string `koanf:"role-kind"`
+		RoleName      string `koanf:"role-name"`
+		BlueprintName string `koanf:"blueprint-name"`
+		SourceRoot    string `koanf:"source-root"`
+		TargetRoot    string `koanf:"target-root"`
 	}
 	CountConfig struct {
 		TaskName string `koanf:"task-name"`
@@ -52,6 +52,7 @@ func NewDefaultConfig() *Configuration {
 		Operator: OperatorConfig{
 			MetricsBindAddress:   ":9090",
 			FfmpegContainerImage: "docker.io/jrottenberg/ffmpeg:4.1-alpine",
+			EnableLeaderElection: true,
 		},
 		Scan: ScanConfig{
 			SourceRoot: "/clustercode",

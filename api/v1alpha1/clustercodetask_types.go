@@ -14,11 +14,11 @@ type (
 	// +kubebuilder:subresource:status
 	// +kubebuilder:printcolumn:name="Source",type="string",JSONPath=".spec.sourceUrl",description="Source file name"
 	// +kubebuilder:printcolumn:name="Target",type="string",JSONPath=".spec.targetUrl",description="Target file name"
-	// +kubebuilder:printcolumn:name="Plan",type="string",JSONPath=`.metadata.ownerReferences[?(@.controller)].name`,description="Clustercode Plan"
+	// +kubebuilder:printcolumn:name="Blueprint",type="string",JSONPath=`.metadata.ownerReferences[?(@.controller)].name`,description="Blueprint reference"
 	// +kubebuilder:printcolumn:name="Slices",type="string",JSONPath=`.spec.slicesPlannedCount`,description="Clustercode Total Slices"
 	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-	// ClustercodePlan is the Schema for the archives API
+	// Blueprint is the Schema for the archives API
 	ClustercodeTask struct {
 		metav1.TypeMeta   `json:",inline"`
 		metav1.ObjectMeta `json:"metadata,omitempty"`

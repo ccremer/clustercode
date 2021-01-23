@@ -85,7 +85,7 @@ docker-push: ## Push the docker image
 
 clean: export KUBECONFIG = $(KIND_KUBECONFIG)
 clean: e2e-clean kind-clean media-clean docs-clean ## Cleans up the generated resources
-	rm -r testbin/ dist/ bin/ cover.out $(BIN_FILENAME) || true
+	rm -r testbin/ dist/ bin/ cover.out $(BIN_FILENAME) $(CRD_FILE) || true
 
 .PHONY: help
 help: ## Show this help

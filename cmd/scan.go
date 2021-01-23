@@ -33,8 +33,8 @@ var (
 )
 
 func validateScanCmd(cmd *cobra.Command, args []string) error {
-	if cfg.Config.Scan.ClustercodePlanName == "" {
-		return fmt.Errorf("'%s' cannot be empty", "scan.clustercode-plan-name")
+	if cfg.Config.Scan.BlueprintName == "" {
+		return fmt.Errorf("'%s' cannot be empty", "scan.blueprint-name")
 	}
 	if cfg.Config.Namespace == "" {
 		return fmt.Errorf("'%s' cannot be empty", "namespace")
@@ -48,7 +48,7 @@ func validateScanCmd(cmd *cobra.Command, args []string) error {
 func init() {
 	rootCmd.AddCommand(scanCmd)
 
-	scanCmd.PersistentFlags().String("scan.clustercode-plan-name", cfg.Config.Scan.ClustercodePlanName, "Clustercode Plan name (namespace/name)")
+	scanCmd.PersistentFlags().String("scan.blueprint-name", cfg.Config.Scan.BlueprintName, "Blueprint name (namespace/name)")
 }
 
 func scanMedia(cmd *cobra.Command, args []string) error {
@@ -58,24 +58,24 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	plan, err := getClustercodePlan()
+	bp, err := getBlueprint()
 	if err != nil {
 		return err
 	}
-	scanLog.Info("found plan", "plan", plan)
+	scanLog.Info("found bp", "bp", bp)
 
-	if plan.IsMaxParallelTaskLimitReached() {
+	if bp.IsMaxParallelTaskLimitReached() {
 		scanLog.Info("max parallel task count is reached, ignoring scan")
 		return nil
 	}
 
-	tasks, err := getCurrentTasks(plan)
+	tasks, err := getCurrentTasks(bp)
 	if err != nil {
 		return err
 	}
 	scanLog.Info("get list of current tasks", "tasks", tasks)
-	existingFiles := mapAndFilterTasks(tasks, plan)
-	files, err := scanSourceForMedia(plan, existingFiles)
+	existingFiles := mapAndFilterTasks(tasks, bp)
+	files, err := scanSourceForMedia(bp, existingFiles)
 	if err != nil {
 		return err
 	}
@@ -98,15 +98,15 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 			TaskId:               v1alpha1.ClustercodeTaskId(taskId),
 			SourceUrl:            v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
 			TargetUrl:            v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
-			EncodeSpec:           plan.Spec.EncodeSpec,
-			Storage:              plan.Spec.Storage,
-			ServiceAccountName:   plan.GetServiceAccountName(),
+			EncodeSpec:           bp.Spec.EncodeSpec,
+			Storage:              bp.Spec.Storage,
+			ServiceAccountName:   bp.GetServiceAccountName(),
 			FileListConfigMapRef: taskId + "-slice-list",
-			ConcurrencyStrategy:  plan.Spec.TaskConcurrencyStrategy,
+			ConcurrencyStrategy:  bp.Spec.TaskConcurrencyStrategy,
 		},
 	}
-	if err := controllerutil.SetControllerReference(plan, task.GetObjectMeta(), scheme); err != nil {
-		scanLog.Error(err, "could not set controller reference. Deleting the plan might not delete this task")
+	if err := controllerutil.SetControllerReference(bp, task.GetObjectMeta(), scheme); err != nil {
+		scanLog.Error(err, "could not set controller reference. Deleting the bp might not delete this task")
 	}
 	if err := client.Create(context.Background(), task); err != nil {
 		return fmt.Errorf("could not create task: %w", err)
@@ -116,7 +116,7 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func mapAndFilterTasks(tasks []v1alpha1.ClustercodeTask, plan *v1alpha1.ClustercodePlan) []string {
+func mapAndFilterTasks(tasks []v1alpha1.ClustercodeTask, bp *v1alpha1.Blueprint) []string {
 
 	var sourceFiles []string
 	for _, task := range tasks {
@@ -133,18 +133,18 @@ func getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
 	return filepath.Join(cfg.Config.Scan.SourceRoot, uri.GetRoot(), uri.GetPath())
 }
 
-func getCurrentTasks(plan *v1alpha1.ClustercodePlan) ([]v1alpha1.ClustercodeTask, error) {
+func getCurrentTasks(bp *v1alpha1.Blueprint) ([]v1alpha1.ClustercodeTask, error) {
 	list := v1alpha1.ClustercodeTaskList{}
 	err := client.List(context.Background(), &list,
 		controllerclient.MatchingLabels(controllers.ClusterCodeLabels),
-		controllerclient.InNamespace(plan.Namespace))
+		controllerclient.InNamespace(bp.Namespace))
 	if err != nil {
 		return list.Items, err
 	}
 	var tasks []v1alpha1.ClustercodeTask
 	for _, task := range list.Items {
 		for _, owner := range task.GetOwnerReferences() {
-			if pointer.BoolPtrDerefOr(owner.Controller, false) && owner.Name == plan.Name {
+			if pointer.BoolPtrDerefOr(owner.Controller, false) && owner.Name == bp.Name {
 				tasks = append(tasks, task)
 			}
 		}
@@ -152,7 +152,7 @@ func getCurrentTasks(plan *v1alpha1.ClustercodePlan) ([]v1alpha1.ClustercodeTask
 	return list.Items, err
 }
 
-func scanSourceForMedia(plan *v1alpha1.ClustercodePlan, skipFiles []string) (files []string, funcErr error) {
+func scanSourceForMedia(bp *v1alpha1.Blueprint, skipFiles []string) (files []string, funcErr error) {
 	root := filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -162,7 +162,7 @@ func scanSourceForMedia(plan *v1alpha1.ClustercodePlan, skipFiles []string) (fil
 		if info.IsDir() {
 			return nil
 		}
-		if !containsExtension(filepath.Ext(path), plan.Spec.ScanSpec.MediaFileExtensions) {
+		if !containsExtension(filepath.Ext(path), bp.Spec.ScanSpec.MediaFileExtensions) {
 			scanLog.V(1).Info("file extension not accepted", "path", path)
 			return nil
 		}
@@ -180,18 +180,18 @@ func scanSourceForMedia(plan *v1alpha1.ClustercodePlan, skipFiles []string) (fil
 	return files, err
 }
 
-func getClustercodePlan() (*v1alpha1.ClustercodePlan, error) {
+func getBlueprint() (*v1alpha1.Blueprint, error) {
 	ctx := context.Background()
-	plan := &v1alpha1.ClustercodePlan{}
+	bp := &v1alpha1.Blueprint{}
 	name := types.NamespacedName{
-		Name:      cfg.Config.Scan.ClustercodePlanName,
+		Name:      cfg.Config.Scan.BlueprintName,
 		Namespace: cfg.Config.Namespace,
 	}
-	err := client.Get(ctx, name, plan)
+	err := client.Get(ctx, name, bp)
 	if err != nil {
-		return &v1alpha1.ClustercodePlan{}, err
+		return &v1alpha1.Blueprint{}, err
 	}
-	return plan, nil
+	return bp, nil
 }
 
 func createClient() error {

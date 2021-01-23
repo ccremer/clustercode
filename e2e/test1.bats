@@ -15,8 +15,8 @@ setup() {
 
 }
 
-@test "Given ClustercodePlan, When scheduling scan job, then Job should succeed" {
-    try "at most 20 times every 5s to find 1 pod named 'test-plan-scan-job' with 'status' being 'Succeeded'"
+@test "Given Blueprint, When scheduling scan job, Then Job should succeed" {
+    try "at most 20 times every 5s to find 1 pod named 'test-blueprint-scan-job' with 'status' being 'Succeeded'"
 }
 
 teardown() {

@@ -5,7 +5,7 @@ import (
 )
 
 func init() {
-	SchemeBuilder.Register(&ClustercodePlan{}, &ClustercodePlanList{})
+	SchemeBuilder.Register(&Blueprint{}, &BlueprintList{})
 }
 
 type (
@@ -16,26 +16,26 @@ type (
 	// +kubebuilder:printcolumn:name="Current Tasks",type="integer",JSONPath=".status.currentTasks",description="Currently active tasks"
 	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 
-	// ClustercodePlan is the Schema for the ClusterCodePlan API
-	ClustercodePlan struct {
+	// Blueprint is the Schema for the Blueprint API
+	Blueprint struct {
 		metav1.TypeMeta   `json:",inline"`
 		metav1.ObjectMeta `json:"metadata,omitempty"`
 
-		Spec   ClustercodePlanSpec   `json:"spec,omitempty"`
-		Status ClustercodePlanStatus `json:"status,omitempty"`
+		Spec   BlueprintSpec   `json:"spec,omitempty"`
+		Status BlueprintStatus `json:"status,omitempty"`
 	}
 
 	// +kubebuilder:object:root=true
 
-	// ClustercodePlanList contains a list of ClustercodePlans.
-	ClustercodePlanList struct {
+	// BlueprintList contains a list of Blueprints.
+	BlueprintList struct {
 		metav1.TypeMeta `json:",inline"`
 		metav1.ListMeta `json:"metadata,omitempty"`
-		Items           []ClustercodePlan `json:"items"`
+		Items           []Blueprint `json:"items"`
 	}
 
-	// ClustercodePlanSpec specifies a Clustercode
-	ClustercodePlanSpec struct {
+	// BlueprintSpec specifies Clustercode settings
+	BlueprintSpec struct {
 		ScanSchedule string `json:"scanSchedule"`
 		// +kubebuilder:validation:Required
 		Storage StorageSpec `json:"storage,omitempty"`
@@ -54,7 +54,7 @@ type (
 		MediaFileExtensions []string `json:"mediaFileExtensions,omitempty"`
 	}
 
-	ClustercodePlanStatus struct {
+	BlueprintStatus struct {
 		Conditions   []metav1.Condition   `json:"conditions,omitempty"`
 		CurrentTasks []ClusterCodeTaskRef `json:"currentTasks,omitempty"`
 	}
@@ -65,11 +65,11 @@ type (
 )
 
 // IsMaxParallelTaskLimitReached will return true if the count of current task has reached MaxParallelTasks.
-func (in *ClustercodePlan) IsMaxParallelTaskLimitReached() bool {
+func (in *Blueprint) IsMaxParallelTaskLimitReached() bool {
 	return len(in.Status.CurrentTasks) >= in.Spec.MaxParallelTasks
 }
 
-// GetServiceAccountName retrieves a ServiceAccount name that would go along with this plan.
-func (in *ClustercodePlan) GetServiceAccountName() string {
+// GetServiceAccountName retrieves a ServiceAccount name that would go along with this Blueprint.
+func (in *Blueprint) GetServiceAccountName() string {
 	return in.Name + "-clustercode"
 }
