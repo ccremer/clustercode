@@ -6,13 +6,13 @@ spec:
   scanSchedule: "*/1 * * * *"
   storage:
     sourcePvc:
-      claimName: test2-claim1
+      claimName: test1-source
       subPath: source
     intermediatePvc:
-      claimName: test2-claim2
+      claimName: test1-intermediate
       subPath: intermediate
     targetPvc:
-      claimName: test2-claim3
+      claimName: test1-target
       subPath: target
   scanSpec:
     mediaFileExtensions:
