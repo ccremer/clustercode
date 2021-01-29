@@ -146,15 +146,19 @@ func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
 func (r *JobReconciler) createCountJob(rc *JobContext) error {
 
 	taskId := rc.task.Spec.TaskId
-	cb := builder.NewContainerBuilder("clustercode").Build(
-		builder.WithContainerImage(cfg.Config.Operator.ClustercodeContainerImage),
-		builder.WithArgs{"-v", "count", "--count.task-name=" + rc.task.Name, "--namespace=" + rc.job.Namespace},
-		builder.WithImagePullPolicy(corev1.RestartPolicyNever),
-	)
+	cb := builder.NewContainerBuilder("clustercode").
+		WithImage(cfg.Config.Operator.ClustercodeContainerImage).
+		WithArgs("-v").
+		AddArgs("--namespace=%s", rc.job.Namespace).
+		AddArgs("count").
+		AddArgs("--count.task-name=%s", rc.task.Name).
+		Build()
+
 	pb := builder.NewPodSpecBuilder(cb).Build()
 	pvc := rc.task.Spec.Storage.IntermediatePvc
-	pb.AddPvcMount(IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
+	pb.AddPvcMount(nil, IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
 	pb.PodSpec.ServiceAccountName = rc.job.Spec.Template.Spec.ServiceAccountName
+	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
 
 	job := &batchv1.Job{
 		Spec: batchv1.JobSpec{
@@ -164,11 +168,11 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 			},
 		},
 	}
-	builder.NewMetaBuilderWith(job).Build(
-		builder.WithName(fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount)),
-		builder.WithNamespace(rc.job.Namespace),
-		builder.WithLabels(ClusterCodeLabels), builder.AddLabels(ClustercodeTypeCount.AsLabels()), builder.AddLabels(taskId.AsLabels()),
-	)
+	builder.NewMetaBuilderWith(job).
+		WithNamespace(rc.job.Namespace).
+		WithName(fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount)).
+		WithLabels(ClusterCodeLabels, ClustercodeTypeCount.AsLabels(), taskId.AsLabels())
+
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}
@@ -197,14 +201,18 @@ func (r *JobReconciler) handleMergeJob(rc *JobContext) error {
 func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 
 	taskId := rc.task.Spec.TaskId
-	cb := builder.NewContainerBuilder("clustercode").Build(
-		builder.WithContainerImage(cfg.Config.Operator.ClustercodeContainerImage),
-		builder.WithImagePullPolicy(corev1.PullIfNotPresent),
-		builder.WithArgs{"-v", "--namespace=" + rc.job.Namespace, "cleanup", "--cleanup.task-name=" + rc.task.Name},
-	)
+	cb := builder.NewContainerBuilder("clustercode").
+		WithImage(cfg.Config.Operator.ClustercodeContainerImage).
+		WithImagePullPolicy(corev1.PullIfNotPresent).
+		WithArgs("-v").
+		AddArgs("--namespace=%s", rc.job.Namespace).
+		AddArg("cleanup").
+		AddArgs("--cleanup.task-name=%s", rc.task.Name).
+		Build()
+
 	pb := builder.NewPodSpecBuilder(cb)
-	pb.AddPvcMount(SourceSubMountPath, rc.task.Spec.Storage.SourcePvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc.SubPath)
-	pb.AddPvcMount(IntermediateSubMountPath, rc.task.Spec.Storage.IntermediatePvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc.SubPath)
+	pb.AddPvcMount(nil, SourceSubMountPath, rc.task.Spec.Storage.SourcePvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc.SubPath)
+	pb.AddPvcMount(nil, IntermediateSubMountPath, rc.task.Spec.Storage.IntermediatePvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc.SubPath)
 	pb.PodSpec.ServiceAccountName = rc.job.Spec.Template.Spec.ServiceAccountName
 	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
 		RunAsUser:  pointer.Int64Ptr(1000),

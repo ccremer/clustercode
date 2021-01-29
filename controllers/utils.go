@@ -81,11 +81,12 @@ func getOwner(obj metav1.Object) types.NamespacedName {
 }
 
 func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job {
-	cb := builder.NewContainerBuilder("ffmpeg").Build(
-		builder.WithContainerImage(cfg.Config.Operator.FfmpegContainerImage),
-		builder.WithImagePullPolicy(corev1.PullIfNotPresent),
-		builder.WithArgs(opts.args),
-	)
+	cb := builder.NewContainerBuilder("ffmpeg").
+		WithImage(cfg.Config.Operator.FfmpegContainerImage).
+		WithImagePullPolicy(corev1.PullIfNotPresent).
+		WithArgs(opts.args...).
+		Build()
+
 	pb := builder.NewPodSpecBuilder(cb).Build()
 	pb.PodSpec.ServiceAccountName = task.Spec.ServiceAccountName
 	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
@@ -97,18 +98,18 @@ func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job
 
 	if opts.mountSource {
 		pvc := task.Spec.Storage.SourcePvc
-		pb.AddPvcMount(SourceSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), pvc.SubPath)
+		pb.AddPvcMount(nil, SourceSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), pvc.SubPath)
 	}
 	if opts.mountIntermediate {
 		pvc := task.Spec.Storage.IntermediatePvc
-		pb.AddPvcMount(IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
+		pb.AddPvcMount(nil, IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
 	}
 	if opts.mountTarget {
 		pvc := task.Spec.Storage.TargetPvc
-		pb.AddPvcMount(TargetSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", TargetSubMountPath), pvc.SubPath)
+		pb.AddPvcMount(nil, TargetSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", TargetSubMountPath), pvc.SubPath)
 	}
 	if opts.mountConfig {
-		pb.AddConfigMapMount(ConfigSubMountPath, task.Spec.FileListConfigMapRef, filepath.Join("/clustercode", ConfigSubMountPath))
+		pb.AddConfigMapMount(nil, ConfigSubMountPath, task.Spec.FileListConfigMapRef, filepath.Join("/clustercode", ConfigSubMountPath))
 	}
 
 	job := &batchv1.Job{
@@ -119,9 +120,10 @@ func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job
 			},
 		},
 	}
-	builder.NewMetaBuilderWith(job).Build(
-		builder.WithNamespacedName{Namespace: task.Namespace, Name: fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.jobType)},
-		builder.WithLabels(ClusterCodeLabels), builder.AddLabels(opts.jobType.AsLabels()), builder.AddLabels(task.Spec.TaskId.AsLabels()),
-	)
+	builder.NewMetaBuilderWith(job).
+		WithNamespace(task.Namespace).
+		WithName(fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.jobType)).
+		WithLabels(ClusterCodeLabels, opts.jobType.AsLabels(), task.Spec.TaskId.AsLabels()).
+		Build()
 	return job
 }
