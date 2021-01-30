@@ -40,7 +40,7 @@ See https://ccremer.github.io/clustercode-docs[ccremer.github.io/clustercode-doc
 == Installation
 
 Currently, there is Kustomize support.
-Install with `kustomize build config/default | kubectl apply -f -`.
+Install with `kustomize build kustomize/default | kubectl apply -f -`.
 
 NOTE: Helm is also planned.
 

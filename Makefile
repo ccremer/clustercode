@@ -48,13 +48,13 @@ uninstall: generate ## Uninstall CRDs from a cluster
 
 .PHONY: deploy
 deploy: generate ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default | kubectl apply -f -
+	cd kustomize/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	$(KUSTOMIZE) build kustomize/default | kubectl apply -f -
 
 .PHONY: generate
 generate: ## Generate manifests e.g. CRD, RBAC etc.
 	@CRD_ROOT_DIR="$(CRD_ROOT_DIR)" go generate -tags=generate generate.go
-	@rm config/*.yaml
+	@rm kustomize/*.yaml || true
 
 .PHONY: crd
 crd: generate ## Generate CRD to file
