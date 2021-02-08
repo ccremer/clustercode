@@ -34,9 +34,9 @@ integration-test: generate fmt vet $(testbin_created) ## Run integration tests w
 build: generate fmt vet $(BIN_FILENAME) ## Build manager binary
 
 .PHONY: run
-run: export BACKUP_ENABLE_LEADER_ELECTION = $(ENABLE_LEADER_ELECTION)
+run: export CC_OPERATOR__ENABLE_LEADER_ELECTION = $(ENABLE_LEADER_ELECTION)
 run: fmt vet ## Run against the configured Kubernetes cluster in ~/.kube/config
-	go run ./main.go -v operate --operator.clustercode-image=$(E2E_IMG)
+	go run ./main.go -v operate
 
 .PHONY: install
 install: generate ## Install CRDs into a cluster
@@ -48,7 +48,6 @@ uninstall: generate ## Uninstall CRDs from a cluster
 
 .PHONY: deploy
 deploy: generate ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-	cd kustomize/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build kustomize/default | kubectl apply -f -
 
 .PHONY: generate
@@ -119,12 +118,19 @@ kind-setup: ## Creates a kind instance if one does not exist yet.
 kind-clean: ## Removes the kind instance if it exists.
 	@$(e2e_make) kind-clean
 
-.PHONY: kind-run
-kind-run: export KUBECONFIG = $(KIND_KUBECONFIG)
-kind-run: kind-setup install run ## Runs the operator on the local host but configured for the kind cluster
-
+.PHONY: kind-e2e-image
 kind-e2e-image: docker-build
 	$(e2e_make) kind-e2e-image
+
+.PHONY: kind-run
+kind-run: export KUBECONFIG = $(KIND_KUBECONFIG)
+kind-run: export E2E_TAG = master
+kind-run: kind-e2e-image install run ## Runs the operator on the local host but configured for the kind cluster
+
+.PHONY: kind-deploy
+kind-deploy: export KUBECONFIG = $(KIND_KUBECONFIG)
+kind-deploy: export E2E_TAG = master
+kind-deploy: kind-e2e-image deploy
 
 ###
 ### E2E Test
