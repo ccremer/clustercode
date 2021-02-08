@@ -1,6 +1,6 @@
 resources:
-- ../../config/manager
-- ../../config/rbac
+- ../../kustomize/manager
+- ../../kustomize/rbac
 - pv.yaml
 patchesStrategicMerge:
 - deployment.yaml

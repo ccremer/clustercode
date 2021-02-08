@@ -22,8 +22,8 @@ spec:
     spec:
       containers:
       - name: clustercode
-        image: quay.io/ccremer/clustercode:latest
+        image: quay.io/ccremer/clustercode:master
         args:
         - operate
-        - --operator.clustercode-image=quay.io/ccremer/clustercode:latest
+        - --operator.clustercode-image=quay.io/ccremer/clustercode:master
         - --operator.ffmpeg-image=docker.io/jrottenberg/ffmpeg:4.1-alpine
