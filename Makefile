@@ -68,7 +68,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 .PHONY: lint
-lint: fmt vet ## Invokes the fmt and vet targets
+lint: generate fmt vet ## Invokes the generate, fmt and vet targets
 	@echo 'Check for uncommitted changes ...'
 	git diff --exit-code
 
