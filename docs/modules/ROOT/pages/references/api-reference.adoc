@@ -1,0 +1,351 @@
+// Generated documentation. Please do not edit.
+:anchor_prefix: k8s-api
+
+[id="api-reference"]
+= API Reference
+
+This is a https://github.com/elastic/crd-ref-docs[generated] API documentation.
+
+.Packages
+- xref:{anchor_prefix}-clustercode-github-io-v1alpha1[$$clustercode.github.io/v1alpha1$$]
+
+
+[id="{anchor_prefix}-clustercode-github-io-v1alpha1"]
+== clustercode.github.io/v1alpha1
+
+
+.Resource Types
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprint[$$Blueprint$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintlist[$$BlueprintList$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-task[$$Task$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-tasklist[$$TaskList$$]
+
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprint"]
+=== Blueprint 
+
+Blueprint is the Schema for the Blueprint API
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintlist[$$BlueprintList$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`apiVersion`* __string__ | `clustercode.github.io/v1alpha1`
+| *`kind`* __string__ | `Blueprint`
+| *`metadata`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta[$$ObjectMeta$$]__ | Refer to Kubernetes API documentation for fields of `metadata`.
+
+| *`spec`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec[$$BlueprintSpec$$]__ | 
+| *`status`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintstatus[$$BlueprintStatus$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintlist"]
+=== BlueprintList 
+
+BlueprintList contains a list of Blueprints.
+
+
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`apiVersion`* __string__ | `clustercode.github.io/v1alpha1`
+| *`kind`* __string__ | `BlueprintList`
+| *`metadata`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#listmeta-v1-meta[$$ListMeta$$]__ | Refer to Kubernetes API documentation for fields of `metadata`.
+
+| *`items`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprint[$$Blueprint$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec"]
+=== BlueprintSpec 
+
+BlueprintSpec specifies Clustercode settings
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprint[$$Blueprint$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`scanSchedule`* __string__ | 
+| *`storage`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-storagespec[$$StorageSpec$$]__ | 
+| *`maxParallelTasks`* __integer__ | 
+| *`suspend`* __boolean__ | 
+| *`taskConcurrencyStrategy`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodestrategy[$$ClustercodeStrategy$$]__ | 
+| *`scanSpec`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-scanspec[$$ScanSpec$$]__ | 
+| *`encodeSpec`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-encodespec[$$EncodeSpec$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintstatus"]
+=== BlueprintStatus 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprint[$$Blueprint$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`conditions`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#condition-v1-meta[$$Condition$$] array__ | 
+| *`currentTasks`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskref[$$TaskRef$$] array__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodevolumeref"]
+=== ClusterCodeVolumeRef 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-storagespec[$$StorageSpec$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`claimName`* __string__ | 
+| *`subPath`* __string__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodecountstrategy"]
+=== ClustercodeCountStrategy 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodestrategy[$$ClustercodeStrategy$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`maxCount`* __integer__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodesliceref"]
+=== ClustercodeSliceRef 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskstatus[$$TaskStatus$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`jobName`* __string__ | 
+| *`sliceIndex`* __integer__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodestrategy"]
+=== ClustercodeStrategy 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec[$$BlueprintSpec$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec[$$TaskSpec$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`concurrentCountStrategy`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodecountstrategy[$$ClustercodeCountStrategy$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodetaskid"]
+=== ClustercodeTaskId (string) 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec[$$TaskSpec$$]
+****
+
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-encodespec"]
+=== EncodeSpec 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec[$$BlueprintSpec$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec[$$TaskSpec$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`defaultCommandArgs`* __string array__ | 
+| *`splitCommandArgs`* __string array__ | 
+| *`transcodeCommandArgs`* __string array__ | 
+| *`mergeCommandArgs`* __string array__ | 
+| *`sliceSize`* __integer__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-scanspec"]
+=== ScanSpec 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec[$$BlueprintSpec$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`mediaFileExtensions`* __string array__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-storagespec"]
+=== StorageSpec 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintspec[$$BlueprintSpec$$]
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec[$$TaskSpec$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`sourcePvc`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodevolumeref[$$ClusterCodeVolumeRef$$]__ | 
+| *`intermediatePvc`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodevolumeref[$$ClusterCodeVolumeRef$$]__ | 
+| *`targetPvc`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodevolumeref[$$ClusterCodeVolumeRef$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-task"]
+=== Task 
+
+Task is a projection out of a Blueprint
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-tasklist[$$TaskList$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`apiVersion`* __string__ | `clustercode.github.io/v1alpha1`
+| *`kind`* __string__ | `Task`
+| *`metadata`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta[$$ObjectMeta$$]__ | Refer to Kubernetes API documentation for fields of `metadata`.
+
+| *`spec`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec[$$TaskSpec$$]__ | 
+| *`status`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskstatus[$$TaskStatus$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-tasklist"]
+=== TaskList 
+
+TaskList contains a list of Task
+
+
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`apiVersion`* __string__ | `clustercode.github.io/v1alpha1`
+| *`kind`* __string__ | `TaskList`
+| *`metadata`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#listmeta-v1-meta[$$ListMeta$$]__ | Refer to Kubernetes API documentation for fields of `metadata`.
+
+| *`items`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-task[$$Task$$]__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskref"]
+=== TaskRef 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-blueprintstatus[$$BlueprintStatus$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`taskName`* __string__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskspec"]
+=== TaskSpec 
+
+TaskSpec defines the desired state of Task.
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-task[$$Task$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`taskId`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodetaskid[$$ClustercodeTaskId$$]__ | 
+| *`storage`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-storagespec[$$StorageSpec$$]__ | 
+| *`sourceUrl`* __ClusterCodeUrl__ | 
+| *`targetUrl`* __ClusterCodeUrl__ | 
+| *`suspend`* __boolean__ | 
+| *`encodeSpec`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-encodespec[$$EncodeSpec$$]__ | 
+| *`serviceAccountName`* __string__ | 
+| *`fileListConfigMapRef`* __string__ | 
+| *`concurrencyStrategy`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodestrategy[$$ClustercodeStrategy$$]__ | 
+| *`slicesPlannedCount`* __integer__ | 
+|===
+
+
+[id="{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-taskstatus"]
+=== TaskStatus 
+
+
+
+.Appears In:
+****
+- xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-task[$$Task$$]
+****
+
+[cols="25a,75a", options="header"]
+|===
+| Field | Description
+| *`conditions`* __link:https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#condition-v1-meta[$$Condition$$]__ | 
+| *`slicesScheduledCount`* __integer__ | 
+| *`slicesFinishedCount`* __integer__ | 
+| *`slicesScheduled`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodesliceref[$$ClustercodeSliceRef$$] array__ | 
+| *`slicesFinished`* __xref:{anchor_prefix}-github-com-ccremer-clustercode-api-v1alpha1-clustercodesliceref[$$ClustercodeSliceRef$$]__ | 
+|===
+
+
