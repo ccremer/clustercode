@@ -7,6 +7,8 @@ CRD_FILE ?= clustercode-crd.yaml
 CRD_ROOT_DIR ?= kustomize/crd
 CRD_SPEC_VERSION ?= v1
 
+CRD_DOCS_REF_PATH ?= docs/modules/ROOT/pages/references/api-reference.adoc
+
 # See https://storage.googleapis.com/kubebuilder-tools/ for list of supported K8s versions
 INTEGRATIONTEST_K8S_VERSION ?= 1.20.2
 

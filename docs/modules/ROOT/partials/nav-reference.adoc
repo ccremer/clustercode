@@ -1,1 +1,1 @@
-* xref:clustercode:ROOT:references/specification.adoc[Specification]
+* xref:clustercode:ROOT:references/api-reference.adoc[API Reference]
