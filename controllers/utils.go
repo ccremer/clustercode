@@ -1,16 +1,20 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/ccremer/clustercode/builder"
@@ -126,4 +130,29 @@ func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job
 		WithLabels(ClusterCodeLabels, opts.jobType.AsLabels(), task.Spec.TaskId.AsLabels()).
 		Build()
 	return job
+}
+
+func UpsertResource(ctx context.Context, object client.Object, clt client.Client, log logr.Logger) error {
+	name := MapToNamespacedName(object)
+	if updateErr := clt.Update(ctx, object); updateErr != nil {
+		if apierrors.IsNotFound(updateErr) {
+			if createErr := clt.Create(ctx, object); createErr != nil {
+				log.Error(createErr, "could not create resource", "resource", name)
+				return createErr
+			}
+			log.V(1).Info("resource created", "resource", name)
+			return nil
+		}
+		log.Error(updateErr, "could not update resource", "resource", name)
+		return updateErr
+	}
+	log.V(1).Info("resource updated", "resource", name)
+	return nil
+}
+
+func MapToNamespacedName(object client.Object) types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: object.GetNamespace(),
+		Name:      object.GetName(),
+	}
 }

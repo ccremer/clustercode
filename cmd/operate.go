@@ -10,6 +10,7 @@ import (
 
 	"github.com/ccremer/clustercode/cfg"
 	"github.com/ccremer/clustercode/controllers"
+	"github.com/ccremer/clustercode/controllers/blueprint"
 )
 
 // operateCmd represents the operate command
@@ -61,7 +62,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err = (&controllers.BlueprintReconciler{
+	if err = (&blueprint.BlueprintReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("blueprint"),
 		Scheme: mgr.GetScheme(),
