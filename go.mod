@@ -3,7 +3,7 @@ module github.com/ccremer/clustercode
 go 1.15
 
 require (
-	github.com/elastic/crd-ref-docs v0.0.6
+	github.com/elastic/crd-ref-docs v0.0.7
 	github.com/go-logr/logr v0.4.0
 	github.com/knadh/koanf v0.15.0
 	github.com/spf13/cobra v1.1.3
