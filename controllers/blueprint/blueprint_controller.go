@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -23,8 +23,8 @@ type (
 		Log    logr.Logger
 		Scheme *runtime.Scheme
 	}
-	// BlueprintContext holds the parameters of a single reconciliation
-	BlueprintContext struct {
+	// ReconciliationContext holds the parameters of a single reconciliation
+	ReconciliationContext struct {
 		ctx            context.Context
 		blueprint      *v1alpha1.Blueprint
 		serviceAccount *corev1.ServiceAccount
@@ -50,23 +50,26 @@ func (r *BlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;create;delete
 
 func (r *BlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	rc := BlueprintContext{
-		ctx:       ctx,
-		blueprint: &v1alpha1.Blueprint{},
-		Log:       r.Log.WithValues("blueprint", req.NamespacedName),
-		Client:    r.Client,
-		Scheme:    r.Scheme,
+	rc := &ReconciliationContext{
+		ctx: ctx,
+		blueprint: &v1alpha1.Blueprint{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      req.Name,
+				Namespace: req.Namespace,
+			},
+		},
+		Log:    r.Log.WithValues("blueprint", req.NamespacedName),
+		Client: r.Client,
+		Scheme: r.Scheme,
 	}
 
-	err := r.Client.Get(ctx, req.NamespacedName, rc.blueprint)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
-			return ctrl.Result{}, nil
-		}
-		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
+	resourceAction := &pipeline.ResourceAction{
+		Log:     rc.Log,
+		Context: ctx,
+		Client:  r.Client,
+		Scheme:  r.Scheme,
 	}
+	rbacAction := NewRbacAction(resourceAction)
 
 	result := pipeline.NewPipeline(rc.Log).
 		WithAbortHandler(pipeline.UpdateStatusHandler{
@@ -75,11 +78,13 @@ func (r *BlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			Context: rc.ctx,
 			Client:  rc.Client,
 		}.UpdateStatus).
-		AddStep(pipeline.NewStep("abort when deleted", pipeline.AbortWhenDeletedAction{Object: rc.blueprint}.Execute)).
-		AddStep(pipeline.NewStep("create service account", RbacAction{&rc}.CreateServiceAccount)).
-		AddStep(pipeline.NewStep("create role binding", RbacAction{&rc}.CreateRoleBinding)).
-		AddStep(pipeline.NewStep("create cronjob", CreateCronJobAction{&rc}.Execute)).
-		Run()
+		WithSteps(
+			pipeline.NewStep("get reconcile object", resourceAction.GetOrAbort(rc.blueprint)),
+			pipeline.NewStep("abort if deleted", pipeline.AbortIfDeleted(rc.blueprint)),
+			pipeline.NewStep("create service account", rbacAction.CreateServiceAccount(rc)),
+			pipeline.NewStep("create role binding", rbacAction.CreateRoleBinding(rc)),
+			pipeline.NewStep("create cronjob", CreateCronJob(rc)),
+		).Run()
 	if result.Requeue {
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, result.Err
 	}

@@ -7,69 +7,53 @@ import (
 	"k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/utils/pointer"
 	"k8s.io/utils/strings"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"github.com/ccremer/clustercode/builder"
 	"github.com/ccremer/clustercode/cfg"
 	"github.com/ccremer/clustercode/controllers"
 	"github.com/ccremer/clustercode/controllers/pipeline"
 )
 
 type RbacAction struct {
-	*BlueprintContext
+	*pipeline.ResourceAction
 }
 
-func (a RbacAction) CreateServiceAccount() pipeline.Result {
-	sa := a.newServiceAccount()
-
-	if err := controllers.UpsertResource(a.ctx, &sa, a.Client, a.Log); err != nil {
-		return pipeline.Result{Err: err}
+func NewRbacAction(action *pipeline.ResourceAction) RbacAction {
+	return RbacAction{
+		ResourceAction: action,
 	}
-	a.Log.Info("service account created", "sa", sa.Name)
-	a.serviceAccount = &sa
-	return pipeline.Result{}
 }
 
-func (a RbacAction) CreateRoleBinding() pipeline.Result {
-	binding := a.newRoleBinding()
-
-	if err := controllers.UpsertResource(a.ctx, &binding, a.Client, a.Log); err != nil {
-		return pipeline.Result{Err: err}
-	}
-	a.Log.Info("role binding created", "roleBinding", binding.Name)
-	return pipeline.Result{}
+func (a RbacAction) CreateServiceAccount(rc *ReconciliationContext) pipeline.ActionFunc {
+	rc.serviceAccount = a.newServiceAccount(rc)
+	return a.CreateIfNotExisting(rc.serviceAccount)
 }
 
-func (a *RbacAction) newServiceAccount() corev1.ServiceAccount {
-	saName := a.blueprint.GetServiceAccountName()
-	account := corev1.ServiceAccount{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      saName,
-			Namespace: a.blueprint.Namespace,
-			Labels:    controllers.ClusterCodeLabels,
-		},
-	}
-	if err := controllerutil.SetControllerReference(a.blueprint, account.GetObjectMeta(), a.Scheme); err != nil {
-		a.Log.Error(err, "could not set controller reference on service account", "sa", account.Name)
-	}
+func (a RbacAction) CreateRoleBinding(rc *ReconciliationContext) pipeline.ActionFunc {
+	binding := a.newRoleBinding(rc)
+	return a.CreateIfNotExisting(binding)
+}
+
+func (a *RbacAction) newServiceAccount(rc *ReconciliationContext) *corev1.ServiceAccount {
+	saName := rc.blueprint.GetServiceAccountName()
+	account := &corev1.ServiceAccount{}
+	builder.NewMetaBuilderWith(account).
+		WithName(saName).
+		WithNamespace(rc.blueprint.Namespace).
+		WithLabels(controllers.ClusterCodeLabels).
+		WithControllerReference(rc.blueprint, a.ResourceAction.Scheme)
 	return account
 }
 
-func (a *RbacAction) newRoleBinding() rbacv1.RoleBinding {
-	saName := a.blueprint.GetServiceAccountName()
-	roleBinding := rbacv1.RoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      strings.ShortenString(saName, 51) + "-rolebinding",
-			Namespace: a.blueprint.Namespace,
-			Labels:    controllers.ClusterCodeLabels,
-		},
+func (a *RbacAction) newRoleBinding(rc *ReconciliationContext) *rbacv1.RoleBinding {
+	saName := rc.blueprint.GetServiceAccountName()
+	roleBinding := &rbacv1.RoleBinding{
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:      "ServiceAccount",
-				Namespace: a.blueprint.Namespace,
+				Namespace: rc.blueprint.Namespace,
 				Name:      saName,
 			},
 		},
@@ -79,97 +63,66 @@ func (a *RbacAction) newRoleBinding() rbacv1.RoleBinding {
 			APIGroup: rbacv1.GroupName,
 		},
 	}
-	if err := controllerutil.SetControllerReference(a.blueprint, roleBinding.GetObjectMeta(), a.Scheme); err != nil {
-		a.Log.Error(err, "could not set controller reference on role", "roleBinding", roleBinding.Name)
-	}
+	builder.NewMetaBuilderWith(roleBinding).
+		WithName(strings.ShortenString(saName, 51)+"-rolebinding").
+		WithNamespace(rc.blueprint.Namespace).
+		WithLabels(controllers.ClusterCodeLabels).
+		WithControllerReference(rc.blueprint, a.ResourceAction.Scheme)
 	return roleBinding
 }
 
-type CreateCronJobAction struct {
-	*BlueprintContext
-}
+func CreateCronJob(rc *ReconciliationContext) pipeline.ActionFunc {
+	return func() pipeline.Result {
+		ctb := builder.NewContainerBuilder("scanner").
+			WithImage(cfg.Config.Operator.ClustercodeContainerImage).
+			AddEnvVarValue("CC_LOG__DEBUG", "true").
+			AddArg("scan").
+			AddArg("--namespace=%s", rc.blueprint.Namespace).
+			AddArg("--scan.blueprint-name=%s", rc.blueprint.Name)
+		psb := builder.NewPodSpecBuilder(ctb).
+			AddPvcMount(nil,
+				rc.blueprint.Spec.Storage.SourcePvc.ClaimName,
+				controllers.SourceSubMountPath,
+				filepath.Join("/clustercode", controllers.SourceSubMountPath),
+				rc.blueprint.Spec.Storage.SourcePvc.SubPath).
+			AddPvcMount(nil,
+				rc.blueprint.Spec.Storage.IntermediatePvc.ClaimName,
+				controllers.IntermediateSubMountPath,
+				filepath.Join("/clustercode", controllers.IntermediateSubMountPath),
+				rc.blueprint.Spec.Storage.IntermediatePvc.SubPath).
+			Build()
 
-func (a CreateCronJobAction) Execute() pipeline.Result {
+		psb.PodSpec.ServiceAccountName = rc.serviceAccount.Name
+		psb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
 
-	cronJob := &v1beta1.CronJob{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      a.blueprint.Name + "-scan-job",
-			Namespace: a.blueprint.Namespace,
-			Labels:    labels.Merge(controllers.ClusterCodeLabels, controllers.ClustercodeTypeScan.AsLabels()),
-		},
-		Spec: v1beta1.CronJobSpec{
-			Schedule:          a.blueprint.Spec.ScanSchedule,
-			ConcurrencyPolicy: v1beta1.ForbidConcurrent,
-			Suspend:           &a.blueprint.Spec.Suspend,
+		cronJob := &v1beta1.CronJob{
+			Spec: v1beta1.CronJobSpec{
+				Schedule:          rc.blueprint.Spec.ScanSchedule,
+				ConcurrencyPolicy: v1beta1.ForbidConcurrent,
+				Suspend:           &rc.blueprint.Spec.Suspend,
 
-			JobTemplate: v1beta1.JobTemplateSpec{
-				Spec: batchv1.JobSpec{
-					BackoffLimit: pointer.Int32Ptr(0),
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							ServiceAccountName: a.serviceAccount.Name,
-							RestartPolicy:      corev1.RestartPolicyNever,
-							Containers: []corev1.Container{
-								{
-									Name: "scanner",
-									Env: []corev1.EnvVar{
-										{
-											Name:  "CC_LOG__DEBUG",
-											Value: "true",
-										},
-									},
-									Args: []string{
-										"scan",
-										"--namespace=" + a.blueprint.Namespace,
-										"--scan.blueprint-name=" + a.blueprint.Name,
-									},
-									Image: cfg.Config.Operator.ClustercodeContainerImage,
-									VolumeMounts: []corev1.VolumeMount{
-										{
-											Name:      controllers.SourceSubMountPath,
-											MountPath: filepath.Join("/clustercode", controllers.SourceSubMountPath),
-											SubPath:   a.blueprint.Spec.Storage.SourcePvc.SubPath,
-										},
-										{
-											Name:      controllers.IntermediateSubMountPath,
-											MountPath: filepath.Join("/clustercode", controllers.IntermediateSubMountPath),
-											SubPath:   a.blueprint.Spec.Storage.SourcePvc.SubPath,
-										},
-									},
-								},
-							},
-							Volumes: []corev1.Volume{
-								{
-									Name: controllers.SourceSubMountPath,
-									VolumeSource: corev1.VolumeSource{
-										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: a.blueprint.Spec.Storage.SourcePvc.ClaimName,
-										},
-									},
-								},
-								{
-									Name: controllers.IntermediateSubMountPath,
-									VolumeSource: corev1.VolumeSource{
-										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: a.blueprint.Spec.Storage.IntermediatePvc.ClaimName,
-										},
-									},
-								},
-							},
+				JobTemplate: v1beta1.JobTemplateSpec{
+					Spec: batchv1.JobSpec{
+						BackoffLimit: pointer.Int32Ptr(0),
+						Template: corev1.PodTemplateSpec{
+							Spec: *psb.PodSpec,
 						},
 					},
 				},
+				SuccessfulJobsHistoryLimit: pointer.Int32Ptr(1),
+				FailedJobsHistoryLimit:     pointer.Int32Ptr(1),
 			},
-			SuccessfulJobsHistoryLimit: pointer.Int32Ptr(1),
-			FailedJobsHistoryLimit:     pointer.Int32Ptr(1),
-		},
-	}
-	if err := controllerutil.SetControllerReference(a.blueprint, cronJob.GetObjectMeta(), a.Scheme); err != nil {
-		a.Log.Error(err, "could not set controller reference, deleting the blueprint will not delete the cronjob", "cronjob", cronJob.Name)
-	}
+		}
+		builder.NewMetaBuilderWith(cronJob).
+			WithLabels(controllers.ClusterCodeLabels, controllers.ClustercodeTypeScan.AsLabels()).
+			WithName(rc.blueprint.Name+"-scan-job").
+			WithNamespace(rc.blueprint.Namespace).
+			WithControllerReference(rc.blueprint, rc.Scheme).
+			Build()
 
-	if err := controllers.UpsertResource(a.ctx, cronJob, a.Client, a.Log); err != nil {
-		return pipeline.Result{Err: err, Requeue: true}
+		if err := controllers.UpsertResource(rc.ctx, cronJob, rc.Client, rc.Log); err != nil {
+			return pipeline.Result{Err: err, Requeue: true}
+		}
+		return pipeline.Result{}
 	}
-	return pipeline.Result{}
 }

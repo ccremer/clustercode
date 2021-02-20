@@ -126,7 +126,7 @@ kind-e2e-image: docker-build
 .PHONY: kind-run
 kind-run: export KUBECONFIG = $(KIND_KUBECONFIG)
 kind-run: export E2E_TAG = master
-kind-run: kind-e2e-image install run ## Runs the operator on the local host but configured for the kind cluster
+kind-run: run ## Runs the operator on the local host but configured for the kind cluster
 
 .PHONY: kind-deploy
 kind-deploy: export KUBECONFIG = $(KIND_KUBECONFIG)

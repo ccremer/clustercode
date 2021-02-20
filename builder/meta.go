@@ -3,7 +3,10 @@ package builder
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type (
@@ -44,6 +47,11 @@ func (b *MetaBuilder) WithName(name string) *MetaBuilder {
 func (b *MetaBuilder) WithNamespacedName(nsd types.NamespacedName) *MetaBuilder {
 	b.Object.SetName(nsd.Name)
 	b.Object.SetNamespace(nsd.Namespace)
+	return b
+}
+
+func (b *MetaBuilder) WithControllerReference(owner client.Object, scheme *runtime.Scheme) *MetaBuilder {
+	_ = controllerutil.SetControllerReference(owner, b.Object, scheme)
 	return b
 }
 
