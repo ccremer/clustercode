@@ -44,7 +44,10 @@ type (
 	}
 )
 
-func (r *TaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *TaskReconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
+	r.Log = l
+	r.Scheme = mgr.GetScheme()
+	r.Client = mgr.GetClient()
 	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
 	if err != nil {
 		return err

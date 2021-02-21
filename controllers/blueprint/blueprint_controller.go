@@ -17,8 +17,8 @@ import (
 )
 
 type (
-	// BlueprintReconciler reconciles Blueprint objects
-	BlueprintReconciler struct {
+	// Reconciler reconciles Blueprint objects
+	Reconciler struct {
 		Client client.Client
 		Log    logr.Logger
 		Scheme *runtime.Scheme
@@ -34,7 +34,10 @@ type (
 	}
 )
 
-func (r *BlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *Reconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
+	r.Log = l
+	r.Scheme = mgr.GetScheme()
+	r.Client = mgr.GetClient()
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Blueprint{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
@@ -49,7 +52,7 @@ func (r *BlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
 // +kubebuilder:rbac:groups=core,resources=serviceaccounts,verbs=get;list;create;delete
 // +kubebuilder:rbac:groups=rbac.authorization.k8s.io,resources=roles;rolebindings,verbs=get;list;create;delete
 
-func (r *BlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rc := &ReconciliationContext{
 		ctx: ctx,
 		blueprint: &v1alpha1.Blueprint{

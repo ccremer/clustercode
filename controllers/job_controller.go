@@ -44,7 +44,20 @@ type (
 	}
 )
 
-func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
+	if uncached, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader: mgr.GetClient(),
+		Client:      mgr.GetClient(),
+		UncachedObjects: []client.Object{
+			&batchv1.Job{},
+		},
+	}); err != nil {
+		return err
+	} else {
+		r.Client = uncached
+	}
+	r.Scheme = mgr.GetScheme()
+	r.Log = l
 	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
 	if err != nil {
 		return err
