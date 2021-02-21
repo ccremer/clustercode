@@ -137,16 +137,16 @@ func UpsertResource(ctx context.Context, object client.Object, clt client.Client
 	if updateErr := clt.Update(ctx, object); updateErr != nil {
 		if apierrors.IsNotFound(updateErr) {
 			if createErr := clt.Create(ctx, object); createErr != nil {
-				log.Error(createErr, "could not create resource", "resource", name)
+				log.Error(createErr, "could not create resource", "resource", name.String())
 				return createErr
 			}
-			log.V(1).Info("resource created", "resource", name)
+			log.V(1).Info("resource created", "resource", name.String())
 			return nil
 		}
-		log.Error(updateErr, "could not update resource", "resource", name)
+		log.Error(updateErr, "could not update resource", "resource", name.String())
 		return updateErr
 	}
-	log.V(1).Info("resource updated", "resource", name)
+	log.V(1).Info("resource updated", "resource", name.String())
 	return nil
 }
 

@@ -88,8 +88,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			pipeline.NewStep("create role binding", rbacAction.CreateRoleBinding(rc)),
 			pipeline.NewStep("create cronjob", CreateCronJob(rc)),
 		).Run()
+	if result.Err != nil {
+		r.Log.Error(result.Err, "pipeline failed with error")
+	}
 	if result.Requeue {
 		return ctrl.Result{RequeueAfter: 1 * time.Minute}, result.Err
 	}
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, result.Err
 }

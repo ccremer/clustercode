@@ -27,13 +27,17 @@ func NewRbacAction(action *pipeline.ResourceAction) RbacAction {
 }
 
 func (a RbacAction) CreateServiceAccount(rc *ReconciliationContext) pipeline.ActionFunc {
-	rc.serviceAccount = a.newServiceAccount(rc)
-	return a.CreateIfNotExisting(rc.serviceAccount)
+	return func() pipeline.Result {
+		rc.serviceAccount = a.newServiceAccount(rc)
+		return a.CreateIfNotExisting(rc.serviceAccount)()
+	}
 }
 
 func (a RbacAction) CreateRoleBinding(rc *ReconciliationContext) pipeline.ActionFunc {
-	binding := a.newRoleBinding(rc)
-	return a.CreateIfNotExisting(binding)
+	return func() pipeline.Result {
+		binding := a.newRoleBinding(rc)
+		return a.CreateIfNotExisting(binding)()
+	}
 }
 
 func (a *RbacAction) newServiceAccount(rc *ReconciliationContext) *corev1.ServiceAccount {
@@ -43,7 +47,7 @@ func (a *RbacAction) newServiceAccount(rc *ReconciliationContext) *corev1.Servic
 		WithName(saName).
 		WithNamespace(rc.blueprint.Namespace).
 		WithLabels(controllers.ClusterCodeLabels).
-		WithControllerReference(rc.blueprint, a.ResourceAction.Scheme)
+		WithControllerReference(rc.blueprint, rc.Scheme)
 	return account
 }
 
