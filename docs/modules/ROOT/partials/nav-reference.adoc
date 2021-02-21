@@ -1,1 +1,2 @@
 * xref:clustercode:ROOT:references/api-reference.adoc[API Reference]
+* xref:clustercode:ROOT:references/godoc.adoc[Godoc]

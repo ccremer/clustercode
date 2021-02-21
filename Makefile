@@ -51,8 +51,10 @@ deploy: generate ## Deploy controller in the configured Kubernetes cluster in ~/
 	$(KUSTOMIZE) build kustomize/default | kubectl apply -f -
 
 .PHONY: generate
+generate: export GOASCIIDOC_CMD = go run github.com/mariotoffia/goasciidoc $(GOASCIIDOC_ARGS_BUILD)
 generate: ## Generate manifests e.g. CRD, RBAC etc.
 	@CRD_ROOT_DIR="$(CRD_ROOT_DIR)" CRD_DOCS_REF_PATH="$(CRD_DOCS_REF_PATH)" go generate -tags=generate generate.go
+	@go run github.com/mariotoffia/goasciidoc $(GOASCIIDOC_ARGS_BUILD) api controllers cmd cfg builder
 	@rm kustomize/*.yaml || true
 
 .PHONY: crd
@@ -177,3 +179,6 @@ media-clean: ## Remove all media resources
 
 blank-media: ## Preview documentation in local web server and browser
 	@$(media_make) blank-media
+
+test-var:
+	echo $(GOASCIIDOC_ARGS_BUILD)
