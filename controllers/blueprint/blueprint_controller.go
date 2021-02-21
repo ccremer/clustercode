@@ -8,6 +8,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -19,9 +20,8 @@ import (
 type (
 	// Reconciler reconciles Blueprint objects
 	Reconciler struct {
-		Client client.Client
-		Log    logr.Logger
-		Scheme *runtime.Scheme
+		Recorder record.EventRecorder
+		*pipeline.ResourceAction
 	}
 	// ReconciliationContext holds the parameters of a single reconciliation
 	ReconciliationContext struct {
@@ -31,13 +31,17 @@ type (
 		Log            logr.Logger
 		Scheme         *runtime.Scheme
 		Client         client.Client
+		Recorder       record.EventRecorder
 	}
 )
 
 func (r *Reconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
-	r.Log = l
-	r.Scheme = mgr.GetScheme()
-	r.Client = mgr.GetClient()
+	r.ResourceAction = &pipeline.ResourceAction{
+		Log:    l,
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}
+	r.Recorder = mgr.GetEventRecorderFor("blueprint-controller")
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Blueprint{}).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
@@ -61,18 +65,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 				Namespace: req.Namespace,
 			},
 		},
-		Log:    r.Log.WithValues("blueprint", req.NamespacedName),
-		Client: r.Client,
-		Scheme: r.Scheme,
+		Log:      r.Log.WithValues("blueprint", req.NamespacedName),
+		Client:   r.Client,
+		Scheme:   r.Scheme,
+		Recorder: r.Recorder,
 	}
-
-	resourceAction := &pipeline.ResourceAction{
-		Log:     rc.Log,
-		Context: ctx,
-		Client:  r.Client,
-		Scheme:  r.Scheme,
-	}
-	rbacAction := NewRbacAction(resourceAction)
 
 	result := pipeline.NewPipeline(rc.Log).
 		WithAbortHandler(pipeline.UpdateStatusHandler{
@@ -82,11 +79,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			Client:  rc.Client,
 		}.UpdateStatus).
 		WithSteps(
-			pipeline.NewStep("get reconcile object", resourceAction.GetOrAbort(rc.blueprint)),
+			pipeline.NewStep("get reconcile object", r.GetOrAbort(rc.ctx, rc.blueprint)),
 			pipeline.NewStep("abort if deleted", pipeline.AbortIfDeleted(rc.blueprint)),
-			pipeline.NewStep("create service account", rbacAction.CreateServiceAccount(rc)),
-			pipeline.NewStep("create role binding", rbacAction.CreateRoleBinding(rc)),
-			pipeline.NewStep("create cronjob", CreateCronJob(rc)),
+			pipeline.NewStep("create service account", r.CreateServiceAccountAction(rc)),
+			pipeline.NewStep("create role binding", r.CreateRoleBindingAction(rc)),
+			pipeline.NewStep("create cronjob", r.CreateCronJobAction(rc)),
 		).Run()
 	if result.Err != nil {
 		r.Log.Error(result.Err, "pipeline failed with error")

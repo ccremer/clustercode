@@ -46,6 +46,10 @@ func (p *Pipeline) WithAbortHandler(handler Handler) *Pipeline {
 	return p
 }
 
+func (r Result) IsSuccessful() bool {
+	return r.Err == nil
+}
+
 func (p *Pipeline) Run() Result {
 	for i, step := range p.steps {
 		index := i + 1

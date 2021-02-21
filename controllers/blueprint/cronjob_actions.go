@@ -6,9 +6,7 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/utils/pointer"
-	"k8s.io/utils/strings"
 
 	"github.com/ccremer/clustercode/builder"
 	"github.com/ccremer/clustercode/cfg"
@@ -16,66 +14,7 @@ import (
 	"github.com/ccremer/clustercode/controllers/pipeline"
 )
 
-type RbacAction struct {
-	*pipeline.ResourceAction
-}
-
-func NewRbacAction(action *pipeline.ResourceAction) RbacAction {
-	return RbacAction{
-		ResourceAction: action,
-	}
-}
-
-func (a RbacAction) CreateServiceAccount(rc *ReconciliationContext) pipeline.ActionFunc {
-	return func() pipeline.Result {
-		rc.serviceAccount = a.newServiceAccount(rc)
-		return a.CreateIfNotExisting(rc.serviceAccount)()
-	}
-}
-
-func (a RbacAction) CreateRoleBinding(rc *ReconciliationContext) pipeline.ActionFunc {
-	return func() pipeline.Result {
-		binding := a.newRoleBinding(rc)
-		return a.CreateIfNotExisting(binding)()
-	}
-}
-
-func (a *RbacAction) newServiceAccount(rc *ReconciliationContext) *corev1.ServiceAccount {
-	saName := rc.blueprint.GetServiceAccountName()
-	account := &corev1.ServiceAccount{}
-	builder.NewMetaBuilderWith(account).
-		WithName(saName).
-		WithNamespace(rc.blueprint.Namespace).
-		WithLabels(controllers.ClusterCodeLabels).
-		WithControllerReference(rc.blueprint, rc.Scheme)
-	return account
-}
-
-func (a *RbacAction) newRoleBinding(rc *ReconciliationContext) *rbacv1.RoleBinding {
-	saName := rc.blueprint.GetServiceAccountName()
-	roleBinding := &rbacv1.RoleBinding{
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Namespace: rc.blueprint.Namespace,
-				Name:      saName,
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			Kind:     cfg.Config.Scan.RoleKind,
-			Name:     cfg.Config.Scan.RoleName,
-			APIGroup: rbacv1.GroupName,
-		},
-	}
-	builder.NewMetaBuilderWith(roleBinding).
-		WithName(strings.ShortenString(saName, 51)+"-rolebinding").
-		WithNamespace(rc.blueprint.Namespace).
-		WithLabels(controllers.ClusterCodeLabels).
-		WithControllerReference(rc.blueprint, a.ResourceAction.Scheme)
-	return roleBinding
-}
-
-func CreateCronJob(rc *ReconciliationContext) pipeline.ActionFunc {
+func (r *Reconciler) CreateCronJobAction(rc *ReconciliationContext) pipeline.ActionFunc {
 	return func() pipeline.Result {
 		ctb := builder.NewContainerBuilder("scanner").
 			WithImage(cfg.Config.Operator.ClustercodeContainerImage).
@@ -124,8 +63,11 @@ func CreateCronJob(rc *ReconciliationContext) pipeline.ActionFunc {
 			WithControllerReference(rc.blueprint, rc.Scheme).
 			Build()
 
-		if err := controllers.UpsertResource(rc.ctx, cronJob, rc.Client, rc.Log); err != nil {
+		if err, op := r.UpsertResource(rc.ctx, cronJob); err != nil {
+			rc.Recorder.Eventf(rc.blueprint, corev1.EventTypeWarning, "FailedCronJob", "CronJob '%s' could not be created: %v", cronJob.Name, err)
 			return pipeline.Result{Err: err, Requeue: true}
+		} else if op == pipeline.ResourceCreated {
+			rc.Recorder.Eventf(rc.blueprint, corev1.EventTypeNormal, "CreatedCronJob", "CronJob '%s' created", cronJob.Name)
 		}
 		return pipeline.Result{}
 	}

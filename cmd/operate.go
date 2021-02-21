@@ -9,6 +9,7 @@ import (
 	"github.com/ccremer/clustercode/cfg"
 	"github.com/ccremer/clustercode/controllers"
 	"github.com/ccremer/clustercode/controllers/blueprint"
+	"github.com/ccremer/clustercode/controllers/task"
 )
 
 // operateCmd represents the operate command
@@ -51,7 +52,7 @@ func startOperator(cmd *cobra.Command, args []string) error {
 	}
 	for name, reconciler := range map[string]controllers.ReconcilerSetup{
 		"blueprint": &blueprint.Reconciler{},
-		"task":      &controllers.TaskReconciler{},
+		"task":      &task.Reconciler{},
 		"job":       &controllers.JobReconciler{},
 	} {
 		if err := reconciler.SetupWithManager(mgr, ctrl.Log.WithName("controllers").WithName(name)); err != nil {

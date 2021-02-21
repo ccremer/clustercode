@@ -1,4 +1,4 @@
-package controllers
+package task
 
 import (
 	"context"
@@ -10,60 +10,60 @@ import (
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/controllers"
+	"github.com/ccremer/clustercode/controllers/pipeline"
 )
 
 type (
-	// TaskReconciler reconciles Task objects
-	TaskReconciler struct {
-		Client client.Client
-		Log    logr.Logger
-		Scheme *runtime.Scheme
+	// Reconciler reconciles Task objects
+	Reconciler struct {
+		*pipeline.ResourceAction
 	}
-	// TaskContext holds the parameters of a single reconciliation
-	TaskContext struct {
+	// ReconciliationContext holds the parameters of a single reconciliation
+	ReconciliationContext struct {
 		ctx       context.Context
 		task      *v1alpha1.Task
 		blueprint *v1alpha1.Blueprint
 		log       logr.Logger
 	}
 	TaskOpts struct {
-		args              []string
-		jobType           ClusterCodeJobType
-		mountSource       bool
-		mountIntermediate bool
-		mountTarget       bool
-		mountConfig       bool
+		Args              []string
+		JobType           controllers.ClusterCodeJobType
+		MountSource       bool
+		MountIntermediate bool
+		MountTarget       bool
+		MountConfig       bool
 	}
 )
 
-func (r *TaskReconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
-	r.Log = l
-	r.Scheme = mgr.GetScheme()
-	r.Client = mgr.GetClient()
-	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
+func (r *Reconciler) SetupWithManager(mgr ctrl.Manager, l logr.Logger) error {
+	r.ResourceAction = &pipeline.ResourceAction{
+		Log:    l,
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}
+	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: controllers.ClusterCodeLabels})
 	if err != nil {
 		return err
 	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.Task{}, builder.WithPredicates(pred)).
 		//Owns(&batchv1.Job{}).
-		//WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status,verbs=get;update;patch
 
-func (r *TaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	rc := &TaskContext{
+func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	rc := &ReconciliationContext{
 		ctx:  ctx,
 		task: &v1alpha1.Task{},
 	}
@@ -86,7 +86,7 @@ func (r *TaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 	return ctrl.Result{}, nil
 }
 
-func (r *TaskReconciler) handleTask(rc *TaskContext) error {
+func (r *Reconciler) handleTask(rc *ReconciliationContext) error {
 	if rc.task.Spec.SlicesPlannedCount == 0 {
 		return r.createSplitJob(rc)
 	}
@@ -105,7 +105,7 @@ func (r *TaskReconciler) handleTask(rc *TaskContext) error {
 	}
 }
 
-func (r *TaskReconciler) determineNextSliceIndex(rc *TaskContext) int {
+func (r *Reconciler) determineNextSliceIndex(rc *ReconciliationContext) int {
 	status := rc.task.Status
 	if rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
 		maxCount := rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
@@ -135,19 +135,19 @@ func containsSliceIndex(list []v1alpha1.ClustercodeSliceRef, index int) bool {
 	return false
 }
 
-func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
-	sourceMountRoot := filepath.Join("/clustercode", SourceSubMountPath)
-	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+func (r *Reconciler) createSplitJob(rc *ReconciliationContext) error {
+	sourceMountRoot := filepath.Join("/clustercode", controllers.SourceSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", controllers.IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":      filepath.Join(sourceMountRoot, rc.task.Spec.SourceUrl.GetPath()),
 		"${OUTPUT}":     getSegmentFileNameTemplatePath(rc, intermediateMountRoot),
 		"${SLICE_SIZE}": strconv.Itoa(rc.task.Spec.EncodeSpec.SliceSize),
 	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
-		jobType:           ClustercodeTypeSplit,
-		mountSource:       true,
-		mountIntermediate: true,
+	job := CreateFfmpegJobDefinition(rc.task, &TaskOpts{
+		Args:              MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
+		JobType:           controllers.ClustercodeTypeSplit,
+		MountSource:       true,
+		MountIntermediate: true,
 	})
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
@@ -164,19 +164,19 @@ func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
 	return nil
 }
 
-func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
-	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+func (r *Reconciler) createSliceJob(rc *ReconciliationContext, index int) error {
+	intermediateMountRoot := filepath.Join("/clustercode", controllers.IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  getSourceSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
 		"${OUTPUT}": getTargetSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
 	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.TranscodeCommandArgs),
-		jobType:           ClustercodeTypeSlice,
-		mountIntermediate: true,
+	job := CreateFfmpegJobDefinition(rc.task, &TaskOpts{
+		Args:              MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.TranscodeCommandArgs),
+		JobType:           controllers.ClustercodeTypeSlice,
+		MountIntermediate: true,
 	})
 	job.Name = fmt.Sprintf("%s-%d", job.Name, index)
-	job.Labels[ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
+	job.Labels[controllers.ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
@@ -196,19 +196,19 @@ func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
 	return r.Client.Status().Update(rc.ctx, rc.task)
 }
 
-func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
-	configMountRoot := filepath.Join("/clustercode", ConfigSubMountPath)
-	targetMountRoot := filepath.Join("/clustercode", TargetSubMountPath)
+func (r *Reconciler) createMergeJob(rc *ReconciliationContext) error {
+	configMountRoot := filepath.Join("/clustercode", controllers.ConfigSubMountPath)
+	targetMountRoot := filepath.Join("/clustercode", controllers.TargetSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  filepath.Join(configMountRoot, v1alpha1.ConfigMapFileName),
 		"${OUTPUT}": filepath.Join(targetMountRoot, rc.task.Spec.TargetUrl.GetPath()),
 	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
-		jobType:           ClustercodeTypeMerge,
-		mountIntermediate: true,
-		mountTarget:       true,
-		mountConfig:       true,
+	job := CreateFfmpegJobDefinition(rc.task, &TaskOpts{
+		Args:              MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
+		JobType:           controllers.ClustercodeTypeMerge,
+		MountIntermediate: true,
+		MountTarget:       true,
+		MountConfig:       true,
 	})
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
@@ -225,14 +225,14 @@ func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
 	return nil
 }
 
-func getSegmentFileNameTemplatePath(rc *TaskContext, intermediateMountRoot string) string {
+func getSegmentFileNameTemplatePath(rc *ReconciliationContext, intermediateMountRoot string) string {
 	return filepath.Join(intermediateMountRoot, rc.task.Name+"_%d"+filepath.Ext(rc.task.Spec.SourceUrl.GetPath()))
 }
 
-func getSourceSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
+func getSourceSegmentFileNameIndexPath(rc *ReconciliationContext, intermediateMountRoot string, index int) string {
 	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s", rc.task.Name, index, filepath.Ext(rc.task.Spec.SourceUrl.GetPath())))
 }
 
-func getTargetSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
+func getTargetSegmentFileNameIndexPath(rc *ReconciliationContext, intermediateMountRoot string, index int) string {
 	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", rc.task.Name, index, v1alpha1.MediaFileDoneSuffix, filepath.Ext(rc.task.Spec.TargetUrl.GetPath())))
 }
