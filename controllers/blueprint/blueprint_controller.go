@@ -80,7 +80,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 		}.UpdateStatus).
 		WithSteps(
 			pipeline.NewStep("get reconcile object", r.GetOrAbort(rc.ctx, rc.blueprint)),
-			pipeline.NewStep("abort if deleted", pipeline.AbortIfDeleted(rc.blueprint)),
+			pipeline.NewStepWithPredicate("abort if deleted", pipeline.Abort(), pipeline.DeletedPredicate(rc.blueprint)),
 			pipeline.NewStep("create service account", r.CreateServiceAccountAction(rc)),
 			pipeline.NewStep("create role binding", r.CreateRoleBindingAction(rc)),
 			pipeline.NewStep("create cronjob", r.CreateCronJobAction(rc)),

@@ -22,9 +22,11 @@ type (
 	Step struct {
 		Name string
 		F    ActionFunc
+		P    Predicate
 	}
 	ActionFunc func() Result
 	Handler    func(result Result)
+	Predicate  func(step Step) bool
 )
 
 func NewPipeline(log logr.Logger) *Pipeline {
@@ -46,28 +48,45 @@ func (p *Pipeline) WithAbortHandler(handler Handler) *Pipeline {
 	return p
 }
 
+func (p *Pipeline) AsNestedStep(name string, predicate Predicate) Step {
+	return NewStepWithPredicate(name, func() Result {
+		p.Log = p.Log.WithValues("nestedPipeline", name)
+		return p.runPipeline()
+	}, predicate)
+}
+
 func (r Result) IsSuccessful() bool {
 	return r.Err == nil
 }
 
 func (p *Pipeline) Run() Result {
-	for i, step := range p.steps {
-		index := i + 1
-		p.Log.V(1).Info("executing step", "name", step.Name, "index", index)
+	result := p.runPipeline()
+	p.Log.V(1).Info("executed pipeline", "stepsCompleted", len(p.steps))
+	return result
+}
+
+func (p *Pipeline) runPipeline() Result {
+	for _, step := range p.steps {
+
+		if step.P != nil && !step.P(step) {
+			p.Log.V(1).Info("ignoring step", "name", step.Name)
+			continue
+		}
+
+		p.Log.V(1).Info("executing step", "name", step.Name)
 
 		if r := step.F(); r.Abort || r.Err != nil {
 			if p.abortHandler != nil {
 				p.abortHandler(r)
 			}
 			if r.Err == nil {
-				p.Log.V(1).Info("aborting pipeline", "step", step.Name, "index", index)
-				return Result{Requeue: r.Requeue}
+				p.Log.V(1).Info("aborting pipeline", "step", step.Name)
+				return Result{Requeue: r.Requeue, Abort: r.Abort}
 			}
 
-			return Result{Err: fmt.Errorf("step '%s' (%d) failed: %w", step.Name, index, r.Err)}
+			return Result{Err: fmt.Errorf("step '%s' failed: %w", step.Name, r.Err), Abort: r.Abort}
 		}
 	}
-	p.Log.V(1).Info("executed pipeline", "steps_completed", len(p.steps))
 	return Result{}
 }
 
@@ -78,12 +97,17 @@ func NewStep(name string, action ActionFunc) Step {
 	}
 }
 
-func AbortIfDeleted(obj client.Object) ActionFunc {
+func NewStepWithPredicate(name string, action ActionFunc, predicate Predicate) Step {
+	return Step{
+		Name: name,
+		F:    action,
+		P:    predicate,
+	}
+}
+
+func Abort() ActionFunc {
 	return func() Result {
-		if obj.GetDeletionTimestamp() != nil {
-			return Result{Abort: true}
-		}
-		return Result{}
+		return Result{Abort: true}
 	}
 }
 
