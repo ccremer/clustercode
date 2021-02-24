@@ -20,7 +20,7 @@ setup_file() {
 }
 
 teardown_file() {
-  run kubectl delete -f ${setup_file}
+  #run kubectl delete -f ${setup_file}
   debug "$output"
   cp -r /tmp/detik debug || true
 }

@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"k8s.io/api/batch/v1"
-	v12 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/ccremer/clustercode/builder"
 	"github.com/ccremer/clustercode/cfg"
 	"github.com/ccremer/clustercode/controllers"
+	"github.com/ccremer/clustercode/controllers/pipeline"
 )
 
 func MergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]string) (merged []string) {
@@ -27,21 +28,35 @@ func MergeArgsAndReplaceVariables(variables map[string]string, argsList ...[]str
 	return merged
 }
 
-func CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *v1.Job {
+func splitJobPredicate(rc *ReconciliationContext) pipeline.Predicate {
+	return func(step pipeline.Step) bool {
+		return rc.task.Spec.SlicesPlannedCount == 0
+	}
+}
+
+func mergeJobPredicate(rc *ReconciliationContext) pipeline.Predicate {
+	return func(step pipeline.Step) bool {
+		return len(rc.task.Status.SlicesFinished) >= rc.task.Spec.SlicesPlannedCount
+	}
+}
+
+func (r *Reconciler) CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *v1.Job {
 	cb := builder.NewContainerBuilder("ffmpeg").
 		WithImage(cfg.Config.Operator.FfmpegContainerImage).
-		WithImagePullPolicy(v12.PullIfNotPresent).
+		WithImagePullPolicy(corev1.PullIfNotPresent).
 		WithArgs(opts.Args...).
 		Build()
 
-	pb := builder.NewPodSpecBuilder(cb).Build()
-	pb.PodSpec.ServiceAccountName = task.Spec.ServiceAccountName
-	pb.PodSpec.SecurityContext = &v12.PodSecurityContext{
+	pb := builder.NewPodSpecBuilder(cb).
+		WithServiceAccount(task.Spec.ServiceAccountName).
+		RunAsUser(1000).
+		Build()
+	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
 		RunAsUser:  pointer.Int64Ptr(1000),
 		RunAsGroup: pointer.Int64Ptr(0),
 		FSGroup:    pointer.Int64Ptr(0),
 	}
-	pb.PodSpec.RestartPolicy = v12.RestartPolicyNever
+	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
 
 	if opts.MountSource {
 		pvc := task.Spec.Storage.SourcePvc
@@ -62,7 +77,7 @@ func CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *v1.Job {
 	job := &v1.Job{
 		Spec: v1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
-			Template: v12.PodTemplateSpec{
+			Template: corev1.PodTemplateSpec{
 				Spec: *pb.Build().PodSpec,
 			},
 		},
@@ -71,6 +86,7 @@ func CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *v1.Job {
 		WithNamespace(task.Namespace).
 		WithName(fmt.Sprintf("%s-%s", task.Spec.TaskId, opts.JobType)).
 		WithLabels(controllers.ClusterCodeLabels, opts.JobType.AsLabels(), task.Spec.TaskId.AsLabels()).
+		WithControllerReference(task, r.Scheme).
 		Build()
 	return job
 }

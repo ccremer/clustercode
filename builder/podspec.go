@@ -2,6 +2,7 @@ package builder
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/pointer"
 )
 
 type (
@@ -88,5 +89,18 @@ func (b *PodSpecBuilder) AddPvcMount(cb *ContainerBuilder, claimName, volumeName
 			},
 		},
 	})
+	return b
+}
+
+func (b *PodSpecBuilder) WithServiceAccount(sa string) *PodSpecBuilder {
+	b.PodSpec.ServiceAccountName = sa
+	return b
+}
+
+func (b *PodSpecBuilder) RunAsUser(uid int64) *PodSpecBuilder {
+	if b.PodSpec.SecurityContext == nil {
+		b.PodSpec.SecurityContext = &corev1.PodSecurityContext{}
+	}
+	b.PodSpec.SecurityContext.RunAsUser = pointer.Int64Ptr(uid)
 	return b
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -74,9 +73,24 @@ func (r *ResourceAction) UpsertResource(ctx context.Context, object client.Objec
 	return nil, ResourceUpdated
 }
 
-func MapToNamespacedName(object client.Object) types.NamespacedName {
-	return types.NamespacedName{
-		Namespace: object.GetNamespace(),
-		Name:      object.GetName(),
+func (r *ResourceAction) UpdateStatusHandler(ctx context.Context, obj client.Object) Handler {
+	return func(result Result) {
+		if err := r.Client.Status().Update(ctx, obj); err != nil && !apierrors.IsNotFound(err) {
+			r.Log.Error(err, "could not update status")
+		} else if err == nil {
+			r.Log.V(1).Info("updated status")
+		}
+	}
+}
+
+func (r *ResourceAction) UpdateStatus(ctx context.Context, obj client.Object) ActionFunc {
+	return func() Result {
+		err := r.Client.Status().Update(ctx, obj)
+		if err != nil && !apierrors.IsNotFound(err) {
+			r.Log.Error(err, "could not update status")
+		} else if err == nil {
+			r.Log.V(1).Info("updated status")
+		}
+		return Result{Err: err}
 	}
 }
