@@ -1,26 +1,49 @@
 #!/bin/bash
 
-setup_file() {
+setup() {
     debug "-- $BATS_TEST_DESCRIPTION"
     debug "-- $(date)"
     debug ""
     debug ""
-    export TEST_FILE_ID="$(basename ${BATS_TEST_FILENAME} .bats)"
-    test_file=debug/$TEST_FILE_ID.yaml
-    setup_file=debug/$TEST_FILE_ID-setup.yaml
-    go run sigs.k8s.io/kustomize/kustomize/v3 build ${TEST_FILE_ID} -o ${test_file}
-    go run sigs.k8s.io/kustomize/kustomize/v3 build setup -o ${setup_file}
-    sed -i -e "s|\$E2E_IMAGE|${E2E_IMAGE}|" ${setup_file}
-    sed -i -e "s/\TEST_FILE_ID/${TEST_FILE_ID}/" -e "s/\TEST_NAMESPACE/${DETIK_CLIENT_NAMESPACE}/" ${test_file} ${setup_file}
-    run kubectl apply -f ${setup_file}
-    debug "$output"
+}
 
-    try "at most 10 times every 2s to find 1 pod named '${TEST_FILE_ID}-operator' with '.spec.containers[*].image' being '${E2E_IMAGE}'"
-    try "at most 10 times every 2s to find 1 pod named '${TEST_FILE_ID}-operator' with 'status' being 'running'"
+setup_file() {
+    reset_debug
 }
 
 teardown_file() {
-  #run kubectl delete -f ${setup_file}
-  debug "$output"
-  cp -r /tmp/detik debug || true
+    cp -r /tmp/detik debug || true
+}
+
+kustomize() {
+	  go run sigs.k8s.io/kustomize/kustomize/v3 "${@}"
+}
+
+replace_in_file() {
+    VAR_NAME=${1}
+    VAR_VALUE=${2}
+    FILE=${3}
+
+    sed -i \
+      -e "s|\$${VAR_NAME}|${VAR_VALUE}|" \
+      "${FILE}"
+}
+
+prepare() {
+    DEFINITION_DIR=${1}
+    mkdir -p "debug/${DEFINITION_DIR}"
+    kustomize build "${DEFINITION_DIR}" -o "debug/${DEFINITION_DIR}/main.yml"
+
+    replace_in_file E2E_IMAGE "'${E2E_IMAGE}'" "debug/${DEFINITION_DIR}/main.yml"
+    replace_in_file ID "$(id -u)" "debug/${DEFINITION_DIR}/main.yml"
+    replace_in_file ENABLE_LEADER_ELECTION "'${ENABLE_LEADER_ELECTION}'" "debug/${DEFINITION_DIR}/main.yml"
+}
+
+apply() {
+    prepare "${@}"
+    kubectl apply -f "debug/${1}/main.yml"
+}
+
+given_running_operator() {
+	  apply definitions/operator
 }

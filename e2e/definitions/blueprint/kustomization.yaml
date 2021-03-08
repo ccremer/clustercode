@@ -1,10 +1,9 @@
 resources:
+- pv.yaml
 - pvc.yaml
 - blueprint.yaml
-namespace: TEST_NAMESPACE
-namePrefix: TEST_FILE_ID-
+namespace: e2e-subject
 
 commonLabels:
   app.kubernetes.io/name: e2e
   app.kubernetes.io/managed-by: kustomize
-  app.kubernetes.io/instance: TEST_FILE_ID

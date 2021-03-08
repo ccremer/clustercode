@@ -1,0 +1,10 @@
+resources:
+- ../../../kustomize/manager
+- ../../../kustomize/rbac
+patchesStrategicMerge:
+- deployment.yaml
+namespace: clustercode-system
+
+commonLabels:
+  app.kubernetes.io/name: e2e
+  app.kubernetes.io/managed-by: kustomize

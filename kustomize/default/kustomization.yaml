@@ -15,5 +15,6 @@ commonLabels:
 
 resources:
 - ../crd
+- ../namespace
 - ../rbac
 - ../manager
