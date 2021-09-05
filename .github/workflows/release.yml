@@ -24,7 +24,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Import GPG signing key
-        uses: crazy-max/ghaction-import-gpg@v3
+        uses: crazy-max/ghaction-import-gpg@v4
         with:
           gpg-private-key: ${{ secrets.SIGNING_KEY }}
       - name: Login to Docker hub
