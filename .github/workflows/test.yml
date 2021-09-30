@@ -30,7 +30,7 @@ jobs:
         run: make integration-test -e test_args="-coverprofile .github/cover.out"
       - name: Publish Code Coverage
         if: success() || failure()
-        uses: paambaati/codeclimate-action@v2.7.5
+        uses: paambaati/codeclimate-action@v3.0.0
         with:
           coverageCommand: sed -i "s%github.com/ccremer/%%" .github/cover.out
           prefix: ${{ github.event.repository.name }}
