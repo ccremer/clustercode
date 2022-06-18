@@ -1,4 +1,4 @@
-FROM docker.io/library/alpine:3.13 as runtime
+FROM docker.io/library/alpine:3.16 as runtime
 
 ENTRYPOINT ["clustercode"]
 
