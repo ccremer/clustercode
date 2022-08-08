@@ -1,8 +1,36 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    ":gitSignOff",
+    ":disableDependencyDashboard"
   ],
   "labels": [
     "dependency"
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [
+        "k8s.io/utils",
+        "golang.org/x/*"
+      ],
+      "groupName": "utils",
+      "schedule": [
+        "on the first day of the month"
+      ],
+      "automerge": true
+    },
+    {
+      "matchPaths": [
+        "docs/**"
+      ],
+      "groupName": "npm",
+      "schedule": [
+        "on the first day of the month"
+      ],
+      "automerge": true
+    }
   ]
 }
