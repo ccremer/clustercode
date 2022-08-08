@@ -23,7 +23,6 @@ var (
 
 func init() {
 	rootCmd.AddCommand(operateCmd)
-	// +kubebuilder:scaffold:scheme
 
 	operateCmd.PersistentFlags().String("operator.metrics-bind-address", cfg.Config.Operator.MetricsBindAddress,
 		"Prometheus metrics bind address.")

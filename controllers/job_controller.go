@@ -19,7 +19,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	clientbuilder "sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
@@ -167,28 +166,26 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 		AddArgs("--count.task-name=%s", rc.task.Name).
 		Build()
 
-	pb := builder.NewPodSpecBuilder(cb).Build()
 	pvc := rc.task.Spec.Storage.IntermediatePvc
-	pb.AddPvcMount(nil, IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
-	pb.PodSpec.ServiceAccountName = rc.job.Spec.Template.Spec.ServiceAccountName
-	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
+	pb := builder.NewPodSpecBuilder(cb).
+		WithServiceAccount(rc.job.Spec.Template.Spec.ServiceAccountName).
+		WithRestartPolicy(corev1.RestartPolicyNever).
+		AddPvcMount(nil, IntermediateSubMountPath, pvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), pvc.SubPath)
 
 	job := &batchv1.Job{
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
-				Spec: *pb.PodSpec,
+				Spec: *pb.Build(),
 			},
 		},
 	}
 	builder.NewMetaBuilderWith(job).
 		WithNamespace(rc.job.Namespace).
 		WithName(fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount)).
-		WithLabels(ClusterCodeLabels, ClustercodeTypeCount.AsLabels(), taskId.AsLabels())
+		WithLabels(ClusterCodeLabels, ClustercodeTypeCount.AsLabels(), taskId.AsLabels()).
+		WithControllerReference(rc.task, r.Scheme)
 
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
-		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
-	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			rc.log.Info("skip creating job, it already exists", "job", job.Name)
@@ -223,32 +220,27 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 		AddArgs("--cleanup.task-name=%s", rc.task.Name).
 		Build()
 
-	pb := builder.NewPodSpecBuilder(cb)
-	pb.AddPvcMount(nil, SourceSubMountPath, rc.task.Spec.Storage.SourcePvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc.SubPath)
-	pb.AddPvcMount(nil, IntermediateSubMountPath, rc.task.Spec.Storage.IntermediatePvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc.SubPath)
-	pb.PodSpec.ServiceAccountName = rc.job.Spec.Template.Spec.ServiceAccountName
-	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
-		RunAsUser:  pointer.Int64Ptr(1000),
-		RunAsGroup: pointer.Int64Ptr(0),
-		FSGroup:    pointer.Int64Ptr(0),
-	}
-	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
+	pb := builder.NewPodSpecBuilder(cb).
+		WithServiceAccount(rc.job.Spec.Template.Spec.ServiceAccountName).
+		WithRestartPolicy(corev1.RestartPolicyNever).
+		AddPvcMount(nil, SourceSubMountPath, rc.task.Spec.Storage.SourcePvc.ClaimName, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc.SubPath).
+		AddPvcMount(nil, IntermediateSubMountPath, rc.task.Spec.Storage.IntermediatePvc.ClaimName, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc.SubPath).
+		RunAsUser(1000).RunAsGroup(0).WithFSGroup(0)
+
 	job := &batchv1.Job{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCleanup), taskId, ClustercodeTypeCleanup),
-			Namespace: rc.job.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClustercodeTypeCleanup.AsLabels(), taskId.AsLabels())),
-		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
-				Spec: *pb.Build().PodSpec,
+				Spec: *pb.Build(),
 			},
 		},
 	}
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
-		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
-	}
+	builder.NewMetaBuilderWith(job).
+		WithControllerReference(rc.task, r.Scheme).
+		WithName(fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCleanup), taskId, ClustercodeTypeCleanup)).
+		WithNamespace(rc.job.Namespace).
+		WithLabels(ClusterCodeLabels, ClustercodeTypeCleanup.AsLabels(), taskId.AsLabels())
+
 	if err := r.Client.Create(rc.ctx, job); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			rc.log.Info("skip creating job, it already exists", "job", job.Name)

@@ -33,10 +33,8 @@ func (r *Reconciler) CreateCronJobAction(rc *ReconciliationContext) pipeline.Act
 				controllers.IntermediateSubMountPath,
 				filepath.Join("/clustercode", controllers.IntermediateSubMountPath),
 				rc.blueprint.Spec.Storage.IntermediatePvc.SubPath).
-			Build()
-
-		psb.PodSpec.ServiceAccountName = rc.serviceAccount.Name
-		psb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
+			WithServiceAccount(rc.serviceAccount.Name).
+			WithRestartPolicy(corev1.RestartPolicyNever)
 
 		cronJob := &v1beta1.CronJob{
 			Spec: v1beta1.CronJobSpec{
@@ -48,7 +46,7 @@ func (r *Reconciler) CreateCronJobAction(rc *ReconciliationContext) pipeline.Act
 					Spec: batchv1.JobSpec{
 						BackoffLimit: pointer.Int32Ptr(0),
 						Template: corev1.PodTemplateSpec{
-							Spec: *psb.PodSpec,
+							Spec: *psb.Build(),
 						},
 					},
 				},
@@ -63,7 +61,7 @@ func (r *Reconciler) CreateCronJobAction(rc *ReconciliationContext) pipeline.Act
 			WithControllerReference(rc.blueprint, r.Scheme).
 			Build()
 
-		if err, op := r.UpsertResource(rc.ctx, cronJob); err != nil {
+		if op, err := r.UpsertResource(rc.ctx, cronJob); err != nil {
 			r.Recorder.Eventf(rc.blueprint, corev1.EventTypeWarning, "FailedCronJob", "CronJob '%s' could not be created: %v", cronJob.Name, err)
 			return pipeline.Result{Err: err, Requeue: true}
 		} else if op == pipeline.ResourceCreated {

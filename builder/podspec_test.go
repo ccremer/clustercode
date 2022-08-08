@@ -33,10 +33,9 @@ func Test_PodSpecBuilder_AddPvcMount(t *testing.T) {
 		},
 	}
 	builder := NewPodSpecBuilder(NewContainerBuilder("container")).
-		AddPvcMount(nil, "claim", "volume", "mountPath", "subPath").
-		Build()
+		AddPvcMount(nil, "claim", "volume", "mountPath", "subPath")
 
-	assert.Equal(t, podSpec, builder.PodSpec)
+	assert.Equal(t, podSpec, builder.Build())
 }
 
 func Test_PodSpecBuilder_AddConfigMapMount(t *testing.T) {
@@ -63,8 +62,7 @@ func Test_PodSpecBuilder_AddConfigMapMount(t *testing.T) {
 	}
 
 	builder := NewPodSpecBuilder(NewContainerBuilder("container")).
-		AddConfigMapMount(nil, "configmap", "volume", "mountPath").
-		Build()
+		AddConfigMapMount(nil, "configmap", "volume", "mountPath")
 
-	assert.Equal(t, podSpec, builder.PodSpec)
+	assert.Equal(t, podSpec, builder.Build())
 }

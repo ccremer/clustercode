@@ -49,14 +49,8 @@ func (r *Reconciler) CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOp
 
 	pb := builder.NewPodSpecBuilder(cb).
 		WithServiceAccount(task.Spec.ServiceAccountName).
-		RunAsUser(1000).
-		Build()
-	pb.PodSpec.SecurityContext = &corev1.PodSecurityContext{
-		RunAsUser:  pointer.Int64Ptr(1000),
-		RunAsGroup: pointer.Int64Ptr(0),
-		FSGroup:    pointer.Int64Ptr(0),
-	}
-	pb.PodSpec.RestartPolicy = corev1.RestartPolicyNever
+		RunAsUser(1000).RunAsGroup(0).WithFSGroup(0).
+		WithRestartPolicy(corev1.RestartPolicyNever)
 
 	if opts.MountSource {
 		pvc := task.Spec.Storage.SourcePvc
@@ -78,7 +72,7 @@ func (r *Reconciler) CreateFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOp
 		Spec: v1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
 			Template: corev1.PodTemplateSpec{
-				Spec: *pb.Build().PodSpec,
+				Spec: *pb.Build(),
 			},
 		},
 	}

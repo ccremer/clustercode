@@ -55,22 +55,22 @@ func (r *ResourceAction) CreateIfNotExisting(ctx context.Context, obj client.Obj
 	return nil, ResourceCreated
 }
 
-func (r *ResourceAction) UpsertResource(ctx context.Context, object client.Object) (error, ResourceOperation) {
+func (r *ResourceAction) UpsertResource(ctx context.Context, object client.Object) (ResourceOperation, error) {
 	name := MapToNamespacedName(object)
 	if updateErr := r.Client.Update(ctx, object); updateErr != nil {
 		if apierrors.IsNotFound(updateErr) {
 			if createErr := r.Client.Create(ctx, object); createErr != nil {
 				r.Log.Error(createErr, "could not create resource", "resource", name.String())
-				return createErr, ResourceOperationFailed
+				return ResourceOperationFailed, createErr
 			}
 			r.Log.V(1).Info("resource created", "resource", name.String())
-			return nil, ResourceCreated
+			return ResourceCreated, nil
 		}
 		r.Log.Error(updateErr, "could not update resource", "resource", name.String())
-		return updateErr, ResourceOperationFailed
+		return ResourceOperationFailed, updateErr
 	}
 	r.Log.V(1).Info("resource updated", "resource", name.String())
-	return nil, ResourceUpdated
+	return ResourceUpdated, nil
 }
 
 func (r *ResourceAction) UpdateStatusHandler(ctx context.Context, obj client.Object) Handler {
