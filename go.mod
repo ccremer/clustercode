@@ -1,6 +1,6 @@
 module github.com/ccremer/clustercode
 
-go 1.18
+go 1.19
 
 require (
 	github.com/elastic/crd-ref-docs v0.0.7
