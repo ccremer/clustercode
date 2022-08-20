@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
@@ -13,16 +14,11 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	"k8s.io/utils/strings"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"github.com/ccremer/clustercode/api/v1alpha1"
-	"github.com/ccremer/clustercode/cfg"
 )
 
 type (
@@ -30,7 +26,6 @@ type (
 	BlueprintReconciler struct {
 		Client client.Client
 		Log    logr.Logger
-		Scheme *runtime.Scheme
 	}
 	// BlueprintContext holds the parameters of a single reconciliation
 	BlueprintContext struct {
@@ -40,12 +35,9 @@ type (
 	}
 )
 
-func (r *BlueprintReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Blueprint{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
-		Complete(r)
-}
+var ScanRoleKind = "ClusterRole"
+var ScanRoleName = "clustercode-editor-role"
+var DefaultClusterCodeContainerImage string
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints/status,verbs=get;update;patch
@@ -114,7 +106,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 										"--namespace=" + rc.blueprint.Namespace,
 										"--scan.blueprint-name=" + rc.blueprint.Name,
 									},
-									Image: cfg.Config.Operator.ClustercodeContainerImage,
+									Image: DefaultClusterCodeContainerImage,
 									VolumeMounts: []corev1.VolumeMount{
 										{
 											Name:      SourceSubMountPath,
@@ -155,7 +147,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 			FailedJobsHistoryLimit:     pointer.Int32Ptr(1),
 		},
 	}
-	if err := controllerutil.SetControllerReference(rc.blueprint, cronJob.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.blueprint, cronJob.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Error(err, "could not set controller reference, deleting the blueprint will not delete the cronjob", "cronjob", cronJob.Name)
 	}
 
@@ -215,8 +207,8 @@ func (r *BlueprintReconciler) newRbacDefinition(rc *BlueprintContext) (rbacv1.Ro
 			},
 		},
 		RoleRef: rbacv1.RoleRef{
-			Kind:     cfg.Config.Scan.RoleKind,
-			Name:     cfg.Config.Scan.RoleName,
+			Kind:     ScanRoleKind,
+			Name:     ScanRoleName,
 			APIGroup: rbacv1.GroupName,
 		},
 	}
@@ -229,10 +221,10 @@ func (r *BlueprintReconciler) newRbacDefinition(rc *BlueprintContext) (rbacv1.Ro
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(rc.blueprint, roleBinding.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.blueprint, roleBinding.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Error(err, "could not set controller reference on role", "roleBinding", roleBinding.Name)
 	}
-	if err := controllerutil.SetControllerReference(rc.blueprint, account.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.blueprint, account.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Error(err, "could not set controller reference on service account", "sa", account.Name)
 	}
 	return roleBinding, account

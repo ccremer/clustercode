@@ -26,6 +26,7 @@ bin/
 dist/
 .github/release-notes.md
 .github/cover.out
+.github/crds.yaml
 clustercode-crd*.yaml
 clustercode
 testbin/

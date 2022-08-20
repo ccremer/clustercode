@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,16 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"github.com/ccremer/clustercode/api/v1alpha1"
-	"github.com/ccremer/clustercode/cfg"
 )
 
 type (
@@ -31,7 +26,6 @@ type (
 	JobReconciler struct {
 		Client client.Client
 		Log    logr.Logger
-		Scheme *runtime.Scheme
 	}
 	// JobContext holds the parameters of a single reconciliation
 	JobContext struct {
@@ -42,16 +36,6 @@ type (
 		log     logr.Logger
 	}
 )
-
-func (r *JobReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
-	if err != nil {
-		return err
-	}
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&batchv1.Job{}, builder.WithPredicates(pred)).
-		Complete(r)
-}
 
 // +kubebuilder:rbac:groups=batch,resources=jobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
@@ -161,7 +145,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 					Containers: []corev1.Container{
 						{
 							Name:            "clustercode",
-							Image:           cfg.Config.Operator.ClustercodeContainerImage,
+							Image:           DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
 								"-v",
@@ -188,7 +172,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 			},
 		},
 	}
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {
@@ -236,7 +220,7 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 					Containers: []corev1.Container{
 						{
 							Name:            "clustercode",
-							Image:           cfg.Config.Operator.ClustercodeContainerImage,
+							Image:           DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
 								"-v",
@@ -252,7 +236,7 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 	}
 	addPvcVolume(job, SourceSubMountPath, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc)
 	addPvcVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc)
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {

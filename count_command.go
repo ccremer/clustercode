@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"context"
@@ -8,73 +8,72 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/spf13/cobra"
+	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	"github.com/urfave/cli/v2"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	"github.com/ccremer/clustercode/api/v1alpha1"
-	"github.com/ccremer/clustercode/cfg"
-	"github.com/ccremer/clustercode/controllers"
 )
 
-// countCmd represents the count command
-var (
-	countCmd = &cobra.Command{
-		Use:     "count",
-		Short:   "counts the number of generated intermediary media files",
-		PreRunE: validateCountCmd,
-		RunE:    runCountCmd,
-	}
-	countLog = ctrl.Log.WithName("count")
-)
+type countCommand struct {
+	kubeconfig *rest.Config
+	kube       client.Client
 
-func init() {
-	rootCmd.AddCommand(countCmd)
-
-	countCmd.PersistentFlags().String("count.task-name", cfg.Config.Count.TaskName, "Task Name")
+	TaskName      string
+	TaskNamespace string
+	SourceRootDir string
 }
 
-func validateCountCmd(cmd *cobra.Command, args []string) error {
-	if cfg.Config.Count.TaskName == "" {
-		return fmt.Errorf("'%s' cannot be empty", "count.task-name")
+var countCommandName = "count"
+var countLog = ctrl.Log.WithName("count")
+
+func newCountCommand() *cli.Command {
+	command := &countCommand{}
+	return &cli.Command{
+		Name:   countCommandName,
+		Usage:  "Counts the number of generated intermediary media files",
+		Action: command.execute,
+		Flags: []cli.Flag{
+			newTaskNameFlag(&command.TaskName),
+			newNamespaceFlag(&command.TaskNamespace),
+			newSourceRootDirFlag(&command.SourceRootDir),
+		},
 	}
-	if cfg.Config.Namespace == "" {
-		return fmt.Errorf("'%s' cannot be empty", "namespace")
-	}
-	return nil
 }
 
-func runCountCmd(cmd *cobra.Command, args []string) error {
+func (c *countCommand) execute(ctx *cli.Context) error {
 
 	registerScheme()
-	err := createClient()
+	err := createClientFn(&commandContext{})
 	if err != nil {
 		return err
 	}
-	task, err := getTask()
+	task, err := c.getTask()
 	if err != nil {
 		return err
 	}
 	countLog = countLog.WithValues("task", task.Name)
 	countLog.Info("found task", "task", task)
 
-	files, err := scanSegmentFiles(task.Spec.TaskId.String() + "_")
+	files, err := c.scanSegmentFiles(task.Spec.TaskId.String() + "_")
 	if err != nil {
 		return err
 	}
 	countLog.Info("found segments", "count", len(files))
 
-	err = createFileList(files, task)
+	err = c.createFileList(files, task)
 	if err != nil {
 		return err
 	}
 
-	err = updateTask(task, len(files))
+	err = c.updateTask(task, len(files))
 	if err != nil {
 		return err
 	}
@@ -83,16 +82,16 @@ func runCountCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func updateTask(task *v1alpha1.Task, count int) error {
+func (c *countCommand) updateTask(task *v1alpha1.Task, count int) error {
 	task.Spec.SlicesPlannedCount = count
-	err := client.Update(context.Background(), task)
+	err := c.kube.Update(context.Background(), task)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func createFileList(files []string, task *v1alpha1.Task) error {
+func (c *countCommand) createFileList(files []string, task *v1alpha1.Task) error {
 	var fileList []string
 	for _, file := range files {
 		fileList = append(fileList, fmt.Sprintf("file '%s'", file))
@@ -111,9 +110,9 @@ func createFileList(files []string, task *v1alpha1.Task) error {
 	if err := controllerutil.SetControllerReference(task, cm.GetObjectMeta(), scheme); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
-	if err := client.Create(context.Background(), cm); err != nil {
+	if err := c.kube.Create(context.Background(), cm); err != nil {
 		if apierrors.IsAlreadyExists(err) {
-			if err := client.Update(context.Background(), cm); err != nil {
+			if err := c.kube.Update(context.Background(), cm); err != nil {
 				return fmt.Errorf("could not update config map: %w", err)
 			}
 			countLog.Info("updated config map", "configmap", cm.Name)
@@ -125,9 +124,9 @@ func createFileList(files []string, task *v1alpha1.Task) error {
 	return nil
 }
 
-func scanSegmentFiles(prefix string) ([]string, error) {
+func (c *countCommand) scanSegmentFiles(prefix string) ([]string, error) {
 	var files []string
-	root := filepath.Join(cfg.Config.Scan.SourceRoot, controllers.IntermediateSubMountPath)
+	root := filepath.Join(c.SourceRootDir, controllers.IntermediateSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// could not access file, let's prevent a panic
@@ -136,7 +135,7 @@ func scanSegmentFiles(prefix string) ([]string, error) {
 		if info.IsDir() {
 			return nil
 		}
-		if !matchesTaskSegment(path, prefix) {
+		if matchesTaskSegment(path, prefix) {
 			return nil
 		}
 		files = append(files, path)
@@ -154,14 +153,14 @@ func matchesTaskSegment(path string, prefix string) bool {
 	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaFileDoneSuffix)
 }
 
-func getTask() (*v1alpha1.Task, error) {
+func (c *countCommand) getTask() (*v1alpha1.Task, error) {
 	ctx := context.Background()
 	task := &v1alpha1.Task{}
 	name := types.NamespacedName{
-		Name:      cfg.Config.Count.TaskName,
-		Namespace: cfg.Config.Namespace,
+		Name:      c.TaskName,
+		Namespace: c.TaskNamespace,
 	}
-	err := client.Get(ctx, name, task)
+	err := c.kube.Get(ctx, name, task)
 	if err != nil {
 		return &v1alpha1.Task{}, err
 	}

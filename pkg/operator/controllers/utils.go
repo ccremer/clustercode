@@ -13,7 +13,6 @@ import (
 	"k8s.io/utils/pointer"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
-	"github.com/ccremer/clustercode/cfg"
 )
 
 type (
@@ -79,6 +78,8 @@ func getOwner(obj metav1.Object) types.NamespacedName {
 	return types.NamespacedName{}
 }
 
+var DefaultFfmpegContainerImage string
+
 func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job {
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -100,7 +101,7 @@ func createFfmpegJobDefinition(task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job
 					Containers: []corev1.Container{
 						{
 							Name:            "ffmpeg",
-							Image:           cfg.Config.Operator.FfmpegContainerImage,
+							Image:           DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args:            opts.args,
 						},
