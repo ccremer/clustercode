@@ -1,16 +1,15 @@
 * xref:index.adoc[Introduction]
-ifeval::['{page-origin-reftype}' == 'tag']
-* https://github.com/ccremer/clustercode/releases/tag/{page-origin-refname}[Changelog,window=_blank]
-endif::[]
+* https://github.com/ccremer/clustercode/releases[Changelog,window=_blank] 🔗
 
 .Tutorials
-include::partial$nav-tutorials.adoc[]
+* xref:clustercode:ROOT:tutorials/tutorial.adoc[Tutorial]
 
 .How To
-include::partial$nav-howtos.adoc[]
+* xref:clustercode:ROOT:how-tos/create-blueprint.adoc[Create Blueprint]
 
 .Technical reference
-include::partial$nav-reference.adoc[]
+
 
 .Explanation
-include::partial$nav-explanation.adoc[]
+* xref:clustercode:ROOT:explanations/how-it-works.adoc[How Clustercode Works]
+* xref:clustercode:ROOT:explanations/history.adoc[Clustercode Architecture History]
