@@ -1,2 +1,0 @@
-* xref:clustercode:ROOT:explanations/how-it-works.adoc[How Clustercode Works]
-* xref:clustercode:ROOT:explanations/history.adoc[Clustercode Architecture History]

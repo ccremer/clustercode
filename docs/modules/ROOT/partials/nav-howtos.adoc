@@ -1,1 +1,0 @@
-* xref:clustercode:ROOT:how-tos/create-blueprint.adoc[Create Blueprint]

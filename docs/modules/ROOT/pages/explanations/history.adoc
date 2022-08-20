@@ -20,3 +20,9 @@ Soon, the decision was taken try yet another attempt, this time using Kubernetes
 The big advantage of this architecture is reduce maintenance to the actual business logic.
 Clustercode itself would become stateless, everything is stored in Kubernetes.
 However, requiring Kubernetes definitely increases installation complexity, and some users might actually not install it due to this.
+A Proof of Concept showed promise.
+
+Another 2 years or soo passed without getting past the PoC state.
+
+The original maintainer meanwhile got some experience on writing Operators and automation.
+Yet another attempt at a revival is restructuring a lot of code and boilerplate.
