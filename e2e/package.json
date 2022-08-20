@@ -1,6 +1,0 @@
-{
-  "name": "clustercode",
-  "devDependencies": {
-    "bats": "1.2.1"
-  }
-}

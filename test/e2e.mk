@@ -2,7 +2,7 @@ chart_deploy_args =
 
 .PHONY: chart-deploy
 chart-deploy: export KUBECONFIG = $(KIND_KUBECONFIG)
-chart-deploy: kind-load-image install-crd ## Install Operator in local cluster
+chart-deploy: kind-load-image install-crd blank-media ## Install Operator in local cluster
 	helm upgrade --install clustercode ./charts/clustercode \
 		--create-namespace --namespace clustercode-system \
 		--set podAnnotations.sha="$(shell docker inspect $(CONTAINER_IMG) | jq -r '.[].Id')" \
