@@ -1,3 +1,5 @@
+
+---
 apiVersion: clustercode.github.io/v1alpha1
 kind: Blueprint
 metadata:
@@ -6,13 +8,13 @@ spec:
   scanSchedule: "*/1 * * * *"
   storage:
     sourcePvc:
-      claimName: test1-source
+      claimName: source
       subPath: source
     intermediatePvc:
-      claimName: test1-intermediate
+      claimName: intermediate
       subPath: intermediate
     targetPvc:
-      claimName: test1-target
+      claimName: target
       subPath: target
   scanSpec:
     mediaFileExtensions:

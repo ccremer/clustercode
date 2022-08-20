@@ -40,9 +40,9 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           args:
-            - operate
-            - --clustercode-image={{ include "clustercode.containerImage" . | quote }}
-            - --ffmpeg-image={{ include "clustercode.ffmpegImage" . | quote }}
+            - operator
+            - --clustercode-image={{ include "clustercode.containerImage" . }}
+            - --ffmpeg-image={{ include "clustercode.ffmpegImage" . }}
           livenessProbe:
             httpGet:
               path: /metrics

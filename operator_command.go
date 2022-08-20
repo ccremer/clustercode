@@ -22,7 +22,6 @@ type operatorCommand struct {
 	LeaderElectionEnabled bool
 	WebhookCertDir        string
 	FfmpegImage           string
-	ScanRoleKind          cli.Generic
 }
 
 var operatorCommandName = "operator"
@@ -32,6 +31,7 @@ func newOperatorCommand() *cli.Command {
 	return &cli.Command{
 		Name:   operatorCommandName,
 		Usage:  "Start provider in operator mode",
+		Before: LogMetadata,
 		Action: command.execute,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{Name: "leader-election-enabled", Value: false, EnvVars: envVars("LEADER_ELECTION_ENABLED"),
@@ -54,7 +54,7 @@ func newOperatorCommand() *cli.Command {
 				Destination: &controllers.DefaultFfmpegContainerImage,
 				Category:    "Encoding", Required: true,
 			},
-			newScanRoleKindFlag(&command.ScanRoleKind),
+			newScanRoleKindFlag(),
 			&cli.StringFlag{Name: "scan-role-name", EnvVars: envVars("SCAN_ROLE_NAME"),
 				Usage:       "TODO",
 				Value:       "clustercode-editor-role",
@@ -66,7 +66,7 @@ func newOperatorCommand() *cli.Command {
 }
 
 func (c *operatorCommand) execute(ctx *cli.Context) error {
-	controllers.ScanRoleKind = c.ScanRoleKind.String()
+	controllers.ScanRoleKind = ctx.String(newScanRoleKindFlag().Name)
 	log := AppLogger(ctx).WithName(operatorCommandName)
 	log.Info("Setting up controllers", "config", c)
 	ctrl.SetLogger(log)

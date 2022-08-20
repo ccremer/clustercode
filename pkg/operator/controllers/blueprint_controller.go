@@ -36,7 +36,7 @@ type (
 )
 
 var ScanRoleKind = "ClusterRole"
-var ScanRoleName = "clustercode-editor-role"
+var ScanRoleName = "clustercode-edit"
 var DefaultClusterCodeContainerImage string
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints,verbs=get;list;watch;create;update;patch;delete
@@ -104,9 +104,10 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 									Args: []string{
 										"scan",
 										"--namespace=" + rc.blueprint.Namespace,
-										"--scan.blueprint-name=" + rc.blueprint.Name,
+										"--blueprint-name=" + rc.blueprint.Name,
 									},
-									Image: DefaultClusterCodeContainerImage,
+									Image:           DefaultClusterCodeContainerImage,
+									ImagePullPolicy: corev1.PullIfNotPresent,
 									VolumeMounts: []corev1.VolumeMount{
 										{
 											Name:      SourceSubMountPath,

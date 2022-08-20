@@ -13,8 +13,6 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/name: e2e
       pv.kubernetes.io/type: source
 ---
 apiVersion: v1
@@ -31,8 +29,6 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/name: e2e
       pv.kubernetes.io/type: intermediate
 
 ---
@@ -50,6 +46,4 @@ spec:
   storageClassName: hostpath
   selector:
     matchLabels:
-      app.kubernetes.io/managed-by: kustomize
-      app.kubernetes.io/name: e2e
       pv.kubernetes.io/type: target
