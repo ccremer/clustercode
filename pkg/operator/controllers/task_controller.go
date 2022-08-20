@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"

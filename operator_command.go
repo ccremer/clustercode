@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ccremer/clustercode/api"
+	"github.com/ccremer/clustercode/pkg/api"
 	"github.com/ccremer/clustercode/pkg/operator"
 	"github.com/ccremer/clustercode/pkg/operator/controllers"
 	pipeline "github.com/ccremer/go-command-pipeline"

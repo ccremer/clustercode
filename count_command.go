@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/ccremer/clustercode/pkg/operator/controllers"
 	"github.com/urfave/cli/v2"
 	v1 "k8s.io/api/core/v1"
@@ -150,19 +150,19 @@ func (c *countCommand) scanSegmentFiles(prefix string) ([]string, error) {
 
 func matchesTaskSegment(path string, prefix string) bool {
 	base := filepath.Base(path)
-	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaFileDoneSuffix)
+	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha12.MediaFileDoneSuffix)
 }
 
-func (c *countCommand) getTask() (*v1alpha1.Task, error) {
+func (c *countCommand) getTask() (*v1alpha12.Task, error) {
 	ctx := context.Background()
-	task := &v1alpha1.Task{}
+	task := &v1alpha12.Task{}
 	name := types.NamespacedName{
 		Name:      c.TaskName,
 		Namespace: c.TaskNamespace,
 	}
 	err := c.kube.Get(ctx, name, task)
 	if err != nil {
-		return &v1alpha1.Task{}, err
+		return &v1alpha12.Task{}, err
 	}
 	return task, nil
 }

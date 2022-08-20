@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/ccremer/clustercode/pkg/operator/controllers"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/types"

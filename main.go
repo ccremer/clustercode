@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/urfave/cli/v2"
 	batchv1 "k8s.io/api/batch/v1"
