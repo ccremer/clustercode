@@ -148,9 +148,9 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 							Image:           DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
-								"-v",
+								"-d",
 								"count",
-								"--count.task-name=" + rc.task.Name,
+								"--task-name=" + rc.task.Name,
 								"--namespace=" + rc.job.Namespace,
 							},
 							VolumeMounts: []corev1.VolumeMount{
@@ -223,10 +223,10 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 							Image:           DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
-								"-v",
+								"-d",
 								"--namespace=" + rc.job.Namespace,
 								"cleanup",
-								"--cleanup.task-name=" + rc.task.Name,
+								"--task-name=" + rc.task.Name,
 							},
 						},
 					},

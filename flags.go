@@ -52,11 +52,10 @@ func newBlueprintNameFlag(dest *string) *cli.StringFlag {
 	}
 }
 
-func newScanRoleKindFlag(dest *cli.Generic) *cli.GenericFlag {
+func newScanRoleKindFlag() *cli.GenericFlag {
 	enum := &EnumValue{Enum: []string{ClusterRole, Role}, Default: ClusterRole}
 	return &cli.GenericFlag{Name: "scan-role-kind", EnvVars: envVars("SCAN_ROLE"),
 		Usage:       "TODO",
-		Destination: dest,
 		Category:    "Encoding",
 		DefaultText: fmt.Sprintf("%q [%s]", enum.Default, strings.Join(enum.Enum, ", ")),
 		Value:       enum,

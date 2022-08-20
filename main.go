@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/go-logr/logr"
@@ -19,9 +20,9 @@ import (
 
 var (
 	// These will be populated by Goreleaser
-	version string
-	commit  string
-	date    string
+	version = "unknown"
+	commit  = "-dirty-"
+	date    = time.Now().Format("2006-01-02")
 
 	appName     = "clustercode"
 	appLongName = "Distribute your video encoding tasks across a cluster of nodes!"
