@@ -1,35 +1,25 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Example user template template
-### Example user template
+# Goreleaser
+/dist/
+/.github/release-notes.md
+/.github/crds.yaml
 
-# VSCode configs
-.vscode/
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen### Go template
-# Binaries for programs and plugins
-*.exe
-*.dll
-*.so
-*.dylib
-
-# Test binary, build with `go test -c`
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Build
+/clustercode
 *.out
 
-bin/
-dist/
-.github/release-notes.md
-.github/cover.out
-.github/crds.yaml
-clustercode-crd*.yaml
-clustercode
-testbin/
-node_modules/
-e2e/debug
-__debug_bin
+# Docs
+/.cache/
+/.public/
+/node_modules/
+
+# work
+/.work/
+
+# Media
+/data/intermediate/**
+/data/source/**
+/data/target/**
+
+# e2e
+/e2e/node_modules/
+/e2e/debug/
