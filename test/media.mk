@@ -1,6 +1,6 @@
-media_source_dir = data/source
-media_intermediate_dir = data/intermediate
-media_target_dir = data/target
+media_source_dir = $(WORK_DIR)/data/source
+media_intermediate_dir = $(WORK_DIR)/data/intermediate
+media_target_dir = $(WORK_DIR)/data/target
 
 media_filename = $(media_source_dir)/blank_video.mp4
 
@@ -26,5 +26,5 @@ $(media_intermediate_dir):
 $(media_target_dir):
 	@mkdir -p $@
 
-$(media_filename): build-docker | $(media_source_dir)
-	docker run --rm -u $(shell id -u):$(shell id -g) -v $${PWD}/$(media_source_dir):/data $(FFMPEG_IMG) -y -hide_banner -t 30 -f lavfi -i color=c=black:s=320x240 -c:v libx264 -tune stillimage -pix_fmt yuv420p /data/blank_video.mp4
+$(media_filename): | $(media_source_dir)
+	docker run --rm -u $(shell id -u):$(shell id -g) -v $(media_source_dir):/data $(FFMPEG_IMG) -y -hide_banner -t 30 -f lavfi -i color=c=black:s=320x240 -c:v libx264 -tune stillimage -pix_fmt yuv420p /data/blank_video.mp4

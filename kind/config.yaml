@@ -16,5 +16,5 @@ nodes:
         hostPort: 8443
         protocol: TCP
     extraMounts:
-      - hostPath: ./data
+      - hostPath: .work/data
         containerPath: /pv/data

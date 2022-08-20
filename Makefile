@@ -23,9 +23,7 @@ include Makefile.vars.mk
 # Optional Helm chart module
 -include charts/charts.mk
 # Local Env & testing
--include test/integration.mk test/e2e.mk
-# Media
--include data/media.mk
+-include test/integration.mk test/e2e.mk test/media.mk
 
 .PHONY: help
 help: ## Show this help
