@@ -1,47 +1,42 @@
 {
-  "pr_template": "- ${{TITLE}} (#${{NUMBER}})",
+  "pr_template": "- ${{TITLE}} (#${{NUMBER}}) by ${{AUTHOR}}",
   "categories": [
     {
       "title": "## 🚀 Features",
       "labels": [
-        "enhancement",
-        "feature"
+        "kind:enhancement"
       ]
     },
     {
       "title": "## 🛠️ Minor Changes",
       "labels": [
-        "change"
+        "kind:change"
       ]
     },
     {
       "title": "## 🔎 Breaking Changes",
       "labels": [
-        "breaking"
+        "kind:breaking"
       ]
     },
     {
       "title": "## 🐛 Fixes",
       "labels": [
-        "bug",
-        "fix"
+        "kind:bug"
       ]
     },
     {
       "title": "## 📄 Documentation",
       "labels": [
-        "documentation"
+        "kind:documentation"
       ]
     },
     {
       "title": "## 🔗 Dependency Updates",
       "labels": [
-        "dependency"
+        "kind:dependency"
       ]
     }
-  ],
-  "ignore_labels": [
-    "ignore"
   ],
   "template": "${{CATEGORIZED_COUNT}} changes since ${{FROM_TAG}}\n\n${{CHANGELOG}}"
 }

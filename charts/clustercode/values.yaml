@@ -1,0 +1,72 @@
+clustercode:
+  ffmpegImage:
+    registry: ghcr.io
+    repository: jrottenberg/ffmpeg
+    tag: 5.0-alpine
+  # -- Set additional environment variables to the Operator
+  env: []
+
+# -- The operator's pod replica count
+replicaCount: 1
+
+image:
+  registry: ghcr.io
+  repository: ccremer/clustercode
+  pullPolicy: IfNotPresent
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+rbac:
+  # -- Specifies whether RBAC roles and rolebindings should be enabled for users
+  create: true
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# -- The operator's pod annotations
+podAnnotations: {}
+
+# -- The operator's pod security context
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# -- The operator's container security context
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+metrics:
+  # -- Specifies whether metrics should be enabled
+  enabled: false
+  service:
+    type: ClusterIP
+    port: 9090
+
+resources:
+  limits:
+    memory: 128Mi
+  requests:
+    cpu: 10m
+    memory: 32Mi
+
+# -- The operator's pod node selector
+nodeSelector: {}
+
+# -- The operator's pod tolerations
+tolerations: []
+
+# -- The operator's pod affinity
+affinity: {}

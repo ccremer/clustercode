@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - "*"
+      - "v*"
 
 env:
   CONTAINER_REGISTRY: ghcr.io

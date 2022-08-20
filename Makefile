@@ -1,5 +1,6 @@
 # Set Shell to bash, otherwise some targets fail with dash/zsh etc.
 SHELL := /bin/bash
+.SHELLFLAGS := -eu -o pipefail -c
 
 # Disable built-in rules
 MAKEFLAGS += --no-builtin-rules
@@ -19,6 +20,8 @@ include Makefile.vars.mk
 -include docs/antora-preview.mk docs/antora-build.mk
 # Optional kind module
 -include kind/kind.mk
+# Optional Helm chart module
+-include charts/charts.mk
 # Local Env & testing
 -include test/integration.mk
 # Media

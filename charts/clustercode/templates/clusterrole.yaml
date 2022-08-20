@@ -1,0 +1,63 @@
+{{- if .Values.rbac.create -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "clustercode.fullname" . }}-view'
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-view: "true"
+rules:
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans
+      - clustercodetasks
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans/finalizers
+      - clustercodeplans/status
+      - clustercodetasks/finalizers
+      - clustercodetasks/status
+    verbs:
+      - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: '{{ include "clustercode.fullname" . }}-edit'
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+rules:
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans
+      - clustercodetasks
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - clustercode.github.io
+    resources:
+      - clustercodeplans/finalizers
+      - clustercodeplans/status
+      - clustercodetasks/finalizers
+      - clustercodetasks/status
+    verbs:
+      - get
+      - patch
+      - update
+{{- end }}

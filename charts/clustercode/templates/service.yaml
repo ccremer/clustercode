@@ -1,0 +1,16 @@
+{{- if .Values.metrics.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clustercode.fullname" . }}
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  ports:
+    - port: {{ .Values.metrics.service.port }}
+      targetPort: http
+      name: metrics
+  selector:
+    {{- include "clustercode.selectorLabels" . | nindent 4 }}
+{{- end }}
