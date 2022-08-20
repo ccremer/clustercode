@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Clustercode Architecture History :: Clustercode Docs</title>
+    <link rel="canonical" href="http://github.com/ccremer/clustercode/clustercode/explanations/history.html">
+    <meta name="generator" content="Antora 3.0.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header" role="banner">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-item">
+        <a href="http://github.com/ccremer/clustercode">Clustercode Docs</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="clustercode" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Clustercode</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <span class="nav-text"><a href="https://github.com/ccremer/clustercode/releases" target="_blank" rel="noopener">Changelog</a> 🔗</span>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Tutorials</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorials/tutorial.html">Tutorial</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">How To</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../how-tos/create-blueprint.html">Create Blueprint</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Explanation</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="how-it-works.html">How Clustercode Works</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="history.html">Clustercode Architecture History</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Clustercode</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Clustercode</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Clustercode</a></li>
+    <li>Explanation</li>
+    <li><a href="history.html">Clustercode Architecture History</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/ccremer/clustercode/edit/master/docs/modules/ROOT/pages/explanations/history.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Clustercode Architecture History</h1>
+<div class="paragraph">
+<p>In Clustercode 1.x, the stack consists of a Java-based Master node and several Slave nodes.
+However, parallelization was not achieved by splitting the media file.
+Instead, each Slave would get assigned a media file on its own, enabling parallelization only when having multiple media files to convert.
+The file system itself served as database when it comes to remember which files were already converted.</p>
+</div>
+<div class="paragraph">
+<p>This became soon difficult to maintain.</p>
+</div>
+<div class="paragraph">
+<p>Some time later, another attempt was made by using a message based architecture.
+There would be a Java-based Master for scheduling, a CouchDB database and Go-based Slaves.
+At least the same split-encode-merge parallelization concept was planned.
+However, the code grew much into solving infrastructure problems: How to connect to each other, what database scheme, error handling, logging, synchronization etc.
+The actual, more interesting business code was never completed or released.</p>
+</div>
+<div class="paragraph">
+<p>Another year or two passed without activity.</p>
+</div>
+<div class="paragraph">
+<p>Meanwhile the original maintainer gained a lot of knowledge on Kubernetes and its concept of Operators.
+Soon, the decision was taken try yet another attempt, this time using Kubernetes both as database and scheduler.
+The big advantage of this architecture is reduce maintenance to the actual business logic.
+Clustercode itself would become stateless, everything is stored in Kubernetes.
+However, requiring Kubernetes definitely increases installation complexity, and some users might actually not install it due to this.
+A Proof of Concept showed promise.</p>
+</div>
+<div class="paragraph">
+<p>Another 2 years or soo passed without getting past the PoC state.</p>
+</div>
+<div class="paragraph">
+<p>The original maintainer meanwhile got some experience on writing Operators and automation.
+Yet another attempt at a revival is restructuring a lot of code and boilerplate.</p>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<!--
+This page was built using the Antora default UI.
+The source code for this UI is licensed under the terms of the MPL-2.0 license.
+-->
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

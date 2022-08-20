@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>How Clustercode Works :: Clustercode Docs</title>
+    <link rel="canonical" href="http://github.com/ccremer/clustercode/clustercode/explanations/how-it-works.html">
+    <meta name="generator" content="Antora 3.0.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header" role="banner">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="navbar-item">
+        <a href="http://github.com/ccremer/clustercode">Clustercode Docs</a>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="clustercode" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">Clustercode</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../index.html">Introduction</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <span class="nav-text"><a href="https://github.com/ccremer/clustercode/releases" target="_blank" rel="noopener">Changelog</a> 🔗</span>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Tutorials</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../tutorials/tutorial.html">Tutorial</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">How To</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../how-tos/create-blueprint.html">Create Blueprint</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Explanation</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="how-it-works.html">How Clustercode Works</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="history.html">Clustercode Architecture History</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Clustercode</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">Clustercode</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">Clustercode</a></li>
+    <li>Explanation</li>
+    <li><a href="how-it-works.html">How Clustercode Works</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/ccremer/clustercode/edit/master/docs/modules/ROOT/pages/explanations/how-it-works.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">How Clustercode Works</h1>
+<div class="sect1">
+<h2 id="_high_level_workflow"><a class="anchor" href="#_high_level_workflow"></a>High level workflow</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Clustercode reads an input file from a directory and splits it into multiple smaller chunks.
+Those chunks are encoded individually, but in parallel when enabling concurrency.
+That means, more nodes equals faster encoding.
+After all chunks are converted, they are merged together again and put into target directory.</p>
+</div>
+<div class="paragraph">
+<p>Ffmpeg is used in the splitting, encoding and merging jobs.
+It basically boils down to</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Splitting: <code>ffmpeg -i movie.mp4 -c copy -map 0 -segment_time 120 -f segment job-id_%d.mp4</code></p>
+</li>
+<li>
+<p>Encoding: <code>ffmpeg -i job-id_1.mp4 -c:v copy -c:a copy job-id_1_done.mkv</code></p>
+</li>
+<li>
+<p>Merging: <code>ffmpeg -f concat -i file-list.txt -c copy movie_out.mkv</code></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>You can customize the arguments passed to ffmpeg (with a few rules and constraints).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enter_kubernetes"><a class="anchor" href="#_enter_kubernetes"></a>Enter Kubernetes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Under the hood, 2 Kubernetes CRDs are used to describe the config.
+All steps with Ffmpeg are executed with Kubernetes Jobs, while the encoding step can be executed in parallel by scheduling multiple Jobs at the same time.</p>
+</div>
+<div class="paragraph">
+<p>Clustercode operates in either in "operator" or "client" mode.
+As an operator, clustercode creates Tasks from Blueprints, which in turn control the spawning CronJobs and Jobs.
+There is only one operator on the cluster across all namespaces.
+In Jobs and CronJobs, Clustercode is launched as a client, interacting with Kubernetes API.
+CronJobs and Jobs are launched in the same namespace as the Blueprint is in.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_process_diagram"><a class="anchor" href="#_process_diagram"></a>Process Diagram</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you understand BPMN 2.0, the following graphic should give a more insights how Clustercode works on Kubernetes.
+Even if you don&#8217;t fully understand it, this should give a gist.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The BPMN experts will notice that this is not 100% valid BPMN, because it&#8217;s made for humans.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+The image is an SVG vector graphic, so you should be able to zoom in to read it.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/clustercode-process.drawio.svg" alt="clustercode process.drawio">
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<!--
+This page was built using the Antora default UI.
+The source code for this UI is licensed under the terms of the MPL-2.0 license.
+-->
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
