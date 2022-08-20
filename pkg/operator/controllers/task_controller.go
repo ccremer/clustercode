@@ -7,17 +7,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ccremer/clustercode/api/v1alpha1"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"github.com/ccremer/clustercode/api/v1alpha1"
 )
 
 type (
@@ -25,7 +20,6 @@ type (
 	TaskReconciler struct {
 		Client client.Client
 		Log    logr.Logger
-		Scheme *runtime.Scheme
 	}
 	// TaskContext holds the parameters of a single reconciliation
 	TaskContext struct {
@@ -43,18 +37,6 @@ type (
 		mountConfig       bool
 	}
 )
-
-func (r *TaskReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: ClusterCodeLabels})
-	if err != nil {
-		return err
-	}
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&v1alpha1.Task{}, builder.WithPredicates(pred)).
-		//Owns(&batchv1.Job{}).
-		//WithEventFilter(predicate.GenerationChangedPredicate{}).
-		Complete(r)
-}
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status,verbs=get;update;patch
@@ -146,7 +128,7 @@ func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
 		mountSource:       true,
 		mountIntermediate: true,
 	})
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {
@@ -174,7 +156,7 @@ func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
 	})
 	job.Name = fmt.Sprintf("%s-%d", job.Name, index)
 	job.Labels[ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {
@@ -207,7 +189,7 @@ func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
 		mountTarget:       true,
 		mountConfig:       true,
 	})
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Scheme); err != nil {
+	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
 	if err := r.Client.Create(rc.ctx, job); err != nil {

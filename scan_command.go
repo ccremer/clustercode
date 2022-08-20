@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"context"
@@ -7,58 +7,59 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/spf13/cobra"
+	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	"github.com/urfave/cli/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
+	"k8s.io/client-go/rest"
 	"k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	controllerclient "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	"github.com/ccremer/clustercode/api/v1alpha1"
-	"github.com/ccremer/clustercode/cfg"
-	"github.com/ccremer/clustercode/controllers"
 )
 
-// scanCmd represents the scan command
-var (
-	scanCmd = &cobra.Command{
-		Use:     "scan",
-		Short:   "A brief description of your command",
-		PreRunE: validateScanCmd,
-		RunE:    scanMedia,
-	}
-	scanLog = ctrl.Log.WithName("scan")
+type scanCommand struct {
+	kubeconfig *rest.Config
+	kube       client.Client
+
+	BlueprintName      string
+	BlueprintNamespace string
+	SourceRoot         string
+	RoleKind           string
+}
+
+const (
+	ClusterRole = "ClusterRole"
+	Role        = "Role"
 )
 
-func validateScanCmd(cmd *cobra.Command, args []string) error {
-	if cfg.Config.Scan.BlueprintName == "" {
-		return fmt.Errorf("'%s' cannot be empty", "scan.blueprint-name")
+var scanCommandName = "scan"
+var scanLog = ctrl.Log.WithName("scan")
+
+func newScanCommand() *cli.Command {
+	command := &scanCommand{}
+	return &cli.Command{
+		Name:   scanCommandName,
+		Usage:  "Scan source storage for new files",
+		Action: command.execute,
+		Flags: []cli.Flag{
+			newBlueprintNameFlag(&command.BlueprintName),
+			newNamespaceFlag(&command.BlueprintNamespace),
+			newSourceRootDirFlag(&command.SourceRoot),
+		},
 	}
-	if cfg.Config.Namespace == "" {
-		return fmt.Errorf("'%s' cannot be empty", "namespace")
-	}
-	if !(cfg.Config.Scan.RoleKind == cfg.ClusterRole || cfg.Config.Scan.RoleKind == cfg.Role) {
-		return fmt.Errorf("scan.role-kind (%s) is not in %s", cfg.Config.Scan.RoleKind, []string{cfg.ClusterRole, cfg.Role})
-	}
-	return nil
 }
 
-func init() {
-	rootCmd.AddCommand(scanCmd)
-
-	scanCmd.PersistentFlags().String("scan.blueprint-name", cfg.Config.Scan.BlueprintName, "Blueprint name (namespace/name)")
-}
-
-func scanMedia(cmd *cobra.Command, args []string) error {
-
+func (c *scanCommand) execute(ctx *cli.Context) error {
 	registerScheme()
-	err := createClient()
+	err := createClientFn(&commandContext{})
 	if err != nil {
 		return err
 	}
-	bp, err := getBlueprint()
+	bp, err := c.getBlueprint(ctx.Context)
 	if err != nil {
 		return err
 	}
@@ -69,13 +70,13 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	tasks, err := getCurrentTasks(bp)
+	tasks, err := c.getCurrentTasks(ctx.Context, bp)
 	if err != nil {
 		return err
 	}
 	scanLog.Info("get list of current tasks", "tasks", tasks)
-	existingFiles := mapAndFilterTasks(tasks, bp)
-	files, err := scanSourceForMedia(bp, existingFiles)
+	existingFiles := c.mapAndFilterTasks(tasks, bp)
+	files, err := c.scanSourceForMedia(bp, existingFiles)
 	if err != nil {
 		return err
 	}
@@ -85,12 +86,12 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	selectedFile, err := filepath.Rel(filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath), files[0])
+	selectedFile, err := filepath.Rel(filepath.Join(c.SourceRoot, controllers.SourceSubMountPath), files[0])
 
 	taskId := string(uuid.NewUUID())
 	task := &v1alpha1.Task{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: cfg.Config.Namespace,
+			Namespace: c.BlueprintNamespace,
 			Name:      taskId,
 			Labels:    controllers.ClusterCodeLabels,
 		},
@@ -108,7 +109,7 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	if err := controllerutil.SetControllerReference(bp, task.GetObjectMeta(), scheme); err != nil {
 		scanLog.Error(err, "could not set controller reference. Deleting the bp might not delete this task")
 	}
-	if err := client.Create(context.Background(), task); err != nil {
+	if err := c.kube.Create(ctx.Context, task); err != nil {
 		return fmt.Errorf("could not create task: %w", err)
 	} else {
 		scanLog.Info("created task", "task", task.Name, "source", task.Spec.SourceUrl)
@@ -116,26 +117,26 @@ func scanMedia(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func mapAndFilterTasks(tasks []v1alpha1.Task, bp *v1alpha1.Blueprint) []string {
+func (c *scanCommand) mapAndFilterTasks(tasks []v1alpha1.Task, bp *v1alpha1.Blueprint) []string {
 
 	var sourceFiles []string
 	for _, task := range tasks {
 		if task.GetDeletionTimestamp() != nil {
 			continue
 		}
-		sourceFiles = append(sourceFiles, getAbsolutePath(task.Spec.SourceUrl))
+		sourceFiles = append(sourceFiles, c.getAbsolutePath(task.Spec.SourceUrl))
 	}
 
 	return sourceFiles
 }
 
-func getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
-	return filepath.Join(cfg.Config.Scan.SourceRoot, uri.GetRoot(), uri.GetPath())
+func (c *scanCommand) getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
+	return filepath.Join(c.SourceRoot, uri.GetRoot(), uri.GetPath())
 }
 
-func getCurrentTasks(bp *v1alpha1.Blueprint) ([]v1alpha1.Task, error) {
+func (c *scanCommand) getCurrentTasks(ctx context.Context, bp *v1alpha1.Blueprint) ([]v1alpha1.Task, error) {
 	list := v1alpha1.TaskList{}
-	err := client.List(context.Background(), &list,
+	err := c.kube.List(ctx, &list,
 		controllerclient.MatchingLabels(controllers.ClusterCodeLabels),
 		controllerclient.InNamespace(bp.Namespace))
 	if err != nil {
@@ -152,8 +153,8 @@ func getCurrentTasks(bp *v1alpha1.Blueprint) ([]v1alpha1.Task, error) {
 	return list.Items, err
 }
 
-func scanSourceForMedia(bp *v1alpha1.Blueprint, skipFiles []string) (files []string, funcErr error) {
-	root := filepath.Join(cfg.Config.Scan.SourceRoot, controllers.SourceSubMountPath)
+func (c *scanCommand) scanSourceForMedia(bp *v1alpha1.Blueprint, skipFiles []string) (files []string, funcErr error) {
+	root := filepath.Join(c.SourceRoot, controllers.SourceSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// could not access file, let's prevent a panic
@@ -180,30 +181,17 @@ func scanSourceForMedia(bp *v1alpha1.Blueprint, skipFiles []string) (files []str
 	return files, err
 }
 
-func getBlueprint() (*v1alpha1.Blueprint, error) {
-	ctx := context.Background()
+func (c *scanCommand) getBlueprint(ctx context.Context) (*v1alpha1.Blueprint, error) {
 	bp := &v1alpha1.Blueprint{}
 	name := types.NamespacedName{
-		Name:      cfg.Config.Scan.BlueprintName,
-		Namespace: cfg.Config.Namespace,
+		Name:      c.BlueprintName,
+		Namespace: c.BlueprintNamespace,
 	}
-	err := client.Get(ctx, name, bp)
+	err := c.kube.Get(ctx, name, bp)
 	if err != nil {
 		return &v1alpha1.Blueprint{}, err
 	}
 	return bp, nil
-}
-
-func createClient() error {
-	clientConfig, err := ctrl.GetConfig()
-	if err != nil {
-		return err
-	}
-	client, err = controllerclient.New(clientConfig, controllerclient.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // containsExtension returns true if the given extension is in the given acceptableFileExtensions. For each entry in the list,

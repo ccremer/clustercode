@@ -1,12 +1,15 @@
 # Make sure to check the documentation at http://goreleaser.com
 
 builds:
-- env:
-  - CGO_ENABLED=0 # this is needed otherwise the Docker image build is faulty
-  goarch:
-  - amd64
-  goos:
-  - linux
+  - env:
+      - CGO_ENABLED=0 # this is needed otherwise the Docker image build is faulty
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - linux
+    goarm:
+      - 8
 
 checksum:
   name_template: 'checksums.txt'
@@ -15,38 +18,50 @@ snapshot:
   name_template: "{{ .Tag }}-snapshot"
 
 signs:
-- artifacts: checksum
-  args: ["-u", "3D25B4013DDE195CB2DF2C6569E37C3C7822E698", "--output", "${signature}", "--detach-sign", "${artifact}"]
+  - artifacts: checksum
+    args: ["-u", "3D25B4013DDE195CB2DF2C6569E37C3C7822E698", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 nfpms:
-- vendor: ccremer
-  homepage: https://github.com/ccremer/clustercode
-  maintainer: ccremer
-  description: Clustercode converts media files in cluster with ffmpeg
-  license: MIT
-  file_name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
-  formats:
-  - deb
-  - rpm
+  - vendor: ccremer
+    homepage: https://github.com/ccremer/clustercode
+    maintainer: ccremer
+    description: Clustercode converts media files in Kubernetes with ffmpeg
+    license: MIT
+    file_name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+    formats:
+      - deb
+      - rpm
 
 dockers:
-- image_templates:
-  - "docker.io/ccremer/clustercode:v{{ .Version }}"
-  - "quay.io/ccremer/clustercode:v{{ .Version }}"
+  - goarch: amd64
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/amd64"
+    image_templates:
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-amd64"
 
-  # For prereleases, updating `latest` and the floating tags of the major
-  # version does not make sense. Only the image for the exact version should
-  # be pushed.
-  - "{{ if not .Prerelease }}docker.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
-  - "{{ if not .Prerelease }}quay.io/ccremer/clustercode:v{{ .Major }}{{ end }}"
+  - goarch: arm64
+    use: buildx
+    build_flag_templates:
+      - "--platform=linux/arm64/v8"
+    image_templates:
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-arm64"
 
-  - "{{ if not .Prerelease }}docker.io/ccremer/clustercode:latest{{ end }}"
-  - "{{ if not .Prerelease }}quay.io/ccremer/clustercode:latest{{ end }}"
+docker_manifests:
+  ## ghcr.io
+  # For prereleases, updating `latest` does not make sense.
+  # Only the image for the exact version should be pushed.
+  - name_template: "{{ if not .Prerelease }}{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:latest{{ end }}"
+    image_templates:
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-amd64"
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-arm64"
+
+  - name_template: "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}"
+    image_templates:
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-amd64"
+      - "{{ .Env.CONTAINER_REGISTRY }}/{{ .Env.IMAGE_NAME }}:v{{ .Version }}-arm64"
 
 release:
   prerelease: auto
-  github:
-    owner: ccremer
-    name: clustercode
   extra_files:
-  - glob: ./clustercode-crd*.yaml
+  - glob: ./.github/crds.yaml
