@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
-	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
 	"github.com/urfave/cli/v2"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -53,14 +53,14 @@ func (c *cleanupCommand) execute(ctx *cli.Context) error {
 		return err
 	}
 
-	intermediaryFiles, err := filepath.Glob(filepath.Join(c.SourceRootDir, controllers.IntermediateSubMountPath, task.Spec.TaskId.String()+"*"))
+	intermediaryFiles, err := filepath.Glob(filepath.Join(c.SourceRootDir, internaltypes.IntermediateSubMountPath, task.Spec.TaskId.String()+"*"))
 	if err != nil {
 		return err
 	}
 	cleanupLog.Info("deleting intermediary files", "files", intermediaryFiles)
 	deleteFiles(intermediaryFiles)
 
-	sourceFile := filepath.Join(c.SourceRootDir, controllers.SourceSubMountPath, task.Spec.SourceUrl.GetPath())
+	sourceFile := filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath, task.Spec.SourceUrl.GetPath())
 	cleanupLog.Info("deleting source file", "file", sourceFile)
 	if err := os.Remove(sourceFile); err != nil {
 		return err

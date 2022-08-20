@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
-	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
 	"github.com/urfave/cli/v2"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -101,7 +101,7 @@ func (c *countCommand) createFileList(files []string, task *v1alpha1.Task) error
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      task.Spec.FileListConfigMapRef,
 			Namespace: task.Namespace,
-			Labels:    labels.Merge(controllers.ClusterCodeLabels, task.Spec.TaskId.AsLabels()),
+			Labels:    labels.Merge(internaltypes.ClusterCodeLabels, task.Spec.TaskId.AsLabels()),
 		},
 		Data: map[string]string{
 			v1alpha1.ConfigMapFileName: data,
@@ -126,7 +126,7 @@ func (c *countCommand) createFileList(files []string, task *v1alpha1.Task) error
 
 func (c *countCommand) scanSegmentFiles(prefix string) ([]string, error) {
 	var files []string
-	root := filepath.Join(c.SourceRootDir, controllers.IntermediateSubMountPath)
+	root := filepath.Join(c.SourceRootDir, internaltypes.IntermediateSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// could not access file, let's prevent a panic
@@ -150,19 +150,19 @@ func (c *countCommand) scanSegmentFiles(prefix string) ([]string, error) {
 
 func matchesTaskSegment(path string, prefix string) bool {
 	base := filepath.Base(path)
-	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha12.MediaFileDoneSuffix)
+	return strings.HasPrefix(base, prefix) && !strings.Contains(base, v1alpha1.MediaFileDoneSuffix)
 }
 
-func (c *countCommand) getTask() (*v1alpha12.Task, error) {
+func (c *countCommand) getTask() (*v1alpha1.Task, error) {
 	ctx := context.Background()
-	task := &v1alpha12.Task{}
+	task := &v1alpha1.Task{}
 	name := types.NamespacedName{
 		Name:      c.TaskName,
 		Namespace: c.TaskNamespace,
 	}
 	err := c.kube.Get(ctx, name, task)
 	if err != nil {
-		return &v1alpha12.Task{}, err
+		return &v1alpha1.Task{}, err
 	}
 	return task, nil
 }

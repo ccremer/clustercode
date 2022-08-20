@@ -6,7 +6,8 @@ import (
 
 	"github.com/ccremer/clustercode/pkg/api"
 	"github.com/ccremer/clustercode/pkg/operator"
-	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	"github.com/ccremer/clustercode/pkg/operator/blueprintcontroller"
+	"github.com/ccremer/clustercode/pkg/operator/taskcontroller"
 	pipeline "github.com/ccremer/go-command-pipeline"
 	"github.com/urfave/cli/v2"
 	"k8s.io/client-go/rest"
@@ -46,19 +47,19 @@ func newOperatorCommand() *cli.Command {
 			},
 			&cli.StringFlag{Name: "clustercode-image", EnvVars: envVars("CLUSTERCODE_IMAGE"),
 				Usage:       "Container image to be used when launching Clustercode jobs.",
-				Destination: &controllers.DefaultClusterCodeContainerImage,
+				Destination: &blueprintcontroller.DefaultClusterCodeContainerImage,
 				Category:    "Encoding", Required: true,
 			},
 			&cli.StringFlag{Name: "ffmpeg-image", EnvVars: envVars("FFMPEG_IMAGE"),
 				Usage:       "Container image to be used when launching Ffmpeg jobs.",
-				Destination: &controllers.DefaultFfmpegContainerImage,
+				Destination: &taskcontroller.DefaultFfmpegContainerImage,
 				Category:    "Encoding", Required: true,
 			},
 			newScanRoleKindFlag(),
 			&cli.StringFlag{Name: "scan-role-name", EnvVars: envVars("SCAN_ROLE_NAME"),
 				Usage:       "TODO",
 				Value:       "clustercode-editor-role",
-				Destination: &controllers.ScanRoleName,
+				Destination: &blueprintcontroller.ScanRoleName,
 				Category:    "Encoding",
 			},
 		},
@@ -66,7 +67,7 @@ func newOperatorCommand() *cli.Command {
 }
 
 func (c *operatorCommand) execute(ctx *cli.Context) error {
-	controllers.ScanRoleKind = ctx.String(newScanRoleKindFlag().Name)
+	blueprintcontroller.ScanRoleKind = ctx.String(newScanRoleKindFlag().Name)
 	log := AppLogger(ctx).WithName(operatorCommandName)
 	log.Info("Setting up controllers", "config", c)
 	ctrl.SetLogger(log)

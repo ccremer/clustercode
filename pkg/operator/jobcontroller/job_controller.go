@@ -1,4 +1,4 @@
-package controllers
+package jobcontroller
 
 import (
 	"context"
@@ -8,6 +8,9 @@ import (
 	"time"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
+	"github.com/ccremer/clustercode/pkg/internal/utils"
+	"github.com/ccremer/clustercode/pkg/operator/blueprintcontroller"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -31,7 +34,7 @@ type (
 	JobContext struct {
 		ctx     context.Context
 		job     *batchv1.Job
-		jobType ClusterCodeJobType
+		jobType internaltypes.ClusterCodeJobType
 		task    *v1alpha1.Task
 		log     logr.Logger
 	}
@@ -71,14 +74,14 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	}
 	rc.jobType = jobType
 	switch jobType {
-	case ClustercodeTypeSplit:
+	case internaltypes.JobTypeSplit:
 		return ctrl.Result{}, r.handleSplitJob(rc)
-	case ClustercodeTypeCount:
+	case internaltypes.JobTypeCount:
 		rc.log.Info("reconciled count job")
-	case ClustercodeTypeSlice:
+	case internaltypes.JobTypeSlice:
 		rc.log.Info("reconciling slice job")
 		return ctrl.Result{}, r.handleSliceJob(rc)
-	case ClustercodeTypeMerge:
+	case internaltypes.JobTypeMerge:
 		rc.log.Info("reconciling merge job")
 		return ctrl.Result{}, r.handleMergeJob(rc)
 	}
@@ -87,7 +90,7 @@ func (r *JobReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
 	rc.task = &v1alpha1.Task{}
-	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+	if err := r.Client.Get(rc.ctx, utils.GetOwner(rc.job), rc.task); err != nil {
 		return err
 	}
 
@@ -95,17 +98,17 @@ func (r *JobReconciler) handleSplitJob(rc *JobContext) error {
 }
 
 func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
-	indexStr, found := rc.job.Labels[ClustercodeSliceIndexLabelKey]
+	indexStr, found := rc.job.Labels[internaltypes.ClustercodeSliceIndexLabelKey]
 	if !found {
-		return fmt.Errorf("cannot determine slice index, missing label '%s'", ClustercodeSliceIndexLabelKey)
+		return fmt.Errorf("cannot determine slice index, missing label '%s'", internaltypes.ClustercodeSliceIndexLabelKey)
 	}
 	index, err := strconv.Atoi(indexStr)
 	if err != nil {
-		return fmt.Errorf("cannot determine slice index from label '%s': %w", ClustercodeSliceIndexLabelKey, err)
+		return fmt.Errorf("cannot determine slice index from label '%s': %w", internaltypes.ClustercodeSliceIndexLabelKey, err)
 	}
 
 	rc.task = &v1alpha1.Task{}
-	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+	if err := r.Client.Get(rc.ctx, utils.GetOwner(rc.job), rc.task); err != nil {
 		return err
 	}
 	finished := rc.task.Status.SlicesFinished
@@ -129,12 +132,12 @@ func (r *JobReconciler) handleSliceJob(rc *JobContext) error {
 func (r *JobReconciler) createCountJob(rc *JobContext) error {
 
 	taskId := rc.task.Spec.TaskId
-	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCount), taskId, ClustercodeTypeCount),
+			Name:      fmt.Sprintf("%.*s-%s", 62-len(internaltypes.JobTypeCount), taskId, internaltypes.JobTypeCount),
 			Namespace: rc.job.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClustercodeTypeCount.AsLabels(), taskId.AsLabels())),
+			Labels:    labels.Merge(internaltypes.ClusterCodeLabels, labels.Merge(internaltypes.JobTypeCount.AsLabels(), taskId.AsLabels())),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
@@ -145,7 +148,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 					Containers: []corev1.Container{
 						{
 							Name:            "clustercode",
-							Image:           DefaultClusterCodeContainerImage,
+							Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
 								"-d",
@@ -154,13 +157,13 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 								"--namespace=" + rc.job.Namespace,
 							},
 							VolumeMounts: []corev1.VolumeMount{
-								{Name: IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.task.Spec.Storage.IntermediatePvc.SubPath},
+								{Name: internaltypes.IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: rc.task.Spec.Storage.IntermediatePvc.SubPath},
 							},
 						},
 					},
 					Volumes: []corev1.Volume{
 						{
-							Name: IntermediateSubMountPath,
+							Name: internaltypes.IntermediateSubMountPath,
 							VolumeSource: corev1.VolumeSource{
 								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 									ClaimName: rc.task.Spec.Storage.IntermediatePvc.ClaimName,
@@ -190,7 +193,7 @@ func (r *JobReconciler) createCountJob(rc *JobContext) error {
 
 func (r *JobReconciler) handleMergeJob(rc *JobContext) error {
 	rc.task = &v1alpha1.Task{}
-	if err := r.Client.Get(rc.ctx, getOwner(rc.job), rc.task); err != nil {
+	if err := r.Client.Get(rc.ctx, utils.GetOwner(rc.job), rc.task); err != nil {
 		return err
 	}
 
@@ -202,9 +205,9 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 	taskId := rc.task.Spec.TaskId
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%.*s-%s", 62-len(ClustercodeTypeCleanup), taskId, ClustercodeTypeCleanup),
+			Name:      fmt.Sprintf("%.*s-%s", 62-len(internaltypes.JobTypeCleanup), taskId, internaltypes.JobTypeCleanup),
 			Namespace: rc.job.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, labels.Merge(ClustercodeTypeCleanup.AsLabels(), taskId.AsLabels())),
+			Labels:    labels.Merge(internaltypes.ClusterCodeLabels, labels.Merge(internaltypes.JobTypeCleanup.AsLabels(), taskId.AsLabels())),
 		},
 		Spec: batchv1.JobSpec{
 			BackoffLimit: pointer.Int32Ptr(0),
@@ -220,7 +223,7 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 					Containers: []corev1.Container{
 						{
 							Name:            "clustercode",
-							Image:           DefaultClusterCodeContainerImage,
+							Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
 								"-d",
@@ -234,8 +237,8 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 			},
 		},
 	}
-	addPvcVolume(job, SourceSubMountPath, filepath.Join("/clustercode", SourceSubMountPath), rc.task.Spec.Storage.SourcePvc)
-	addPvcVolume(job, IntermediateSubMountPath, filepath.Join("/clustercode", IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc)
+	utils.AddPvcVolume(job, internaltypes.SourceSubMountPath, filepath.Join("/clustercode", internaltypes.SourceSubMountPath), rc.task.Spec.Storage.SourcePvc)
+	utils.AddPvcVolume(job, internaltypes.IntermediateSubMountPath, filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath), rc.task.Spec.Storage.IntermediatePvc)
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
 	}
@@ -252,18 +255,18 @@ func (r *JobReconciler) createCleanupJob(rc *JobContext) error {
 	return nil
 }
 
-func (c JobContext) getJobType() (ClusterCodeJobType, error) {
+func (c JobContext) getJobType() (internaltypes.ClusterCodeJobType, error) {
 	set := labels.Set(c.job.Labels)
-	if !set.Has(ClustercodeTypeLabelKey) {
-		return "", fmt.Errorf("missing label key '%s", ClustercodeTypeLabelKey)
+	if !set.Has(internaltypes.ClustercodeTypeLabelKey) {
+		return "", fmt.Errorf("missing label key '%s", internaltypes.ClustercodeTypeLabelKey)
 	}
-	label := set.Get(ClustercodeTypeLabelKey)
-	for _, jobType := range ClustercodeTypes {
+	label := set.Get(internaltypes.ClustercodeTypeLabelKey)
+	for _, jobType := range internaltypes.JobTypes {
 		if label == string(jobType) {
 			return jobType, nil
 		}
 	}
-	return "", fmt.Errorf("value of label '%s' unrecognized: %s", ClustercodeTypeLabelKey, label)
+	return "", fmt.Errorf("value of label '%s' unrecognized: %s", internaltypes.ClustercodeTypeLabelKey, label)
 }
 
 func castConditions(conditions []batchv1.JobCondition) (converted []metav1.Condition) {

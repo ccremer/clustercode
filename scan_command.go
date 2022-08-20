@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
-	"github.com/ccremer/clustercode/pkg/operator/controllers"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
 	"github.com/urfave/cli/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -86,19 +86,19 @@ func (c *scanCommand) execute(ctx *cli.Context) error {
 		return nil
 	}
 
-	selectedFile, err := filepath.Rel(filepath.Join(c.SourceRoot, controllers.SourceSubMountPath), files[0])
+	selectedFile, err := filepath.Rel(filepath.Join(c.SourceRoot, internaltypes.SourceSubMountPath), files[0])
 
 	taskId := string(uuid.NewUUID())
 	task := &v1alpha1.Task{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: c.BlueprintNamespace,
 			Name:      taskId,
-			Labels:    controllers.ClusterCodeLabels,
+			Labels:    internaltypes.ClusterCodeLabels,
 		},
 		Spec: v1alpha1.TaskSpec{
 			TaskId:               v1alpha1.ClustercodeTaskId(taskId),
-			SourceUrl:            v1alpha1.ToUrl(controllers.SourceSubMountPath, selectedFile),
-			TargetUrl:            v1alpha1.ToUrl(controllers.TargetSubMountPath, selectedFile),
+			SourceUrl:            v1alpha1.ToUrl(internaltypes.SourceSubMountPath, selectedFile),
+			TargetUrl:            v1alpha1.ToUrl(internaltypes.TargetSubMountPath, selectedFile),
 			EncodeSpec:           bp.Spec.EncodeSpec,
 			Storage:              bp.Spec.Storage,
 			ServiceAccountName:   bp.GetServiceAccountName(),
@@ -137,7 +137,7 @@ func (c *scanCommand) getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
 func (c *scanCommand) getCurrentTasks(ctx context.Context, bp *v1alpha1.Blueprint) ([]v1alpha1.Task, error) {
 	list := v1alpha1.TaskList{}
 	err := c.kube.List(ctx, &list,
-		controllerclient.MatchingLabels(controllers.ClusterCodeLabels),
+		controllerclient.MatchingLabels(internaltypes.ClusterCodeLabels),
 		controllerclient.InNamespace(bp.Namespace))
 	if err != nil {
 		return list.Items, err
@@ -154,7 +154,7 @@ func (c *scanCommand) getCurrentTasks(ctx context.Context, bp *v1alpha1.Blueprin
 }
 
 func (c *scanCommand) scanSourceForMedia(bp *v1alpha1.Blueprint, skipFiles []string) (files []string, funcErr error) {
-	root := filepath.Join(c.SourceRoot, controllers.SourceSubMountPath)
+	root := filepath.Join(c.SourceRoot, internaltypes.SourceSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			// could not access file, let's prevent a panic

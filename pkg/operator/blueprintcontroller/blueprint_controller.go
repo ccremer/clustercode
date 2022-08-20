@@ -1,4 +1,4 @@
-package controllers
+package blueprintcontroller
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/api/batch/v1beta1"
@@ -21,23 +22,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type (
-	// BlueprintReconciler reconciles Blueprint objects
-	BlueprintReconciler struct {
-		Client client.Client
-		Log    logr.Logger
-	}
-	// BlueprintContext holds the parameters of a single reconciliation
-	BlueprintContext struct {
-		ctx       context.Context
-		blueprint *v1alpha1.Blueprint
-		log       logr.Logger
-	}
-)
-
-var ScanRoleKind = "ClusterRole"
 var ScanRoleName = "clustercode-edit"
+var ScanRoleKind = "ClusterRole"
 var DefaultClusterCodeContainerImage string
+
+// BlueprintReconciler reconciles Blueprint objects
+type BlueprintReconciler struct {
+	Client client.Client
+	Log    logr.Logger
+}
+
+// BlueprintContext holds the parameters of a single reconciliation
+type BlueprintContext struct {
+	context.Context
+	blueprint *v1alpha1.Blueprint
+	log       logr.Logger
+}
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=blueprints/status,verbs=get;update;patch
@@ -49,7 +49,7 @@ var DefaultClusterCodeContainerImage string
 
 func (r *BlueprintReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	rc := &BlueprintContext{
-		ctx:       ctx,
+		Context:   ctx,
 		blueprint: &v1alpha1.Blueprint{},
 	}
 	err := r.Client.Get(ctx, req.NamespacedName, rc.blueprint)
@@ -78,7 +78,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rc.blueprint.Name + "-scan-job",
 			Namespace: rc.blueprint.Namespace,
-			Labels:    labels.Merge(ClusterCodeLabels, ClustercodeTypeScan.AsLabels()),
+			Labels:    labels.Merge(internaltypes.ClusterCodeLabels, internaltypes.JobTypeScan.AsLabels()),
 		},
 		Spec: v1beta1.CronJobSpec{
 			Schedule:          rc.blueprint.Spec.ScanSchedule,
@@ -110,13 +110,13 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 									ImagePullPolicy: corev1.PullIfNotPresent,
 									VolumeMounts: []corev1.VolumeMount{
 										{
-											Name:      SourceSubMountPath,
-											MountPath: filepath.Join("/clustercode", SourceSubMountPath),
+											Name:      internaltypes.SourceSubMountPath,
+											MountPath: filepath.Join("/clustercode", internaltypes.SourceSubMountPath),
 											SubPath:   rc.blueprint.Spec.Storage.SourcePvc.SubPath,
 										},
 										{
-											Name:      IntermediateSubMountPath,
-											MountPath: filepath.Join("/clustercode", IntermediateSubMountPath),
+											Name:      internaltypes.IntermediateSubMountPath,
+											MountPath: filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath),
 											SubPath:   rc.blueprint.Spec.Storage.SourcePvc.SubPath,
 										},
 									},
@@ -124,7 +124,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 							},
 							Volumes: []corev1.Volume{
 								{
-									Name: SourceSubMountPath,
+									Name: internaltypes.SourceSubMountPath,
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 											ClaimName: rc.blueprint.Spec.Storage.SourcePvc.ClaimName,
@@ -132,7 +132,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 									},
 								},
 								{
-									Name: IntermediateSubMountPath,
+									Name: internaltypes.IntermediateSubMountPath,
 									VolumeSource: corev1.VolumeSource{
 										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 											ClaimName: rc.blueprint.Spec.Storage.IntermediatePvc.ClaimName,
@@ -152,10 +152,10 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 		rc.log.Error(err, "could not set controller reference, deleting the blueprint will not delete the cronjob", "cronjob", cronJob.Name)
 	}
 
-	if err := r.Client.Create(rc.ctx, &cronJob); err != nil {
+	if err := r.Client.Create(rc, &cronJob); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			rc.log.Info("cronjob already exists, updating it")
-			err = r.Client.Update(rc.ctx, &cronJob)
+			err = r.Client.Update(rc, &cronJob)
 			if err != nil {
 				rc.log.Error(err, "could not update cronjob")
 			}
@@ -173,7 +173,7 @@ func (r *BlueprintReconciler) handleBlueprint(rc *BlueprintContext) {
 func (r *BlueprintReconciler) createServiceAccountAndBinding(rc *BlueprintContext) (string, error) {
 	binding, sa := r.newRbacDefinition(rc)
 
-	err := r.Client.Create(rc.ctx, &sa)
+	err := r.Client.Create(rc, &sa)
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			return sa.Name, err
@@ -181,7 +181,7 @@ func (r *BlueprintReconciler) createServiceAccountAndBinding(rc *BlueprintContex
 	} else {
 		rc.log.Info("service account created", "sa", sa.Name)
 	}
-	err = r.Client.Create(rc.ctx, &binding)
+	err = r.Client.Create(rc, &binding)
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			return sa.Name, err
@@ -198,7 +198,7 @@ func (r *BlueprintReconciler) newRbacDefinition(rc *BlueprintContext) (rbacv1.Ro
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      strings.ShortenString(saName, 51) + "-rolebinding",
 			Namespace: rc.blueprint.Namespace,
-			Labels:    ClusterCodeLabels,
+			Labels:    internaltypes.ClusterCodeLabels,
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -218,7 +218,7 @@ func (r *BlueprintReconciler) newRbacDefinition(rc *BlueprintContext) (rbacv1.Ro
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      saName,
 			Namespace: rc.blueprint.Namespace,
-			Labels:    ClusterCodeLabels,
+			Labels:    internaltypes.ClusterCodeLabels,
 		},
 	}
 

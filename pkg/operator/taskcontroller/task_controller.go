@@ -1,4 +1,4 @@
-package controllers
+package taskcontroller
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
+	"github.com/ccremer/clustercode/pkg/internal/utils"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -30,7 +32,7 @@ type (
 	}
 	TaskOpts struct {
 		args              []string
-		jobType           ClusterCodeJobType
+		jobType           internaltypes.ClusterCodeJobType
 		mountSource       bool
 		mountIntermediate bool
 		mountTarget       bool
@@ -115,16 +117,16 @@ func containsSliceIndex(list []v1alpha1.ClustercodeSliceRef, index int) bool {
 }
 
 func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
-	sourceMountRoot := filepath.Join("/clustercode", SourceSubMountPath)
-	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+	sourceMountRoot := filepath.Join("/clustercode", internaltypes.SourceSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":      filepath.Join(sourceMountRoot, rc.task.Spec.SourceUrl.GetPath()),
 		"${OUTPUT}":     getSegmentFileNameTemplatePath(rc, intermediateMountRoot),
 		"${SLICE_SIZE}": strconv.Itoa(rc.task.Spec.EncodeSpec.SliceSize),
 	}
 	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
-		jobType:           ClustercodeTypeSplit,
+		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
+		jobType:           internaltypes.JobTypeSplit,
 		mountSource:       true,
 		mountIntermediate: true,
 	})
@@ -144,18 +146,18 @@ func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
 }
 
 func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
-	intermediateMountRoot := filepath.Join("/clustercode", IntermediateSubMountPath)
+	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  getSourceSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
 		"${OUTPUT}": getTargetSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
 	}
 	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.TranscodeCommandArgs),
-		jobType:           ClustercodeTypeSlice,
+		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.TranscodeCommandArgs),
+		jobType:           internaltypes.JobTypeSlice,
 		mountIntermediate: true,
 	})
 	job.Name = fmt.Sprintf("%s-%d", job.Name, index)
-	job.Labels[ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
+	job.Labels[internaltypes.ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
 	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
 		return fmt.Errorf("could not set controller reference: %w", err)
 	}
@@ -176,15 +178,15 @@ func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
 }
 
 func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
-	configMountRoot := filepath.Join("/clustercode", ConfigSubMountPath)
-	targetMountRoot := filepath.Join("/clustercode", TargetSubMountPath)
+	configMountRoot := filepath.Join("/clustercode", internaltypes.ConfigSubMountPath)
+	targetMountRoot := filepath.Join("/clustercode", internaltypes.TargetSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  filepath.Join(configMountRoot, v1alpha1.ConfigMapFileName),
 		"${OUTPUT}": filepath.Join(targetMountRoot, rc.task.Spec.TargetUrl.GetPath()),
 	}
 	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              mergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
-		jobType:           ClustercodeTypeMerge,
+		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
+		jobType:           internaltypes.JobTypeMerge,
 		mountIntermediate: true,
 		mountTarget:       true,
 		mountConfig:       true,
