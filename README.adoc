@@ -35,10 +35,7 @@ See https://ccremer.github.io/clustercode-docs[ccremer.github.io/clustercode-doc
 
 == Installation
 
-Currently, there is Kustomize support.
-Install with `kustomize build kustomize/default | kubectl apply -f -`.
-
-NOTE: Helm is also planned.
+NOTE: Helm is coming.
 
 === Supported storage types
 
@@ -53,6 +50,5 @@ But feel free to try "early access" and report stuff.
 
 == Image Tags
 
-* `master`: Floating image tag that points to the image built from master branch, usually unreleased changes.
 * `latest`: Floating image tag that points to the latest stable release.
 * `vx.y.z`: tags following the x.y.z pattern are specific releases following the SemVer scheme.

@@ -3,7 +3,11 @@ FROM docker.io/library/alpine:3.16 as runtime
 ENTRYPOINT ["clustercode"]
 
 RUN \
-    apk add --no-cache curl bash
+    apk add --update --no-cache \
+      bash \
+      curl \
+      ca-certificates \
+      tzdata
 
 COPY clustercode /usr/bin/
-USER 1001:0
+USER 65536:0
