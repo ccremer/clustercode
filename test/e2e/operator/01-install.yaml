@@ -10,7 +10,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: hostpath
   selector:
     matchLabels:
       pv.kubernetes.io/type: source
@@ -26,7 +25,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: hostpath
   selector:
     matchLabels:
       pv.kubernetes.io/type: intermediate
@@ -43,7 +41,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: hostpath
   selector:
     matchLabels:
       pv.kubernetes.io/type: target

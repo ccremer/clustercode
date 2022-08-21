@@ -10,7 +10,6 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
-  storageClassName: hostpath
   hostPath:
     path: /pv/data
     type: Directory
@@ -26,7 +25,6 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
-  storageClassName: hostpath
   hostPath:
     path: /pv/data
     type: Directory
@@ -42,7 +40,6 @@ spec:
     storage: 1Gi
   accessModes:
     - ReadWriteMany
-  storageClassName: hostpath
   hostPath:
     path: /pv/data
     type: Directory
