@@ -7,6 +7,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	ClusterRole = "ClusterRole"
+	Role        = "Role"
+)
+
 type EnumValue struct {
 	Enum     []string
 	Default  string
