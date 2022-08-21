@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -47,37 +47,37 @@ func LogMetadata(c *cli.Context) error {
 }
 
 func setupLogging(c *cli.Context) error {
-	logger := newZapLogger(appName, c.Bool("debug"), usesProductionLoggingConfig(c))
+	logger, err := newZapLogger(appName, c.Int("log-level"), usesProductionLoggingConfig(c))
 	c.Context.Value(loggerContextKey{}).(*atomic.Value).Store(logger)
-	return nil
+	return err
 }
 
 func usesProductionLoggingConfig(c *cli.Context) bool {
-	return strings.EqualFold("JSON", c.String("log-format"))
+	return strings.EqualFold("JSON", c.String(newLogFormatFlag().Name))
 }
 
-func newZapLogger(name string, debug bool, useProductionConfig bool) logr.Logger {
+func newZapLogger(name string, verbosityLevel int, useProductionConfig bool) (logr.Logger, error) {
 	cfg := zap.NewDevelopmentConfig()
 	cfg.EncoderConfig.ConsoleSeparator = " | "
 	if useProductionConfig {
 		cfg = zap.NewProductionConfig()
 	}
-	if debug {
+	if verbosityLevel > 0 {
 		// Zap's levels get more verbose as the number gets smaller,
 		// bug logr's level increases with greater numbers.
-		cfg.Level = zap.NewAtomicLevelAt(zapcore.Level(-2)) // max logger.V(2)
+		cfg.Level = zap.NewAtomicLevelAt(zapcore.Level(verbosityLevel * -1))
 	} else {
 		cfg.Level = zap.NewAtomicLevelAt(zapcore.InfoLevel)
 	}
 	z, err := cfg.Build()
-	zap.ReplaceGlobals(z)
 	if err != nil {
-		log.Fatalf("error configuring the logging stack")
+		return logr.Discard(), fmt.Errorf("error configuring the logging stack: %w", err)
 	}
+	zap.ReplaceGlobals(z)
 	logger := zapr.NewLogger(z).WithName(name)
 	if useProductionConfig {
 		// Append the version to each log so that logging stacks like EFK/Loki can correlate errors with specific versions.
-		return logger.WithValues("version", version)
+		return logger.WithValues("version", version), nil
 	}
-	return logger
+	return logger, nil
 }

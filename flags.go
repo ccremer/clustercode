@@ -67,6 +67,15 @@ func newScanRoleKindFlag() *cli.GenericFlag {
 	}
 }
 
+func newLogFormatFlag() *cli.GenericFlag {
+	enum := &EnumValue{Enum: []string{"console", "json"}, Default: "console"}
+	return &cli.GenericFlag{Name: "log-format", EnvVars: envVars("LOG_FORMAT"),
+		Usage:       "sets the log format",
+		Category:    "Encoding",
+		DefaultText: fmt.Sprintf("%q [%s]", enum.Default, strings.Join(enum.Enum, ", ")),
+		Value:       enum,
+	}
+}
 func newSourceRootDirFlag(dest *string) *cli.StringFlag {
 	return &cli.StringFlag{Name: "source-root-dir", EnvVars: envVars("SOURCE_ROOT_DIR"),
 		Usage:       "Directory path where to find the source files",

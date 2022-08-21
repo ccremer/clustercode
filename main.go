@@ -26,6 +26,11 @@ var (
 	envPrefix = "CC_"
 )
 
+func init() {
+	// Remove `-v` short option from --version flag
+	cli.VersionFlag.(*cli.BoolFlag).Aliases = nil
+}
+
 func main() {
 	ctx, stop, app := newApp()
 	defer stop()
@@ -33,6 +38,7 @@ func main() {
 	// If required flags aren't set, it will return with error before we could set up logging
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
+		stop()
 		os.Exit(1)
 	}
 
@@ -49,18 +55,12 @@ func newApp() (context.Context, context.CancelFunc, *cli.App) {
 
 		Before: setupLogging,
 		Flags: []cli.Flag{
-			&cli.BoolFlag{
-				Name:    "debug",
-				Aliases: []string{"verbose", "d"},
-				Usage:   "sets the log level to debug",
-				EnvVars: envVars("DEBUG"),
+			&cli.IntFlag{
+				Name: "log-level", Aliases: []string{"v"}, EnvVars: envVars("LOG_LEVEL"),
+				Usage: "number of the log level verbosity",
+				Value: 0,
 			},
-			&cli.StringFlag{
-				Name:        "log-format",
-				Usage:       "sets the log format (values: [json, console])",
-				EnvVars:     envVars("LOG_FORMAT"),
-				DefaultText: "console",
-			},
+			newLogFormatFlag(),
 		},
 		Commands: []*cli.Command{
 			newOperatorCommand(),
