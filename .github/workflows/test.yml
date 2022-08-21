@@ -37,4 +37,4 @@ jobs:
           CC_TEST_REPORTER_ID: 273b145c3b441d2abc054951c66b99a6d55f9eb4a25ddacd0731e14fcc921dc2
         with:
           coverageLocations: cover.out:gocov
-          prefix: github.com/${{ github.event.repository.name }}
+          prefix: github.com/${{ github.repository }}
