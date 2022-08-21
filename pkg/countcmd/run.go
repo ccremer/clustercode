@@ -17,7 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -67,20 +66,20 @@ func (c *Command) createClient(ctx *commandContext) error {
 
 func (c *Command) fetchTask(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient)
+	log := c.getLogger()
 
-	log := ctx.getLogger()
 	task := &v1alpha1.Task{}
 	if err := ctx.kube.Get(ctx, types.NamespacedName{Namespace: c.Namespace, Name: c.TaskName}, task); err != nil {
 		return err
 	}
 	ctx.task = task
-	log.Info("fetched task", "task", fmt.Sprintf("%s/%s", task.Namespace, task.Name))
+	log.Info("fetched task")
 	return nil
 }
 
 func (c *Command) scanSegmentFiles(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.fetchTask)
-	log := ctx.getLogger()
+	log := c.getLogger()
 
 	prefix := ctx.task.Spec.TaskId.String() + "_"
 	files := make([]string, 0)
@@ -115,7 +114,7 @@ func matchesTaskSegment(path string, prefix string) bool {
 
 func (c *Command) ensureConfigMap(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient, c.fetchTask, c.scanSegmentFiles)
-	log := ctx.getLogger()
+	log := c.getLogger()
 
 	task := ctx.task
 	cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{
@@ -136,14 +135,14 @@ func (c *Command) ensureConfigMap(ctx *commandContext) error {
 		return controllerutil.SetOwnerReference(task, cm, ctx.kube.Scheme())
 	})
 	if op == controllerutil.OperationResultCreated || op == controllerutil.OperationResultUpdated {
-		log.Info("Updated config map", "name", cm.Name)
+		log.Info("Updated config map", "configmap", cm.Name)
 	}
 	return err
 }
 
 func (c *Command) updateTask(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient)
-	log := ctx.getLogger()
+	log := c.getLogger()
 
 	task := ctx.task
 	op, err := controllerutil.CreateOrPatch(ctx, ctx.kube, task, func() error {
@@ -151,11 +150,11 @@ func (c *Command) updateTask(ctx *commandContext) error {
 		return nil
 	})
 	if op == controllerutil.OperationResultCreated || op == controllerutil.OperationResultUpdated {
-		log.Info("Updated task", "name", task.Name)
+		log.Info("Updated task")
 	}
 	return err
 }
 
-func (c *commandContext) getLogger() logr.Logger {
-	return ctrl.LoggerFrom(c.Context).WithName("count")
+func (c *Command) getLogger() logr.Logger {
+	return c.Log.WithValues("task_name", c.TaskName, "namespace", c.Namespace)
 }

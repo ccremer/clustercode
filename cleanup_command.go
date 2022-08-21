@@ -11,9 +11,9 @@ func newCleanupCommand() *cli.Command {
 		Name:   "cleanup",
 		Usage:  "Remove intermediary files and finish the task",
 		Before: LogMetadata,
-		Action: func(context *cli.Context) error {
-			ctx := SetLogger(context)
-			return command.Execute(ctx)
+		Action: func(ctx *cli.Context) error {
+			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
+			return command.Execute(ctx.Context)
 		},
 		Flags: []cli.Flag{
 			newTaskNameFlag(&command.TaskName),

@@ -13,9 +13,10 @@ func newOperatorCommand() *cli.Command {
 		Name:   "operator",
 		Usage:  "Start provider in operator mode",
 		Before: LogMetadata,
-		Action: func(c *cli.Context) error {
-			blueprintcontroller.ScanRoleKind = c.String(newScanRoleKindFlag().Name)
-			return command.Execute(c.Context)
+		Action: func(ctx *cli.Context) error {
+			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
+			blueprintcontroller.ScanRoleKind = ctx.String(newScanRoleKindFlag().Name)
+			return command.Execute(ctx.Context)
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{Name: "leader-election-enabled", Value: false, EnvVars: envVars("LEADER_ELECTION_ENABLED"),

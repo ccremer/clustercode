@@ -17,7 +17,6 @@ type Command struct {
 	Log logr.Logger
 
 	LeaderElectionEnabled bool
-	FfmpegImage           string
 }
 
 type commandContext struct {

@@ -2,7 +2,6 @@ package cleanupcmd
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -12,7 +11,6 @@ import (
 	pipeline "github.com/ccremer/go-command-pipeline"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/types"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -62,14 +60,14 @@ func (c *Command) createClient(ctx *commandContext) error {
 
 func (c *Command) fetchTask(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient)
+	log := c.getLogger()
 
-	log := ctx.getLogger()
 	task := &v1alpha1.Task{}
 	if err := ctx.kube.Get(ctx, types.NamespacedName{Namespace: c.Namespace, Name: c.TaskName}, task); err != nil {
 		return err
 	}
 	ctx.task = task
-	log.Info("fetched task", "task", fmt.Sprintf("%s/%s", task.Namespace, task.Name))
+	log.Info("fetched task")
 	return nil
 }
 
@@ -83,7 +81,8 @@ func (c *Command) listIntermediaryFiles(ctx *commandContext) error {
 
 func (c *Command) deleteFiles(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.listIntermediaryFiles)
-	log := ctx.getLogger()
+	log := c.getLogger()
+
 	for _, file := range ctx.intermediaryFiles {
 		log.Info("deleting file", "file", file)
 		if err := os.Remove(file); err != nil {
@@ -95,7 +94,7 @@ func (c *Command) deleteFiles(ctx *commandContext) error {
 
 func (c *Command) deleteSourceFile(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.fetchTask)
-	log := ctx.getLogger()
+	log := c.getLogger()
 
 	sourceFile := filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath, ctx.task.Spec.SourceUrl.GetPath())
 	log.Info("deleting file", "file", sourceFile)
@@ -107,6 +106,6 @@ func (c *Command) deleteTask(ctx *commandContext) error {
 	return ctx.kube.Delete(ctx.Context, ctx.task)
 }
 
-func (c *commandContext) getLogger() logr.Logger {
-	return ctrl.LoggerFrom(c.Context).WithName("cleanup")
+func (c *Command) getLogger() logr.Logger {
+	return c.Log.WithValues("task_name", c.TaskName, "namespace", c.Namespace)
 }

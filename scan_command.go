@@ -11,9 +11,9 @@ func newScanCommand() *cli.Command {
 		Name:   "scan",
 		Usage:  "Scan source storage for new files and queue task",
 		Before: LogMetadata,
-		Action: func(c *cli.Context) error {
-			ctx := SetLogger(c)
-			return command.Execute(ctx)
+		Action: func(ctx *cli.Context) error {
+			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
+			return command.Execute(ctx.Context)
 		},
 		Flags: []cli.Flag{
 			newBlueprintNameFlag(&command.BlueprintName),

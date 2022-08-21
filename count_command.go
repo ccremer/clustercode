@@ -11,9 +11,9 @@ func newCountCommand() *cli.Command {
 		Name:   "count",
 		Usage:  "Counts the number of generated intermediary media files",
 		Before: LogMetadata,
-		Action: func(context *cli.Context) error {
-			ctx := SetLogger(context)
-			return command.Execute(ctx)
+		Action: func(ctx *cli.Context) error {
+			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
+			return command.Execute(ctx.Context)
 		},
 		Flags: []cli.Flag{
 			newTaskNameFlag(&command.TaskName),

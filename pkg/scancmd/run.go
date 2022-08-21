@@ -3,7 +3,6 @@ package scancmd
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -73,14 +71,14 @@ func (c *Command) createClient(ctx *commandContext) error {
 
 func (c *Command) fetchBlueprint(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient)
+	log := c.getLogger()
 
-	log := ctx.getLogger()
 	blueprint := &v1alpha1.Blueprint{}
 	if err := ctx.kube.Get(ctx, types.NamespacedName{Namespace: c.Namespace, Name: c.BlueprintName}, blueprint); err != nil {
 		return err
 	}
 	ctx.blueprint = blueprint
-	log.Info("fetched blueprint", "blueprint", fmt.Sprintf("%s/%s", blueprint.Namespace, blueprint.Name))
+	log.Info("fetched blueprint")
 	return nil
 }
 
@@ -90,6 +88,7 @@ func (c *Command) hasFreeTaskSlots(ctx *commandContext) bool {
 
 func (c *Command) fetchCurrentTasks(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient, c.fetchBlueprint)
+	log := c.getLogger()
 
 	taskList := v1alpha1.TaskList{}
 	err := ctx.kube.List(ctx, &taskList,
@@ -111,12 +110,14 @@ func (c *Command) fetchCurrentTasks(ctx *commandContext) error {
 			}
 		}
 	}
+	log.Info("fetched current tasks", "count", len(filteredTasks))
 	ctx.currentTasks = filteredTasks
 	return nil
 }
 
 func (c *Command) selectNewFile(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.fetchBlueprint, c.fetchCurrentTasks)
+	log := c.getLogger()
 
 	alreadyQueuedFiles := make([]string, len(ctx.currentTasks))
 	for i, task := range ctx.currentTasks {
@@ -125,7 +126,6 @@ func (c *Command) selectNewFile(ctx *commandContext) error {
 
 	var foundFileErr = errors.New("found")
 
-	log := ctx.getLogger()
 	root := filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -164,7 +164,7 @@ func (c *Command) getAbsolutePath(uri v1alpha1.ClusterCodeUrl) string {
 
 func (c *Command) createTask(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.selectNewFile)
-	log := ctx.getLogger()
+	log := c.getLogger()
 
 	bp := ctx.blueprint
 	selectedFile, err := filepath.Rel(filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath), ctx.selectedRelPath)
@@ -198,7 +198,8 @@ func (c *Command) createTask(ctx *commandContext) error {
 }
 
 func (c *Command) abortIfNoMatchFound(ctx *commandContext, err error) error {
-	log := ctx.getLogger()
+	log := c.getLogger()
+
 	if errors.Is(err, noMatchFoundErr) {
 		log.Info("no media files found")
 		return nil
@@ -206,8 +207,8 @@ func (c *Command) abortIfNoMatchFound(ctx *commandContext, err error) error {
 	return err
 }
 
-func (c *commandContext) getLogger() logr.Logger {
-	return ctrl.LoggerFrom(c.Context).WithName("scan")
+func (c *Command) getLogger() logr.Logger {
+	return c.Log.WithValues("blueprint", c.BlueprintName, "namespace", c.Namespace)
 }
 
 // containsExtension returns true if the given extension is in the given acceptableFileExtensions. For each entry in the list,
