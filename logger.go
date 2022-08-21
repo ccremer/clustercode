@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"runtime"
@@ -19,6 +20,11 @@ type loggerContextKey struct{}
 // AppLogger retrieves the application-wide logger instance from the cli.Context.
 func AppLogger(c *cli.Context) logr.Logger {
 	return c.Context.Value(loggerContextKey{}).(*atomic.Value).Load().(logr.Logger)
+}
+
+// SetLogger copies the application-wide logger instance from cli.Context to new context using logr.NewContext.
+func SetLogger(ctx *cli.Context) context.Context {
+	return logr.NewContext(ctx.Context, AppLogger(ctx))
 }
 
 // LogMetadata prints various metadata to the root logger.

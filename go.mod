@@ -3,7 +3,7 @@ module github.com/ccremer/clustercode
 go 1.18
 
 require (
-	github.com/ccremer/go-command-pipeline v0.19.0
+	github.com/ccremer/go-command-pipeline v0.20.0
 	github.com/go-logr/logr v1.2.0
 	github.com/go-logr/zapr v1.2.0
 	github.com/urfave/cli/v2 v2.11.1
