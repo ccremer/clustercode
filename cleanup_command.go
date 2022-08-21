@@ -8,8 +8,9 @@ import (
 func newCleanupCommand() *cli.Command {
 	command := cleanupcmd.Command{}
 	return &cli.Command{
-		Name:  "cleanup",
-		Usage: "Remove intermediary files and finish the task",
+		Name:   "cleanup",
+		Usage:  "Remove intermediary files and finish the task",
+		Before: LogMetadata,
 		Action: func(context *cli.Context) error {
 			ctx := SetLogger(context)
 			return command.Execute(ctx)

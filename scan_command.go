@@ -8,8 +8,9 @@ import (
 func newScanCommand() *cli.Command {
 	command := &scancmd.Command{}
 	return &cli.Command{
-		Name:  "scan",
-		Usage: "Scan source storage for new files and queue task",
+		Name:   "scan",
+		Usage:  "Scan source storage for new files and queue task",
+		Before: LogMetadata,
 		Action: func(c *cli.Context) error {
 			ctx := SetLogger(c)
 			return command.Execute(ctx)

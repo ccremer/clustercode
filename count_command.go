@@ -8,8 +8,9 @@ import (
 func newCountCommand() *cli.Command {
 	command := &countcmd.Command{}
 	return &cli.Command{
-		Name:  "count",
-		Usage: "Counts the number of generated intermediary media files",
+		Name:   "count",
+		Usage:  "Counts the number of generated intermediary media files",
+		Before: LogMetadata,
 		Action: func(context *cli.Context) error {
 			ctx := SetLogger(context)
 			return command.Execute(ctx)
