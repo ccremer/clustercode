@@ -53,6 +53,7 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
+      - blueprints/finalizers
       - blueprints/status
     verbs:
       - get
@@ -73,6 +74,7 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
+      - tasks/finalizers
       - tasks/status
     verbs:
       - get
@@ -108,6 +110,7 @@ rules:
       - delete
       - get
       - list
+      - watch
   - apiGroups:
       - rbac.authorization.k8s.io
     resources:
@@ -118,3 +121,4 @@ rules:
       - delete
       - get
       - list
+      - watch

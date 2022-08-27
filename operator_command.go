@@ -37,7 +37,7 @@ func newOperatorCommand() *cli.Command {
 			newScanRoleKindFlag(),
 			&cli.StringFlag{Name: "scan-role-name", EnvVars: envVars("SCAN_ROLE_NAME"),
 				Usage:       "TODO",
-				Value:       "clustercode-editor-role",
+				Value:       "clustercode-edit",
 				Destination: &blueprintcontroller.ScanRoleName,
 				Category:    "Encoding",
 			},

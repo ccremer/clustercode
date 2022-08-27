@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/ccremer/clustercode/pkg/scancmd"
 	"github.com/urfave/cli/v2"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
 func newScanCommand() *cli.Command {
@@ -13,7 +14,8 @@ func newScanCommand() *cli.Command {
 		Before: LogMetadata,
 		Action: func(ctx *cli.Context) error {
 			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
-			return command.Execute(ctx.Context)
+			controllerruntime.SetLogger(command.Log)
+			return command.Execute(controllerruntime.LoggerInto(ctx.Context, command.Log))
 		},
 		Flags: []cli.Flag{
 			newBlueprintNameFlag(&command.BlueprintName),

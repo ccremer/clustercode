@@ -39,7 +39,7 @@ func (c *Command) Execute(ctx context.Context) error {
 		Context:            ctx,
 	}
 
-	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger(pctx))
+	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger(pctx), pctx.dependencyResolver.Record)
 	p.WithSteps(
 		p.NewStep("create client", c.createClient),
 		p.NewStep("fetch task", c.fetchTask),
@@ -53,7 +53,7 @@ func (c *Command) Execute(ctx context.Context) error {
 }
 
 func (c *Command) createClient(ctx *commandContext) error {
-	kube, err := pipe.NewKubeClient()
+	kube, err := pipe.NewKubeClient(ctx)
 	ctx.kube = kube
 	return err
 }

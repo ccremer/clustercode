@@ -44,7 +44,7 @@ func newTaskNameFlag(dest *string) *cli.StringFlag {
 }
 
 func newNamespaceFlag(dest *string) *cli.StringFlag {
-	return &cli.StringFlag{Name: "namespace", EnvVars: envVars("NAMESPACE"), Required: true,
+	return &cli.StringFlag{Name: "namespace", Aliases: []string{"n"}, EnvVars: envVars("NAMESPACE"), Required: true,
 		Usage:       "Namespace in which to find the resource.",
 		Destination: dest,
 	}

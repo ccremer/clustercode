@@ -11,7 +11,7 @@ import (
 )
 
 // +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status;tasks/finalizers,verbs=get;update;patch
 
 // SetupTaskController adds a controller that reconciles managed resources.
 func SetupTaskController(mgr ctrl.Manager) error {

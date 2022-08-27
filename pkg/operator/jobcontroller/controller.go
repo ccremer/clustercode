@@ -49,7 +49,7 @@ func (r *JobProvisioner) Provision(ctx context.Context, obj *batchv1.Job) (recon
 		return reconcile.Result{}, nil
 	}
 
-	p := pipeline.NewPipeline[*JobContext]().WithBeforeHooks(pipe.DebugLogger[*JobContext](pctx))
+	p := pipeline.NewPipeline[*JobContext]().WithBeforeHooks(pipe.DebugLogger[*JobContext](pctx), pctx.resolver.Record)
 	p.WithSteps(
 		p.NewStep("determine job type", r.getJobType),
 		p.NewStep("fetch owning task", r.fetchTask),

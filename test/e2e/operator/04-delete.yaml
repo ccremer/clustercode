@@ -1,0 +1,22 @@
+apiVersion: kuttl.dev/v1beta1
+kind: TestStep
+delete:
+# This will wait until resources are really gone
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: source
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: intermediate
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    name: target
+  - apiVersion: v1
+    kind: PersistentVolume
+    name: e2e-source
+  - apiVersion: v1
+    kind: PersistentVolume
+    name: e2e-intermediate
+  - apiVersion: v1
+    kind: PersistentVolume
+    name: e2e-target

@@ -14,6 +14,7 @@ else
 	sed := sed -i
 endif
 
+.PHONY: $(rbac_gen_tgt)
 $(rbac_gen_tgt):
 	@cp $(rbac_gen_src) $@
 	@yq -i e '.metadata.name="{{ include \"clustercode.fullname\" . }}-manager", del(.metadata.creationTimestamp)' $@

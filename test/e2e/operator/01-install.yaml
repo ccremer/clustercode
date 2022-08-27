@@ -1,46 +1,45 @@
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  name: source
+  name: e2e-source
+  labels:
+    pv.kubernetes.io/type: source
 spec:
+  capacity:
+    storage: 1Gi
   accessModes:
     - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      pv.kubernetes.io/type: source
+  hostPath:
+    path: /pv/data
+    type: Directory
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  name: intermediate
+  name: e2e-intermediate
+  labels:
+    pv.kubernetes.io/type: intermediate
 spec:
+  capacity:
+    storage: 1Gi
   accessModes:
     - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      pv.kubernetes.io/type: intermediate
-
+  hostPath:
+    path: /pv/data
+    type: Directory
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: PersistentVolume
 metadata:
-  name: target
+  name: e2e-target
+  labels:
+    pv.kubernetes.io/type: target
 spec:
+  capacity:
+    storage: 1Gi
   accessModes:
     - ReadWriteMany
-  volumeMode: Filesystem
-  resources:
-    requests:
-      storage: 1Gi
-  selector:
-    matchLabels:
-      pv.kubernetes.io/type: target
+  hostPath:
+    path: /pv/data
+    type: Directory

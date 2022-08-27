@@ -1,0 +1,24 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: e2e-source
+status:
+  phase: Available
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: e2e-intermediate
+status:
+  phase: Available
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: e2e-target
+status:
+  phase: Available

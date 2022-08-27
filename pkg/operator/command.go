@@ -9,7 +9,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	ctrl "sigs.k8s.io/controller-runtime"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -28,13 +28,13 @@ type commandContext struct {
 func (c *Command) Execute(ctx context.Context) error {
 	log := c.Log
 	log.Info("Setting up controllers", "config", c)
-	ctrl.SetLogger(log)
+	controllerruntime.SetLogger(log)
 
 	pctx := &commandContext{Context: ctx}
 	p := pipeline.NewPipeline[*commandContext]()
 	p.WithSteps(
 		p.NewStep("get config", func(ctx *commandContext) error {
-			cfg, err := ctrl.GetConfig()
+			cfg, err := controllerruntime.GetConfig()
 			ctx.kubeconfig = cfg
 			return err
 		}),
@@ -43,7 +43,7 @@ func (c *Command) Execute(ctx context.Context) error {
 			ctx.kubeconfig.QPS = 100
 			ctx.kubeconfig.Burst = 150 // more Openshift friendly
 
-			mgr, err := ctrl.NewManager(ctx.kubeconfig, ctrl.Options{
+			mgr, err := controllerruntime.NewManager(ctx.kubeconfig, controllerruntime.Options{
 				// controller-runtime uses both ConfigMaps and Leases for leader election by default.
 				// Leases expire after 15 seconds, with a 10-second renewal deadline.
 				// We've observed leader loss due to renewal deadlines being exceeded when under high load - i.e.

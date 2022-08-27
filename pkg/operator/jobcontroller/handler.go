@@ -42,7 +42,7 @@ func (r *JobProvisioner) ensureCountJob(ctx *JobContext) error {
 							Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
-								"-d",
+								"--log-level=1",
 								"count",
 								"--task-name=" + ctx.task.Name,
 								"--namespace=" + ctx.job.Namespace,
@@ -86,7 +86,7 @@ func (r *JobProvisioner) ensureCleanupJob(ctx *JobContext) error {
 							Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
 							ImagePullPolicy: corev1.PullIfNotPresent,
 							Args: []string{
-								"-d",
+								"--log-level=1",
 								"--namespace=" + ctx.job.Namespace,
 								"cleanup",
 								"--task-name=" + ctx.task.Name,
