@@ -1,0 +1,11 @@
+---
+apiVersion: kuttl.dev/v1beta1
+kind: TestAssert
+---
+apiVersion: clustercode.github.io/v1alpha1
+kind: Task
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: clustercode
+spec:
+  slicesPlannedCount: 3

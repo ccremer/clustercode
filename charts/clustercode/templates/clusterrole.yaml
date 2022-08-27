@@ -11,8 +11,8 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans
-      - clustercodetasks
+      - blueprints
+      - tasks
     verbs:
       - get
       - list
@@ -20,10 +20,10 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans/finalizers
-      - clustercodeplans/status
-      - clustercodetasks/finalizers
-      - clustercodetasks/status
+      - blueprints/finalizers
+      - blueprints/status
+      - tasks/finalizers
+      - tasks/status
     verbs:
       - get
 ---
@@ -39,8 +39,8 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans
-      - clustercodetasks
+      - blueprints
+      - tasks
     verbs:
       - create
       - delete
@@ -52,12 +52,22 @@ rules:
   - apiGroups:
       - clustercode.github.io
     resources:
-      - clustercodeplans/finalizers
-      - clustercodeplans/status
-      - clustercodetasks/finalizers
-      - clustercodetasks/status
+      - blueprints/finalizers
+      - blueprints/status
+      - tasks/finalizers
+      - tasks/status
     verbs:
       - get
       - patch
+      - update
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
       - update
 {{- end }}

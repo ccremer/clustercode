@@ -2,7 +2,7 @@
 package api
 
 import (
-	"github.com/ccremer/clustercode/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

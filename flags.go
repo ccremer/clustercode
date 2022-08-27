@@ -7,6 +7,11 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	ClusterRole = "ClusterRole"
+	Role        = "Role"
+)
+
 type EnumValue struct {
 	Enum     []string
 	Default  string
@@ -39,7 +44,7 @@ func newTaskNameFlag(dest *string) *cli.StringFlag {
 }
 
 func newNamespaceFlag(dest *string) *cli.StringFlag {
-	return &cli.StringFlag{Name: "namespace", EnvVars: envVars("NAMESPACE"), Required: true,
+	return &cli.StringFlag{Name: "namespace", Aliases: []string{"n"}, EnvVars: envVars("NAMESPACE"), Required: true,
 		Usage:       "Namespace in which to find the resource.",
 		Destination: dest,
 	}
@@ -62,6 +67,15 @@ func newScanRoleKindFlag() *cli.GenericFlag {
 	}
 }
 
+func newLogFormatFlag() *cli.GenericFlag {
+	enum := &EnumValue{Enum: []string{"console", "json"}, Default: "console"}
+	return &cli.GenericFlag{Name: "log-format", EnvVars: envVars("LOG_FORMAT"),
+		Usage:       "sets the log format",
+		Category:    "Encoding",
+		DefaultText: fmt.Sprintf("%q [%s]", enum.Default, strings.Join(enum.Enum, ", ")),
+		Value:       enum,
+	}
+}
 func newSourceRootDirFlag(dest *string) *cli.StringFlag {
 	return &cli.StringFlag{Name: "source-root-dir", EnvVars: envVars("SOURCE_ROOT_DIR"),
 		Usage:       "Directory path where to find the source files",
