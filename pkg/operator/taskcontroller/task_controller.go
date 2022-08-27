@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"path/filepath"
 	"strconv"
-	"time"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	"github.com/ccremer/clustercode/pkg/internal/pipe"
 	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
 	"github.com/ccremer/clustercode/pkg/internal/utils"
+	pipeline "github.com/ccremer/go-command-pipeline"
 	"github.com/go-logr/logr"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	ctrl "sigs.k8s.io/controller-runtime"
+	batchv1 "k8s.io/api/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 type (
@@ -25,10 +27,12 @@ type (
 	}
 	// TaskContext holds the parameters of a single reconciliation
 	TaskContext struct {
-		ctx       context.Context
-		task      *v1alpha1.Task
-		blueprint *v1alpha1.Blueprint
-		log       logr.Logger
+		context.Context
+		task           *v1alpha1.Task
+		blueprint      *v1alpha1.Blueprint
+		log            logr.Logger
+		job            *batchv1.Job
+		nextSliceIndex int
 	}
 	TaskOpts struct {
 		args              []string
@@ -40,180 +44,173 @@ type (
 	}
 )
 
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=clustercode.github.io,resources=tasks/status,verbs=get;update;patch
-
-func (r *TaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	rc := &TaskContext{
-		ctx:  ctx,
-		task: &v1alpha1.Task{},
-	}
-	err := r.Client.Get(ctx, req.NamespacedName, rc.task)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			r.Log.Info("object not found, ignoring reconcile", "object", req.NamespacedName)
-			return ctrl.Result{}, nil
-		}
-		r.Log.Error(err, "could not retrieve object", "object", req.NamespacedName)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Minute}, err
-	}
-	rc.log = r.Log.WithValues("task", req.NamespacedName)
-
-	if err := r.handleTask(rc); err != nil {
-		rc.log.Error(err, "could not reconcile task")
-		return ctrl.Result{}, err
-	}
-	rc.log.Info("reconciled task")
-	return ctrl.Result{}, nil
+func (r *TaskReconciler) NewObject() *v1alpha1.Task {
+	return &v1alpha1.Task{}
 }
 
-func (r *TaskReconciler) handleTask(rc *TaskContext) error {
-	if rc.task.Spec.SlicesPlannedCount == 0 {
-		return r.createSplitJob(rc)
+func (r *TaskReconciler) Provision(ctx context.Context, obj *v1alpha1.Task) (reconcile.Result, error) {
+	tc := &TaskContext{
+		Context:        ctx,
+		task:           obj,
+		nextSliceIndex: -1,
 	}
 
-	if len(rc.task.Status.SlicesFinished) >= rc.task.Spec.SlicesPlannedCount {
-		rc.log.Info("no more slices to schedule")
-		return r.createMergeJob(rc)
-	}
+	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](tc))
+	p.WithSteps(
+		p.When(r.hasNoSlicesPlanned, "create split job", r.createSplitJob),
+		p.When(r.allSlicesFinished, "create merge job", r.createMergeJob),
+		p.WithNestedSteps("schedule next slice job", r.partialSlicesFinished,
+			p.NewStep("determine next slice index", r.determineNextSliceIndex),
+			p.When(r.nextSliceDetermined, "create slice job", r.createSliceJob),
+			p.When(r.nextSliceDetermined, "update status", r.updateStatus),
+		),
+	)
+	err := p.RunWithContext(tc)
+	return reconcile.Result{}, err
+}
+
+func (r *TaskReconciler) Deprovision(_ context.Context, _ *v1alpha1.Task) (reconcile.Result, error) {
+	return reconcile.Result{}, nil
+}
+
+func (r *TaskReconciler) hasNoSlicesPlanned(ctx *TaskContext) bool {
+	return ctx.task.Spec.SlicesPlannedCount == 0
+}
+
+func (r *TaskReconciler) allSlicesFinished(ctx *TaskContext) bool {
+	return len(ctx.task.Status.SlicesFinished) >= ctx.task.Spec.SlicesPlannedCount
+}
+
+func (r *TaskReconciler) partialSlicesFinished(ctx *TaskContext) bool {
+	return len(ctx.task.Status.SlicesFinished) < ctx.task.Spec.SlicesPlannedCount
+}
+
+func (r *TaskReconciler) nextSliceDetermined(ctx *TaskContext) bool {
+	return ctx.nextSliceIndex >= 0
+}
+
+func (r *TaskReconciler) determineNextSliceIndex(ctx *TaskContext) error {
 	// Todo: Check condition whether more jobs are needed
-	nextSliceIndex := r.determineNextSliceIndex(rc)
-	if nextSliceIndex < 0 {
-		return nil
-	} else {
-		rc.log.Info("scheduling next slice", "index", nextSliceIndex)
-		return r.createSliceJob(rc, nextSliceIndex)
-	}
-}
-
-func (r *TaskReconciler) determineNextSliceIndex(rc *TaskContext) int {
-	status := rc.task.Status
-	if rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
-		maxCount := rc.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
+	status := ctx.task.Status
+	if ctx.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
+		maxCount := ctx.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
 		if len(status.SlicesScheduled) >= maxCount {
-			rc.log.V(1).Info("reached concurrent max count, cannot schedule more", "max", maxCount)
-			return -1
+			ctx.log.V(1).Info("reached concurrent max count, cannot schedule more", "max", maxCount)
+			ctx.nextSliceIndex = -1
+			return nil
 		}
 	}
-	for i := 0; i < rc.task.Spec.SlicesPlannedCount; i++ {
-		if containsSliceIndex(status.SlicesScheduled, i) {
+	total := len(status.SlicesScheduled) + len(status.SlicesFinished)
+	toSkipIndexes := make(map[int]bool, total)
+	for i := 0; i < len(status.SlicesScheduled); i++ {
+		toSkipIndexes[status.SlicesScheduled[i].SliceIndex] = true
+	}
+	for i := 0; i < len(status.SlicesFinished); i++ {
+		toSkipIndexes[status.SlicesFinished[i].SliceIndex] = true
+	}
+
+	for i := 0; i < total; i++ {
+		if _, exists := toSkipIndexes[i]; exists {
 			continue
 		}
-		if containsSliceIndex(status.SlicesFinished, i) {
-			continue
-		}
-		return i
+		ctx.nextSliceIndex = i
+		return nil
 	}
-	return -1
-}
-
-func containsSliceIndex(list []v1alpha1.ClustercodeSliceRef, index int) bool {
-	for _, t := range list {
-		if t.SliceIndex == index {
-			return true
-		}
-	}
-	return false
-}
-
-func (r *TaskReconciler) createSplitJob(rc *TaskContext) error {
-	sourceMountRoot := filepath.Join("/clustercode", internaltypes.SourceSubMountPath)
-	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
-	variables := map[string]string{
-		"${INPUT}":      filepath.Join(sourceMountRoot, rc.task.Spec.SourceUrl.GetPath()),
-		"${OUTPUT}":     getSegmentFileNameTemplatePath(rc, intermediateMountRoot),
-		"${SLICE_SIZE}": strconv.Itoa(rc.task.Spec.EncodeSpec.SliceSize),
-	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.SplitCommandArgs),
-		jobType:           internaltypes.JobTypeSplit,
-		mountSource:       true,
-		mountIntermediate: true,
-	})
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
-		rc.log.Info("could not set controller reference, deleting the task won't delete the job", "err", err.Error())
-	}
-	if err := r.Client.Create(rc.ctx, job); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			rc.log.Info("skip creating job, it already exists", "job", job.Name)
-		} else {
-			rc.log.Error(err, "could not create job", "job", job.Name)
-		}
-	} else {
-		rc.log.Info("job created", "job", job.Name)
-	}
+	ctx.nextSliceIndex = -1
 	return nil
 }
 
-func (r *TaskReconciler) createSliceJob(rc *TaskContext, index int) error {
+func (r *TaskReconciler) createSplitJob(ctx *TaskContext) error {
+	sourceMountRoot := filepath.Join("/clustercode", internaltypes.SourceSubMountPath)
 	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	variables := map[string]string{
-		"${INPUT}":  getSourceSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
-		"${OUTPUT}": getTargetSegmentFileNameIndexPath(rc, intermediateMountRoot, index),
+		"${INPUT}":      filepath.Join(sourceMountRoot, ctx.task.Spec.SourceUrl.GetPath()),
+		"${OUTPUT}":     getSegmentFileNameTemplatePath(ctx, intermediateMountRoot),
+		"${SLICE_SIZE}": strconv.Itoa(ctx.task.Spec.EncodeSpec.SliceSize),
 	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.TranscodeCommandArgs),
-		jobType:           internaltypes.JobTypeSlice,
-		mountIntermediate: true,
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{
+		Name:      fmt.Sprintf("%s-%s", ctx.task.Spec.TaskId, internaltypes.JobTypeSplit),
+		Namespace: ctx.task.Namespace,
+	}}
+
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
+		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.SplitCommandArgs),
+			jobType:           internaltypes.JobTypeSplit,
+			mountSource:       true,
+			mountIntermediate: true,
+		})
+		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
-	job.Name = fmt.Sprintf("%s-%d", job.Name, index)
-	job.Labels[internaltypes.ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
-		return fmt.Errorf("could not set controller reference: %w", err)
-	}
-	if err := r.Client.Create(rc.ctx, job); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			rc.log.Info("skip creating job, it already exists", "job", job.Name)
-		} else {
-			rc.log.Error(err, "could not create job", "job", job.Name)
-		}
-	} else {
-		rc.log.Info("job created", "job", job.Name)
-	}
-	rc.task.Status.SlicesScheduled = append(rc.task.Status.SlicesScheduled, v1alpha1.ClustercodeSliceRef{
-		JobName:    job.Name,
-		SliceIndex: index,
-	})
-	return r.Client.Status().Update(rc.ctx, rc.task)
+	return err
 }
 
-func (r *TaskReconciler) createMergeJob(rc *TaskContext) error {
+func (r *TaskReconciler) createSliceJob(ctx *TaskContext) error {
+	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
+	index := ctx.nextSliceIndex
+	variables := map[string]string{
+		"${INPUT}":  getSourceSegmentFileNameIndexPath(ctx, intermediateMountRoot, index),
+		"${OUTPUT}": getTargetSegmentFileNameIndexPath(ctx, intermediateMountRoot, index),
+	}
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{
+		Name:      fmt.Sprintf("%s-%s-%d", ctx.task.Spec.TaskId, internaltypes.JobTypeSlice, index),
+		Namespace: ctx.task.Namespace,
+	}}
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
+		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.TranscodeCommandArgs),
+			jobType:           internaltypes.JobTypeSlice,
+			mountIntermediate: true,
+		})
+		job.Labels[internaltypes.ClustercodeSliceIndexLabelKey] = strconv.Itoa(index)
+
+		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
+	})
+	return err
+
+}
+
+func (r *TaskReconciler) updateStatus(ctx *TaskContext) error {
+	ctx.task.Status.SlicesScheduled = append(ctx.task.Status.SlicesScheduled, v1alpha1.ClustercodeSliceRef{
+		JobName:    ctx.job.Name,
+		SliceIndex: ctx.nextSliceIndex,
+	})
+	return r.Client.Status().Update(ctx, ctx.task)
+}
+
+func (r *TaskReconciler) createMergeJob(ctx *TaskContext) error {
 	configMountRoot := filepath.Join("/clustercode", internaltypes.ConfigSubMountPath)
 	targetMountRoot := filepath.Join("/clustercode", internaltypes.TargetSubMountPath)
 	variables := map[string]string{
 		"${INPUT}":  filepath.Join(configMountRoot, v1alpha1.ConfigMapFileName),
-		"${OUTPUT}": filepath.Join(targetMountRoot, rc.task.Spec.TargetUrl.GetPath()),
+		"${OUTPUT}": filepath.Join(targetMountRoot, ctx.task.Spec.TargetUrl.GetPath()),
 	}
-	job := createFfmpegJobDefinition(rc.task, &TaskOpts{
-		args:              utils.MergeArgsAndReplaceVariables(variables, rc.task.Spec.EncodeSpec.DefaultCommandArgs, rc.task.Spec.EncodeSpec.MergeCommandArgs),
-		jobType:           internaltypes.JobTypeMerge,
-		mountIntermediate: true,
-		mountTarget:       true,
-		mountConfig:       true,
+	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{
+		Name:      fmt.Sprintf("%s-%s", ctx.task.Spec.TaskId, internaltypes.JobTypeMerge),
+		Namespace: ctx.task.Namespace,
+	}}
+
+	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
+		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.MergeCommandArgs),
+			jobType:           internaltypes.JobTypeMerge,
+			mountIntermediate: true,
+			mountTarget:       true,
+			mountConfig:       true,
+		})
+		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
-	if err := controllerutil.SetControllerReference(rc.task, job.GetObjectMeta(), r.Client.Scheme()); err != nil {
-		return fmt.Errorf("could not set controller reference: %w", err)
-	}
-	if err := r.Client.Create(rc.ctx, job); err != nil {
-		if apierrors.IsAlreadyExists(err) {
-			rc.log.Info("skip creating job, it already exists", "job", job.Name)
-		} else {
-			rc.log.Error(err, "could not create job", "job", job.Name)
-		}
-	} else {
-		rc.log.Info("job created", "job", job.Name)
-	}
-	return nil
+	return err
 }
 
-func getSegmentFileNameTemplatePath(rc *TaskContext, intermediateMountRoot string) string {
-	return filepath.Join(intermediateMountRoot, rc.task.Name+"_%d"+filepath.Ext(rc.task.Spec.SourceUrl.GetPath()))
+func getSegmentFileNameTemplatePath(ctx *TaskContext, intermediateMountRoot string) string {
+	return filepath.Join(intermediateMountRoot, ctx.task.Name+"_%d"+filepath.Ext(ctx.task.Spec.SourceUrl.GetPath()))
 }
 
-func getSourceSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
-	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s", rc.task.Name, index, filepath.Ext(rc.task.Spec.SourceUrl.GetPath())))
+func getSourceSegmentFileNameIndexPath(ctx *TaskContext, intermediateMountRoot string, index int) string {
+	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s", ctx.task.Name, index, filepath.Ext(ctx.task.Spec.SourceUrl.GetPath())))
 }
 
-func getTargetSegmentFileNameIndexPath(rc *TaskContext, intermediateMountRoot string, index int) string {
-	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", rc.task.Name, index, v1alpha1.MediaFileDoneSuffix, filepath.Ext(rc.task.Spec.TargetUrl.GetPath())))
+func getTargetSegmentFileNameIndexPath(ctx *TaskContext, intermediateMountRoot string, index int) string {
+	return filepath.Join(intermediateMountRoot, fmt.Sprintf("%s_%d%s%s", ctx.task.Name, index, v1alpha1.MediaFileDoneSuffix, filepath.Ext(ctx.task.Spec.TargetUrl.GetPath())))
 }

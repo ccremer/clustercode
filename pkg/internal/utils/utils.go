@@ -5,22 +5,43 @@ import (
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"k8s.io/api/batch/v1"
-	v12 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 )
 
-func AddPvcVolume(job *v1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
+func EnsurePVCVolume(job *v1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
+	found := false
+	for _, container := range job.Spec.Template.Spec.Containers {
+		if HasVolumeMount(name, container) {
+			found = true
+			break
+		}
+	}
+	if found {
+		return
+	}
 	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
-		v12.VolumeMount{Name: name, MountPath: podMountRoot, SubPath: volume.SubPath})
-	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, v12.Volume{
+		corev1.VolumeMount{Name: name, MountPath: podMountRoot, SubPath: volume.SubPath})
+	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
 		Name: name,
-		VolumeSource: v12.VolumeSource{
-			PersistentVolumeClaim: &v12.PersistentVolumeClaimVolumeSource{
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
 				ClaimName: volume.ClaimName,
 			},
 		}})
+}
+
+func HasVolumeMount(name string, container corev1.Container) bool {
+	found := false
+	for _, mount := range container.VolumeMounts {
+		if mount.Name == name {
+			found = true
+			break
+		}
+	}
+	return found
 }
 
 func GetOwner(obj v13.Object) types.NamespacedName {

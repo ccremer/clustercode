@@ -7,6 +7,7 @@ import (
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
+	"github.com/ccremer/clustercode/pkg/internal/utils"
 	"github.com/ccremer/clustercode/pkg/operator/blueprintcontroller"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -46,21 +47,12 @@ func (r *JobProvisioner) ensureCountJob(ctx *JobContext) error {
 								"--task-name=" + ctx.task.Name,
 								"--namespace=" + ctx.job.Namespace,
 							},
-							VolumeMounts: []corev1.VolumeMount{
-								{Name: internaltypes.IntermediateSubMountPath, MountPath: intermediateMountRoot, SubPath: ctx.task.Spec.Storage.IntermediatePvc.SubPath}},
-						},
-					},
-					Volumes: []corev1.Volume{
-						{
-							Name: internaltypes.IntermediateSubMountPath,
-							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: ctx.task.Spec.Storage.IntermediatePvc.ClaimName}},
 						},
 					},
 				},
 			},
 		}
+		utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, intermediateMountRoot, ctx.task.Spec.Storage.IntermediatePvc)
 		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
 	return err
