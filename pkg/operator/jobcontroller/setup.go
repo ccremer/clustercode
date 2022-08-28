@@ -20,7 +20,7 @@ func SetupJobController(mgr ctrl.Manager) error {
 	if err != nil {
 		return err
 	}
-	controller := reconciler.NewReconciler[*batchv1.Job](mgr.GetClient(), &JobProvisioner{Client: mgr.GetClient(), Log: mgr.GetLogger()})
+	controller := reconciler.NewReconciler[*batchv1.Job](mgr.GetClient(), &JobProvisioner{Client: mgr.GetClient(), Log: mgr.GetLogger().WithName("job")})
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		For(&batchv1.Job{}, builder.WithPredicates(pred)).

@@ -20,7 +20,7 @@ func SetupBlueprintController(mgr ctrl.Manager) error {
 	name := "blueprint.clustercode.github.io"
 
 	controller := reconciler.NewReconciler[*v1alpha1.Blueprint](mgr.GetClient(), &BlueprintProvisioner{
-		Log:    mgr.GetLogger(),
+		Log:    mgr.GetLogger().WithName("blueprint"),
 		client: mgr.GetClient(),
 	})
 

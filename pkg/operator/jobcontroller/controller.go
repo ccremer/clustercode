@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ccremer/clustercode/pkg/api/conditions"
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/ccremer/clustercode/pkg/internal/pipe"
 	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
@@ -45,7 +46,7 @@ func (r *JobProvisioner) Provision(ctx context.Context, obj *batchv1.Job) (recon
 	pctx := &JobContext{job: obj, Context: ctx, resolver: pipeline.NewDependencyRecorder[*JobContext]()}
 
 	if !r.isJobComplete(obj) {
-		r.Log.V(1).Info("job is not completed yet, ignoring reconcile")
+		r.Log.V(1).Info("job is not completed yet, ignoring reconcile", "conditions", obj.Status.Conditions)
 		return reconcile.Result{}, nil
 	}
 
@@ -53,12 +54,14 @@ func (r *JobProvisioner) Provision(ctx context.Context, obj *batchv1.Job) (recon
 	p.WithSteps(
 		p.NewStep("determine job type", r.getJobType),
 		p.NewStep("fetch owning task", r.fetchTask),
-		p.When(r.isJobType(internaltypes.JobTypeSplit), "reconcile split job", r.ensureCountJob),
+		p.When(r.isJobType(internaltypes.JobTypeSplit), "update task status", r.updateStatusWithCondition(conditions.SplitComplete())),
+		p.When(r.isJobType(internaltypes.JobTypeCount), "update task status", r.updateStatusWithCountComplete),
+		p.When(r.isJobType(internaltypes.JobTypeMerge), "update task status", r.updateStatusWithCondition(conditions.MergeComplete())),
+		p.When(r.isJobType(internaltypes.JobTypeCleanup), "update task status", r.updateStatusWithCondition(conditions.CleanupComplete())),
 		p.WithNestedSteps("reconcile slice job", r.isJobType(internaltypes.JobTypeSlice),
-			p.NewStep("determine ", r.determineSliceIndex),
-			p.NewStep("update status", r.updateStatus),
+			p.NewStep("determine slice index", r.determineSliceIndex),
+			p.NewStep("update task status", r.updateStatusWithSlicesFinished),
 		),
-		p.When(r.isJobType(internaltypes.JobTypeMerge), "reconcile merge job", r.ensureCleanupJob),
 	)
 	err := p.RunWithContext(pctx)
 	return reconcile.Result{}, err

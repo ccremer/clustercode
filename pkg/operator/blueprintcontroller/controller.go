@@ -113,71 +113,59 @@ func (r *BlueprintProvisioner) ensureCronJob(ctx *BlueprintContext) error {
 	}
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.client, cronJob, func() error {
-		cronJob.Labels = labels.Merge(cronJob.Labels, labels.Merge(internaltypes.ClusterCodeLabels, internaltypes.JobTypeScan.AsLabels()))
-		cronJob.Spec = batchv1.CronJobSpec{
-			Schedule:                   ctx.blueprint.Spec.ScanSchedule,
-			ConcurrencyPolicy:          batchv1.ForbidConcurrent,
-			SuccessfulJobsHistoryLimit: pointer.Int32Ptr(1),
-			FailedJobsHistoryLimit:     pointer.Int32Ptr(1),
-			Suspend:                    pointer.Bool(ctx.blueprint.Spec.Suspend),
+		cronJob.Labels = labels.Merge(cronJob.Labels, internaltypes.ClusterCodeLabels)
+		cronJob.Spec.Suspend = pointer.Bool(ctx.blueprint.Spec.Suspend)
+		cronJob.Spec.Schedule = ctx.blueprint.Spec.ScanSchedule
+		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
+		cronJob.Spec.SuccessfulJobsHistoryLimit = pointer.Int32Ptr(1)
+		cronJob.Spec.FailedJobsHistoryLimit = pointer.Int32Ptr(1)
 
-			JobTemplate: batchv1.JobTemplateSpec{
-				Spec: batchv1.JobSpec{
-					BackoffLimit: pointer.Int32Ptr(0),
-					Template: corev1.PodTemplateSpec{
-						Spec: corev1.PodSpec{
-							ServiceAccountName: ctx.blueprint.GetServiceAccountName(),
-							RestartPolicy:      corev1.RestartPolicyNever,
-							Containers: []corev1.Container{{
-								Name: "scanner",
-								Env: []corev1.EnvVar{
-									{
-										Name:  "CC_LOG_DEBUG",
-										Value: "true",
-									},
-								},
-								Args: []string{
-									"scan",
-									"--namespace=" + ctx.blueprint.Namespace,
-									"--blueprint-name=" + ctx.blueprint.Name,
-								},
-								Image:           DefaultClusterCodeContainerImage,
-								ImagePullPolicy: corev1.PullIfNotPresent,
-								VolumeMounts: []corev1.VolumeMount{
-									{
-										Name:      internaltypes.SourceSubMountPath,
-										MountPath: filepath.Join("/clustercode", internaltypes.SourceSubMountPath),
-										SubPath:   ctx.blueprint.Spec.Storage.SourcePvc.SubPath,
-									},
-									{
-										Name:      internaltypes.IntermediateSubMountPath,
-										MountPath: filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath),
-										SubPath:   ctx.blueprint.Spec.Storage.SourcePvc.SubPath,
-									},
-								},
-							}},
-							Volumes: []corev1.Volume{
-								{
-									Name: internaltypes.SourceSubMountPath,
-									VolumeSource: corev1.VolumeSource{
-										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: ctx.blueprint.Spec.Storage.SourcePvc.ClaimName,
-										},
-									},
-								},
-								{
-									Name: internaltypes.IntermediateSubMountPath,
-									VolumeSource: corev1.VolumeSource{
-										PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-											ClaimName: ctx.blueprint.Spec.Storage.IntermediatePvc.ClaimName,
-										},
-									},
-								},
-							},
-						},
+		cronJob.Spec.JobTemplate.Spec.BackoffLimit = pointer.Int32Ptr(0)
+		cronJob.Spec.JobTemplate.Spec.Template.Labels = internaltypes.JobTypeScan.AsLabels()
+		cronJob.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = ctx.blueprint.GetServiceAccountName()
+		cronJob.Spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
+		if len(cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers) == 0 {
+			cronJob.Spec.JobTemplate.Spec.Template.Spec.Containers = []corev1.Container{{
+				Name: "scanner",
+				Env: []corev1.EnvVar{
+					{
+						Name:  "CC_LOG_DEBUG",
+						Value: "true",
 					},
 				},
-			},
+				Args: []string{
+					"scan",
+					"--namespace=" + ctx.blueprint.Namespace,
+					"--blueprint-name=" + ctx.blueprint.Name,
+				},
+				Image:           DefaultClusterCodeContainerImage,
+				ImagePullPolicy: corev1.PullIfNotPresent,
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      internaltypes.SourceSubMountPath,
+						MountPath: filepath.Join("/clustercode", internaltypes.SourceSubMountPath),
+						SubPath:   ctx.blueprint.Spec.Storage.SourcePvc.SubPath},
+					{
+						Name:      internaltypes.IntermediateSubMountPath,
+						MountPath: filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath),
+						SubPath:   ctx.blueprint.Spec.Storage.SourcePvc.SubPath,
+					},
+				},
+			}}
+			cronJob.Spec.JobTemplate.Spec.Template.Spec.Volumes = []corev1.Volume{
+				{
+					Name: internaltypes.SourceSubMountPath,
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: ctx.blueprint.Spec.Storage.SourcePvc.ClaimName}},
+				},
+				{
+					Name: internaltypes.IntermediateSubMountPath,
+					VolumeSource: corev1.VolumeSource{
+						PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+							ClaimName: ctx.blueprint.Spec.Storage.IntermediatePvc.ClaimName}},
+				},
+			}
 		}
 		return controllerutil.SetOwnerReference(ctx.blueprint, cronJob, r.client.Scheme())
 	})

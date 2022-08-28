@@ -197,11 +197,11 @@ func (c *Command) createTask(ctx *commandContext) error {
 	return err
 }
 
-func (c *Command) abortIfNoMatchFound(ctx *commandContext, err error) error {
+func (c *Command) abortIfNoMatchFound(_ *commandContext, err error) error {
 	log := c.getLogger()
 
 	if errors.Is(err, noMatchFoundErr) {
-		log.Info("no media files found")
+		log.Info("no media files found", "path", c.SourceRootDir)
 		return nil
 	}
 	return err

@@ -25,23 +25,25 @@ func createFfmpegJobDefinition(job *batchv1.Job, task *v1alpha1.Task, opts *Task
 	}
 	job.Spec.Template.Spec.ServiceAccountName = task.Spec.ServiceAccountName
 	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
-	job.Spec.Template.Spec.Containers = []corev1.Container{{
-		Name:            "ffmpeg",
-		Image:           DefaultFfmpegContainerImage,
-		ImagePullPolicy: corev1.PullIfNotPresent,
-		Args:            opts.args,
-	}}
-	if opts.mountSource {
-		utils.EnsurePVCVolume(job, internaltypes.SourceSubMountPath, filepath.Join("/clustercode", internaltypes.SourceSubMountPath), task.Spec.Storage.SourcePvc)
-	}
-	if opts.mountIntermediate {
-		utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath), task.Spec.Storage.IntermediatePvc)
-	}
-	if opts.mountTarget {
-		utils.EnsurePVCVolume(job, internaltypes.TargetSubMountPath, filepath.Join("/clustercode", internaltypes.TargetSubMountPath), task.Spec.Storage.TargetPvc)
-	}
-	if opts.mountConfig {
-		addConfigMapVolume(job, internaltypes.ConfigSubMountPath, filepath.Join("/clustercode", internaltypes.ConfigSubMountPath), task.Spec.FileListConfigMapRef)
+	if len(job.Spec.Template.Spec.Containers) == 0 {
+		job.Spec.Template.Spec.Containers = []corev1.Container{{
+			Name:            "ffmpeg",
+			Image:           DefaultFfmpegContainerImage,
+			ImagePullPolicy: corev1.PullIfNotPresent,
+			Args:            opts.args,
+		}}
+		if opts.mountSource {
+			utils.EnsurePVCVolume(job, internaltypes.SourceSubMountPath, filepath.Join("/clustercode", internaltypes.SourceSubMountPath), task.Spec.Storage.SourcePvc)
+		}
+		if opts.mountIntermediate {
+			utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath), task.Spec.Storage.IntermediatePvc)
+		}
+		if opts.mountTarget {
+			utils.EnsurePVCVolume(job, internaltypes.TargetSubMountPath, filepath.Join("/clustercode", internaltypes.TargetSubMountPath), task.Spec.Storage.TargetPvc)
+		}
+		if opts.mountConfig {
+			addConfigMapVolume(job, internaltypes.ConfigSubMountPath, filepath.Join("/clustercode", internaltypes.ConfigSubMountPath), task.Spec.FileListConfigMapRef)
+		}
 	}
 	return job
 }

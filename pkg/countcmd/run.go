@@ -103,7 +103,7 @@ func (c *Command) scanSegmentFiles(ctx *commandContext) error {
 	}
 	sort.Strings(files)
 	ctx.segmentFiles = files
-	log.Info("found segments", "count", len(files))
+	log.Info("found segments", "count", len(files), "path", c.SourceRootDir)
 	return err
 }
 

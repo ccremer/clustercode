@@ -23,7 +23,7 @@ var (
 	appLongName = "Distribute your video encoding tasks across a cluster of nodes!"
 
 	// envPrefix is the global prefix to use for the keys in environment variables
-	envPrefix = "CC_"
+	envPrefix = "CC"
 )
 
 func init() {

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/ccremer/clustercode/pkg/api/conditions"
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"github.com/ccremer/clustercode/pkg/internal/pipe"
 	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
@@ -13,6 +14,7 @@ import (
 	pipeline "github.com/ccremer/go-command-pipeline"
 	"github.com/go-logr/logr"
 	batchv1 "k8s.io/api/batch/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -28,6 +30,7 @@ type (
 	// TaskContext holds the parameters of a single reconciliation
 	TaskContext struct {
 		context.Context
+		resolver       pipeline.DependencyResolver[*TaskContext]
 		task           *v1alpha1.Task
 		blueprint      *v1alpha1.Blueprint
 		log            logr.Logger
@@ -53,17 +56,20 @@ func (r *TaskReconciler) Provision(ctx context.Context, obj *v1alpha1.Task) (rec
 		Context:        ctx,
 		task:           obj,
 		nextSliceIndex: -1,
+		resolver:       pipeline.NewDependencyRecorder[*TaskContext](),
 	}
 
-	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](tc))
+	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](tc), tc.resolver.Record)
 	p.WithSteps(
 		p.When(r.hasNoSlicesPlanned, "create split job", r.createSplitJob),
+		p.When(r.isSplitComplete, "ensure count job", r.ensureCountJob),
 		p.When(r.allSlicesFinished, "create merge job", r.createMergeJob),
 		p.WithNestedSteps("schedule next slice job", r.partialSlicesFinished,
 			p.NewStep("determine next slice index", r.determineNextSliceIndex),
 			p.When(r.nextSliceDetermined, "create slice job", r.createSliceJob),
 			p.When(r.nextSliceDetermined, "update status", r.updateStatus),
 		),
+		p.When(r.isMergeFinished, "create cleanup job", r.ensureCleanupJob),
 	)
 	err := p.RunWithContext(tc)
 	return reconcile.Result{}, err
@@ -78,7 +84,11 @@ func (r *TaskReconciler) hasNoSlicesPlanned(ctx *TaskContext) bool {
 }
 
 func (r *TaskReconciler) allSlicesFinished(ctx *TaskContext) bool {
-	return len(ctx.task.Status.SlicesFinished) >= ctx.task.Spec.SlicesPlannedCount
+	cond := meta.FindStatusCondition(ctx.task.Status.Conditions, conditions.Progressing().Type)
+	if cond != nil {
+		return len(ctx.task.Status.SlicesFinished) >= ctx.task.Spec.SlicesPlannedCount
+	}
+	return false
 }
 
 func (r *TaskReconciler) partialSlicesFinished(ctx *TaskContext) bool {
@@ -87,6 +97,22 @@ func (r *TaskReconciler) partialSlicesFinished(ctx *TaskContext) bool {
 
 func (r *TaskReconciler) nextSliceDetermined(ctx *TaskContext) bool {
 	return ctx.nextSliceIndex >= 0
+}
+
+func (r *TaskReconciler) isSplitComplete(ctx *TaskContext) bool {
+	cond := meta.FindStatusCondition(ctx.task.Status.Conditions, conditions.SplitComplete().Type)
+	if cond != nil {
+		return cond.Status == metav1.ConditionTrue
+	}
+	return false
+}
+
+func (r *TaskReconciler) isMergeFinished(ctx *TaskContext) bool {
+	cond := meta.FindStatusCondition(ctx.task.Status.Conditions, conditions.SplitComplete().Type)
+	if cond != nil {
+		return cond.Status == metav1.ConditionTrue
+	}
+	return false
 }
 
 func (r *TaskReconciler) determineNextSliceIndex(ctx *TaskContext) error {
@@ -146,6 +172,8 @@ func (r *TaskReconciler) createSplitJob(ctx *TaskContext) error {
 }
 
 func (r *TaskReconciler) createSliceJob(ctx *TaskContext) error {
+	ctx.resolver.MustRequireDependencyByFuncName(r.determineNextSliceIndex)
+
 	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	index := ctx.nextSliceIndex
 	variables := map[string]string{
@@ -166,11 +194,15 @@ func (r *TaskReconciler) createSliceJob(ctx *TaskContext) error {
 
 		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
+	ctx.job = job
 	return err
 
 }
 
 func (r *TaskReconciler) updateStatus(ctx *TaskContext) error {
+	ctx.resolver.MustRequireDependencyByFuncName(r.createSliceJob)
+
+	meta.SetStatusCondition(&ctx.task.Status.Conditions, conditions.Progressing())
 	ctx.task.Status.SlicesScheduled = append(ctx.task.Status.SlicesScheduled, v1alpha1.ClustercodeSliceRef{
 		JobName:    ctx.job.Name,
 		SliceIndex: ctx.nextSliceIndex,
