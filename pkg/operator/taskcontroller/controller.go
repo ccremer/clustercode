@@ -33,7 +33,6 @@ type (
 		resolver       pipeline.DependencyResolver[*TaskContext]
 		task           *v1alpha1.Task
 		blueprint      *v1alpha1.Blueprint
-		log            logr.Logger
 		job            *batchv1.Job
 		nextSliceIndex int
 	}
@@ -53,10 +52,9 @@ func (r *TaskReconciler) NewObject() *v1alpha1.Task {
 
 func (r *TaskReconciler) Provision(ctx context.Context, obj *v1alpha1.Task) (reconcile.Result, error) {
 	tc := &TaskContext{
-		Context:        ctx,
-		task:           obj,
-		nextSliceIndex: -1,
-		resolver:       pipeline.NewDependencyRecorder[*TaskContext](),
+		Context:  ctx,
+		task:     obj,
+		resolver: pipeline.NewDependencyRecorder[*TaskContext](),
 	}
 
 	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](tc), tc.resolver.Record)
@@ -108,7 +106,7 @@ func (r *TaskReconciler) isSplitComplete(ctx *TaskContext) bool {
 }
 
 func (r *TaskReconciler) isMergeFinished(ctx *TaskContext) bool {
-	cond := meta.FindStatusCondition(ctx.task.Status.Conditions, conditions.SplitComplete().Type)
+	cond := meta.FindStatusCondition(ctx.task.Status.Conditions, conditions.MergeComplete().Type)
 	if cond != nil {
 		return cond.Status == metav1.ConditionTrue
 	}
@@ -121,7 +119,7 @@ func (r *TaskReconciler) determineNextSliceIndex(ctx *TaskContext) error {
 	if ctx.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy != nil {
 		maxCount := ctx.task.Spec.ConcurrencyStrategy.ConcurrentCountStrategy.MaxCount
 		if len(status.SlicesScheduled) >= maxCount {
-			ctx.log.V(1).Info("reached concurrent max count, cannot schedule more", "max", maxCount)
+			r.Log.V(1).Info("reached concurrent max count, cannot schedule more", "max", maxCount)
 			ctx.nextSliceIndex = -1
 			return nil
 		}
@@ -135,7 +133,7 @@ func (r *TaskReconciler) determineNextSliceIndex(ctx *TaskContext) error {
 		toSkipIndexes[status.SlicesFinished[i].SliceIndex] = true
 	}
 
-	for i := 0; i < total; i++ {
+	for i := 0; i < ctx.task.Spec.SlicesPlannedCount; i++ {
 		if _, exists := toSkipIndexes[i]; exists {
 			continue
 		}

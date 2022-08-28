@@ -46,7 +46,7 @@ func (r *JobProvisioner) Provision(ctx context.Context, obj *batchv1.Job) (recon
 	pctx := &JobContext{job: obj, Context: ctx, resolver: pipeline.NewDependencyRecorder[*JobContext]()}
 
 	if !r.isJobComplete(obj) {
-		r.Log.V(1).Info("job is not completed yet, ignoring reconcile", "conditions", obj.Status.Conditions)
+		r.Log.V(1).Info("job is not completed yet, ignoring reconcile", "conditions", obj.Status.Conditions, "job", fmt.Sprintf("%s/%s", obj.Namespace, obj.Name))
 		return reconcile.Result{}, nil
 	}
 

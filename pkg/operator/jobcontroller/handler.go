@@ -35,7 +35,7 @@ func (r *JobProvisioner) updateStatusWithSlicesFinished(ctx *JobContext) error {
 	ctx.task.Status.SlicesFinished = finishedList
 	ctx.task.Status.SlicesFinishedCount = len(finishedList)
 
-	var scheduled []v1alpha1.ClustercodeSliceRef
+	scheduled := make([]v1alpha1.ClustercodeSliceRef, 0)
 	for _, ref := range ctx.task.Status.SlicesScheduled {
 		if ref.SliceIndex != ctx.sliceIndex {
 			scheduled = append(scheduled, ref)
