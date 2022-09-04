@@ -46,7 +46,6 @@ func (c *Command) Execute(ctx context.Context) error {
 		p.NewStep("list intermediary files", c.listIntermediaryFiles),
 		p.NewStep("delete intermediary files", c.deleteFiles),
 		p.NewStep("delete source file", c.deleteSourceFile),
-		p.NewStep("delete task", c.deleteTask),
 	)
 
 	return p.RunWithContext(pctx)
@@ -99,11 +98,6 @@ func (c *Command) deleteSourceFile(ctx *commandContext) error {
 	sourceFile := filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath, ctx.task.Spec.SourceUrl.GetPath())
 	log.Info("deleting file", "file", sourceFile)
 	return os.Remove(sourceFile)
-}
-
-func (c *Command) deleteTask(ctx *commandContext) error {
-	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient, c.fetchTask)
-	return ctx.kube.Delete(ctx.Context, ctx.task)
 }
 
 func (c *Command) getLogger() logr.Logger {

@@ -51,7 +51,7 @@ func (r *TaskReconciler) ensureCleanupJob(ctx *TaskContext) error {
 			utils.EnsurePVCVolume(job, internaltypes.SourceSubMountPath, filepath.Join("/clustercode", internaltypes.SourceSubMountPath), ctx.task.Spec.Storage.SourcePvc)
 			utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath), ctx.task.Spec.Storage.IntermediatePvc)
 		}
-		return controllerutil.SetOwnerReference(ctx.task, job, r.Client.Scheme())
+		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
 	return err
 }

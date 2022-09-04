@@ -43,7 +43,7 @@ func (r *JobProvisioner) updateStatusWithSlicesFinished(ctx *JobContext) error {
 	}
 	ctx.task.Status.SlicesScheduled = scheduled
 	if len(ctx.task.Status.SlicesFinished) >= ctx.task.Spec.SlicesPlannedCount {
-		meta.RemoveStatusCondition(&ctx.task.Status.Conditions, conditions.Progressing().Type)
+		meta.SetStatusCondition(&ctx.task.Status.Conditions, conditions.ProgressingSuccessful())
 	}
 	return r.Client.Status().Update(ctx, ctx.task)
 }

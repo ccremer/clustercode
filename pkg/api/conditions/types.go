@@ -33,6 +33,14 @@ func Progressing() metav1.Condition {
 	}
 }
 
+func ProgressingSuccessful() metav1.Condition {
+	return metav1.Condition{
+		Type:    "Progressing",
+		Status:  metav1.ConditionFalse,
+		Reason:  "AllSlicesCompleted",
+		Message: "All planned slices successfully processed",
+	}
+}
 func MergeComplete() metav1.Condition {
 	return metav1.Condition{
 		Type:    "MergeComplete",
@@ -42,11 +50,11 @@ func MergeComplete() metav1.Condition {
 	}
 }
 
-func CleanupComplete() metav1.Condition {
+func Ready() metav1.Condition {
 	return metav1.Condition{
-		Type:    "CleanupComplete",
+		Type:    "Ready",
 		Status:  metav1.ConditionTrue,
-		Reason:  "CleanedUpIntermediateFiles",
-		Message: "Cleaned up obsolete intermediate files",
+		Reason:  "TaskProcessedSuccessfully",
+		Message: "Task has been successfully processed",
 	}
 }

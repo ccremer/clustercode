@@ -57,7 +57,7 @@ func (r *JobProvisioner) Provision(ctx context.Context, obj *batchv1.Job) (recon
 		p.When(r.isJobType(internaltypes.JobTypeSplit), "update task status", r.updateStatusWithCondition(conditions.SplitComplete())),
 		p.When(r.isJobType(internaltypes.JobTypeCount), "update task status", r.updateStatusWithCountComplete),
 		p.When(r.isJobType(internaltypes.JobTypeMerge), "update task status", r.updateStatusWithCondition(conditions.MergeComplete())),
-		p.When(r.isJobType(internaltypes.JobTypeCleanup), "update task status", r.updateStatusWithCondition(conditions.CleanupComplete())),
+		p.When(r.isJobType(internaltypes.JobTypeCleanup), "update task status", r.updateStatusWithCondition(conditions.Ready())),
 		p.WithNestedSteps("reconcile slice job", r.isJobType(internaltypes.JobTypeSlice),
 			p.NewStep("determine slice index", r.determineSliceIndex),
 			p.NewStep("update task status", r.updateStatusWithSlicesFinished),
