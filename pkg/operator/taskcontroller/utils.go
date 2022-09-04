@@ -17,11 +17,11 @@ var DefaultFfmpegContainerImage string
 func createFfmpegJobDefinition(job *batchv1.Job, task *v1alpha1.Task, opts *TaskOpts) *batchv1.Job {
 
 	job.Labels = labels.Merge(job.Labels, labels.Merge(internaltypes.ClusterCodeLabels, labels.Merge(opts.jobType.AsLabels(), task.Spec.TaskId.AsLabels())))
-	job.Spec.BackoffLimit = pointer.Int32Ptr(0)
+	job.Spec.BackoffLimit = pointer.Int32(0)
 	job.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{
-		RunAsUser:  pointer.Int64Ptr(1000),
-		RunAsGroup: pointer.Int64Ptr(0),
-		FSGroup:    pointer.Int64Ptr(0),
+		RunAsUser:  pointer.Int64(1000),
+		RunAsGroup: pointer.Int64(0),
+		FSGroup:    pointer.Int64(0),
 	}
 	job.Spec.Template.Spec.ServiceAccountName = task.Spec.ServiceAccountName
 	job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever

@@ -26,7 +26,7 @@ func (r *TaskReconciler) ensureCountJob(ctx *TaskContext) error {
 	}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
 		job.Labels = labels.Merge(job.Labels, labels.Merge(internaltypes.ClusterCodeLabels, labels.Merge(internaltypes.JobTypeCount.AsLabels(), taskId.AsLabels())))
-		job.Spec.BackoffLimit = pointer.Int32Ptr(0)
+		job.Spec.BackoffLimit = pointer.Int32(0)
 		job.Spec.Template.Spec.ServiceAccountName = ctx.task.Spec.ServiceAccountName
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if len(job.Spec.Template.Spec.Containers) == 0 {

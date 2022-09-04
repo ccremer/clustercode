@@ -46,7 +46,7 @@ func HasVolumeMount(name string, container corev1.Container) bool {
 
 func GetOwner(obj v13.Object) types.NamespacedName {
 	for _, owner := range obj.GetOwnerReferences() {
-		if pointer.BoolPtrDerefOr(owner.Controller, false) {
+		if pointer.BoolDeref(owner.Controller, false) {
 			return types.NamespacedName{Namespace: obj.GetNamespace(), Name: owner.Name}
 		}
 	}

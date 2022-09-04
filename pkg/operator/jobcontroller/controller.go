@@ -73,8 +73,8 @@ func (r *JobProvisioner) Deprovision(_ context.Context, _ *batchv1.Job) (reconci
 }
 
 func (r *JobProvisioner) isJobComplete(job *batchv1.Job) bool {
-	conditions := castConditions(job.Status.Conditions)
-	return meta.IsStatusConditionPresentAndEqual(conditions, string(batchv1.JobComplete), metav1.ConditionTrue)
+	conds := castConditions(job.Status.Conditions)
+	return meta.IsStatusConditionPresentAndEqual(conds, string(batchv1.JobComplete), metav1.ConditionTrue)
 }
 
 func (r *JobProvisioner) isJobType(jobType internaltypes.ClusterCodeJobType) func(ctx *JobContext) bool {

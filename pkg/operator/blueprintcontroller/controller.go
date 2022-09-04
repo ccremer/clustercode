@@ -117,10 +117,10 @@ func (r *BlueprintProvisioner) ensureCronJob(ctx *BlueprintContext) error {
 		cronJob.Spec.Suspend = pointer.Bool(ctx.blueprint.Spec.Suspend)
 		cronJob.Spec.Schedule = ctx.blueprint.Spec.ScanSchedule
 		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
-		cronJob.Spec.SuccessfulJobsHistoryLimit = pointer.Int32Ptr(1)
-		cronJob.Spec.FailedJobsHistoryLimit = pointer.Int32Ptr(1)
+		cronJob.Spec.SuccessfulJobsHistoryLimit = pointer.Int32(1)
+		cronJob.Spec.FailedJobsHistoryLimit = pointer.Int32(1)
 
-		cronJob.Spec.JobTemplate.Spec.BackoffLimit = pointer.Int32Ptr(0)
+		cronJob.Spec.JobTemplate.Spec.BackoffLimit = pointer.Int32(0)
 		cronJob.Spec.JobTemplate.Spec.Template.Labels = internaltypes.JobTypeScan.AsLabels()
 		cronJob.Spec.JobTemplate.Spec.Template.Spec.ServiceAccountName = ctx.blueprint.GetServiceAccountName()
 		cronJob.Spec.JobTemplate.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever

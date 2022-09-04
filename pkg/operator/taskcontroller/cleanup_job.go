@@ -24,14 +24,14 @@ func (r *TaskReconciler) ensureCleanupJob(ctx *TaskContext) error {
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
 		job.Labels = labels.Merge(job.Labels, labels.Merge(internaltypes.ClusterCodeLabels, labels.Merge(internaltypes.JobTypeCleanup.AsLabels(), taskId.AsLabels())))
-		job.Spec.BackoffLimit = pointer.Int32Ptr(0)
+		job.Spec.BackoffLimit = pointer.Int32(0)
 		job.Spec.Template.Spec.ServiceAccountName = ctx.task.Spec.ServiceAccountName
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
 		if job.Spec.Template.Spec.SecurityContext == nil {
 			job.Spec.Template.Spec.SecurityContext = &corev1.PodSecurityContext{
-				RunAsUser:  pointer.Int64Ptr(1000),
-				RunAsGroup: pointer.Int64Ptr(0),
-				FSGroup:    pointer.Int64Ptr(0),
+				RunAsUser:  pointer.Int64(1000),
+				RunAsGroup: pointer.Int64(0),
+				FSGroup:    pointer.Int64(0),
 			}
 		}
 		if len(job.Spec.Template.Spec.Containers) == 0 {
