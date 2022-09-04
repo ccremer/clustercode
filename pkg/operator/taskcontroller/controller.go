@@ -54,7 +54,7 @@ func (r *TaskReconciler) Provision(ctx context.Context, obj *v1alpha1.Task) (rec
 		resolver: pipeline.NewDependencyRecorder[*TaskContext](),
 	}
 
-	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](tc), tc.resolver.Record)
+	p := pipeline.NewPipeline[*TaskContext]().WithBeforeHooks(pipe.DebugLogger[*TaskContext](r.Log), tc.resolver.Record)
 	p.WithSteps(
 		p.When(r.hasNoSlicesPlanned, "create split job", r.createSplitJob),
 		p.When(r.hasCondition(conditions.SplitComplete()), "ensure count job", r.ensureCountJob),

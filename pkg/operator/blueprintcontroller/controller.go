@@ -49,7 +49,7 @@ func (r *BlueprintProvisioner) Provision(ctx context.Context, obj *v1alpha1.Blue
 		Context:   ctx,
 	}
 
-	p := pipeline.NewPipeline[*BlueprintContext]().WithBeforeHooks(pipe.DebugLogger(pctx))
+	p := pipeline.NewPipeline[*BlueprintContext]().WithBeforeHooks(pipe.DebugLogger[*BlueprintContext](r.Log))
 	p.WithSteps(
 		p.NewStep("ensure service account", r.ensureServiceAccount),
 		p.NewStep("ensure role binding", r.ensureRoleBinding),

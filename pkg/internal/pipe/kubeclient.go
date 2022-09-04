@@ -25,7 +25,7 @@ type kubeContext struct {
 // NewKubeClient creates a new client.Client using in-cluster config.
 func NewKubeClient(ctx context.Context) (client.Client, error) {
 	pctx := &kubeContext{Context: ctx}
-	p := pipeline.NewPipeline[*kubeContext]().WithBeforeHooks(DebugLogger[*kubeContext](pctx))
+	p := pipeline.NewPipeline[*kubeContext]().WithBeforeHooks(DebugLogger[*kubeContext](controllerruntime.LoggerFrom(ctx)))
 	p.WithSteps(
 		p.NewStep("register schemes", registerSchemesFn),
 		p.NewStep("load kube config", loadKubeConfigFn),
