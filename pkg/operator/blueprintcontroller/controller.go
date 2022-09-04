@@ -54,12 +54,19 @@ func (r *BlueprintProvisioner) Provision(ctx context.Context, obj *v1alpha1.Blue
 		p.NewStep("ensure service account", r.ensureServiceAccount),
 		p.NewStep("ensure role binding", r.ensureRoleBinding),
 		p.NewStep("ensure cron job", r.ensureCronJob),
-	)
+	).WithFinalizer(r.setFailureCondition)
 	return reconcile.Result{}, p.RunWithContext(pctx)
 }
 
 func (r *BlueprintProvisioner) Deprovision(_ context.Context, _ *v1alpha1.Blueprint) (reconcile.Result, error) {
 	return reconcile.Result{}, nil
+}
+
+func (r *BlueprintProvisioner) setFailureCondition(ctx *BlueprintContext, err error) error {
+	if updateErr := pipe.UpdateFailedCondition(ctx, r.client, &ctx.blueprint.Status.Conditions, ctx.blueprint, err); updateErr != nil {
+		r.Log.Error(updateErr, "could not update Failed status condition")
+	}
+	return err
 }
 
 func (r *BlueprintProvisioner) ensureServiceAccount(ctx *BlueprintContext) error {

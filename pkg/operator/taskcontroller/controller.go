@@ -66,13 +66,20 @@ func (r *TaskReconciler) Provision(ctx context.Context, obj *v1alpha1.Task) (rec
 		),
 		p.When(r.hasCondition(conditions.MergeComplete()), "create cleanup job", r.ensureCleanupJob),
 		p.When(r.hasCondition(conditions.Ready()), "cleanup jobs", r.cleanupJobs),
-	)
+	).WithFinalizer(r.setFailureCondition)
 	err := p.RunWithContext(tc)
 	return reconcile.Result{}, err
 }
 
 func (r *TaskReconciler) Deprovision(_ context.Context, _ *v1alpha1.Task) (reconcile.Result, error) {
 	return reconcile.Result{}, nil
+}
+
+func (r *TaskReconciler) setFailureCondition(ctx *TaskContext, err error) error {
+	if updateErr := pipe.UpdateFailedCondition(ctx, r.Client, &ctx.task.Status.Conditions, ctx.task, err); updateErr != nil {
+		r.Log.Error(updateErr, "could not update Failed status condition")
+	}
+	return err
 }
 
 func (r *TaskReconciler) hasNoSlicesPlanned(ctx *TaskContext) bool {

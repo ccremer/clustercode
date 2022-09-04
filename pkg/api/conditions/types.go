@@ -58,3 +58,17 @@ func Ready() metav1.Condition {
 		Message: "Task has been successfully processed",
 	}
 }
+
+const (
+	TypeFailed = "Failed"
+)
+
+func Failed(err error) metav1.Condition {
+
+	return metav1.Condition{
+		Type:    TypeFailed,
+		Status:  metav1.ConditionTrue,
+		Reason:  "FailedReconciliation",
+		Message: err.Error(),
+	}
+}
