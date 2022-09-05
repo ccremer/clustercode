@@ -25,7 +25,7 @@ spec:
       name: Target
       type: string
     - description: Blueprint reference
-      jsonPath: .metadata.ownerReferences[?(@.controller)].name
+      jsonPath: .metadata.ownerReferences[?(@.kind=='Blueprint')].name
       name: Blueprint
       type: string
     - description: Clustercode Total Slices
