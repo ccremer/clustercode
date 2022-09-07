@@ -39,14 +39,13 @@ func (c *Command) Execute(ctx context.Context) error {
 		Context:            ctx,
 	}
 
-	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger(pctx), pctx.dependencyResolver.Record)
+	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger[*commandContext](c.Log), pctx.dependencyResolver.Record)
 	p.WithSteps(
 		p.NewStep("create client", c.createClient),
 		p.NewStep("fetch task", c.fetchTask),
 		p.NewStep("list intermediary files", c.listIntermediaryFiles),
 		p.NewStep("delete intermediary files", c.deleteFiles),
 		p.NewStep("delete source file", c.deleteSourceFile),
-		p.NewStep("delete task", c.deleteTask),
 	)
 
 	return p.RunWithContext(pctx)
@@ -99,11 +98,6 @@ func (c *Command) deleteSourceFile(ctx *commandContext) error {
 	sourceFile := filepath.Join(c.SourceRootDir, internaltypes.SourceSubMountPath, ctx.task.Spec.SourceUrl.GetPath())
 	log.Info("deleting file", "file", sourceFile)
 	return os.Remove(sourceFile)
-}
-
-func (c *Command) deleteTask(ctx *commandContext) error {
-	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createClient, c.fetchTask)
-	return ctx.kube.Delete(ctx.Context, ctx.task)
 }
 
 func (c *Command) getLogger() logr.Logger {

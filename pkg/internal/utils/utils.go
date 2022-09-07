@@ -6,7 +6,7 @@ import (
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	"k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
-	v13 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/pointer"
 )
@@ -44,9 +44,9 @@ func HasVolumeMount(name string, container corev1.Container) bool {
 	return found
 }
 
-func GetOwner(obj v13.Object) types.NamespacedName {
+func GetOwner(obj metav1.Object) types.NamespacedName {
 	for _, owner := range obj.GetOwnerReferences() {
-		if pointer.BoolPtrDerefOr(owner.Controller, false) {
+		if pointer.BoolDeref(owner.Controller, false) {
 			return types.NamespacedName{Namespace: obj.GetNamespace(), Name: owner.Name}
 		}
 	}

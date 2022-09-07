@@ -49,7 +49,7 @@ func (c *Command) Execute(ctx context.Context) error {
 		Context:            ctx,
 	}
 
-	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger(pctx), pctx.dependencyResolver.Record)
+	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger[*commandContext](c.Log), pctx.dependencyResolver.Record)
 	p.WithSteps(
 		p.NewStep("create client", c.createClient),
 		p.NewStep("fetch blueprint", c.fetchBlueprint),
@@ -197,11 +197,11 @@ func (c *Command) createTask(ctx *commandContext) error {
 	return err
 }
 
-func (c *Command) abortIfNoMatchFound(ctx *commandContext, err error) error {
+func (c *Command) abortIfNoMatchFound(_ *commandContext, err error) error {
 	log := c.getLogger()
 
 	if errors.Is(err, noMatchFoundErr) {
-		log.Info("no media files found")
+		log.Info("no media files found", "path", c.SourceRootDir)
 		return nil
 	}
 	return err

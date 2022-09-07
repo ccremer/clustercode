@@ -14,7 +14,7 @@ type (
 	// +kubebuilder:subresource:status
 	// +kubebuilder:printcolumn:name="Source",type="string",JSONPath=".spec.sourceUrl",description="Source file name"
 	// +kubebuilder:printcolumn:name="Target",type="string",JSONPath=".spec.targetUrl",description="Target file name"
-	// +kubebuilder:printcolumn:name="Blueprint",type="string",JSONPath=`.metadata.ownerReferences[?(@.controller)].name`,description="Blueprint reference"
+	// +kubebuilder:printcolumn:name="Blueprint",type="string",JSONPath=`.metadata.ownerReferences[?(@.kind=='Blueprint')].name`,description="Blueprint reference"
 	// +kubebuilder:printcolumn:name="Slices",type="string",JSONPath=`.spec.slicesPlannedCount`,description="Clustercode Total Slices"
 	// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 

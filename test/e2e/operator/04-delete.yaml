@@ -2,6 +2,9 @@ apiVersion: kuttl.dev/v1beta1
 kind: TestStep
 delete:
 # This will wait until resources are really gone
+  - apiVersion: clustercode.github.io/v1alpha1
+    kind: Blueprint
+    name: test-blueprint
   - apiVersion: v1
     kind: PersistentVolumeClaim
     name: source

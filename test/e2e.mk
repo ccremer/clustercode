@@ -6,6 +6,7 @@ chart-deploy: blank-media kind-load-image install-crd ## Install Operator in loc
 	helm upgrade --install clustercode ./charts/clustercode \
 		--create-namespace --namespace clustercode-system \
 		--set podAnnotations.sha="$(shell docker inspect $(CONTAINER_IMG) | jq -r '.[].Id')" \
+		--values test/values.yaml \
 		--wait $(chart_deploy_args)
 
 ###

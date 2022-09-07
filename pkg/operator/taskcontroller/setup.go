@@ -19,7 +19,7 @@ func SetupTaskController(mgr ctrl.Manager) error {
 
 	controller := reconciler.NewReconciler[*v1alpha1.Task](mgr.GetClient(), &TaskReconciler{
 		Client: mgr.GetClient(),
-		Log:    mgr.GetLogger(),
+		Log:    mgr.GetLogger().WithName("task"),
 	})
 
 	pred, err := predicate.LabelSelectorPredicate(metav1.LabelSelector{MatchLabels: types.ClusterCodeLabels})
@@ -29,7 +29,5 @@ func SetupTaskController(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		Named(name).
 		For(&v1alpha1.Task{}, builder.WithPredicates(pred)).
-		//Owns(&batchv1.Job{}).
-		//WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(controller)
 }
