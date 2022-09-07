@@ -27,7 +27,7 @@ func (r *TaskReconciler) createSplitJob(ctx *TaskContext) error {
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
 		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
-			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.SplitCommandArgs),
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.SplitCommandArgs),
 			jobType:           internaltypes.JobTypeSplit,
 			mountSource:       true,
 			mountIntermediate: true,

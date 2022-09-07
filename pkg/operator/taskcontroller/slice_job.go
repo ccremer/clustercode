@@ -27,7 +27,7 @@ func (r *TaskReconciler) createSliceJob(ctx *TaskContext) error {
 	}}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
 		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
-			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.TranscodeCommandArgs),
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.TranscodeCommandArgs),
 			jobType:           internaltypes.JobTypeSlice,
 			mountIntermediate: true,
 		})
