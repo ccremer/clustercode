@@ -21,6 +21,9 @@ $(kuttl_bin): | $(go_bin)
 
 test-e2e: export KUBECONFIG = $(KIND_KUBECONFIG)
 test-e2e: $(kuttl_bin) chart-deploy ## Run E2E tests in local cluster
+	@cp ./test/e2e/operator/03-install.yaml.template ./test/e2e/operator/03-install.yaml
+	@yq -i e '.spec.encode.podTemplate.containers[0].securityContext.runAsUser=$(shell id -u)' ./test/e2e/operator/03-install.yaml
+	@yq -i e '.spec.cleanup.podTemplate.containers[0].securityContext.runAsUser=$(shell id -u)' ./test/e2e/operator/03-install.yaml
 	$(kuttl_bin) test ./test/e2e --config ./test/e2e/kuttl-test.yaml
 	@rm -f kubeconfig
 # kuttl leaves kubeconfig garbage: https://github.com/kudobuilder/kuttl/issues/297

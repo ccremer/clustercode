@@ -4,7 +4,6 @@ kind: Blueprint
 metadata:
   name: test-blueprint
 spec:
-  scanSchedule: "*/1 * * * *"
   storage:
     sourcePvc:
       claimName: source
@@ -15,13 +14,23 @@ spec:
     targetPvc:
       claimName: target
       subPath: target
-  scanSpec:
+  scan:
+    schedule: "*/1 * * * *"
     mediaFileExtensions:
       - mp4
   taskConcurrencyStrategy:
     concurrentCountStrategy:
       maxCount: 1
-  encodeSpec:
+  cleanup:
+    podTemplate:
+      containers:
+        - name: clustercode
+          imagePullPolicy: IfNotPresent
+  encode:
+    podTemplate:
+      containers:
+        - name: clustercode
+          imagePullPolicy: IfNotPresent
     sliceSize: 1
     splitCommandArgs:
       - -y
