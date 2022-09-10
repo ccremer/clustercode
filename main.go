@@ -64,6 +64,7 @@ func newApp() (context.Context, context.CancelFunc, *cli.App) {
 		},
 		Commands: []*cli.Command{
 			newOperatorCommand(),
+			newWebhookCommand(),
 			newScanCommand(),
 			newCountCommand(),
 			newCleanupCommand(),
