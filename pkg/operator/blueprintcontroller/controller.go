@@ -122,7 +122,7 @@ func (r *BlueprintProvisioner) ensureCronJob(ctx *BlueprintContext) error {
 	_, err := controllerutil.CreateOrUpdate(ctx, r.client, cronJob, func() error {
 		cronJob.Labels = labels.Merge(cronJob.Labels, internaltypes.ClusterCodeLabels)
 		cronJob.Spec.Suspend = pointer.Bool(ctx.blueprint.Spec.Suspend)
-		cronJob.Spec.Schedule = ctx.blueprint.Spec.ScanSchedule
+		cronJob.Spec.Schedule = ctx.blueprint.Spec.Scan.Schedule
 		cronJob.Spec.ConcurrencyPolicy = batchv1.ForbidConcurrent
 		cronJob.Spec.SuccessfulJobsHistoryLimit = pointer.Int32(1)
 		cronJob.Spec.FailedJobsHistoryLimit = pointer.Int32(1)

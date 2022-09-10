@@ -34,6 +34,8 @@ type (
 		nextSliceIndex int
 	}
 	TaskOpts struct {
+		template          v1alpha1.PodTemplate
+		image             string
 		args              []string
 		jobType           internaltypes.ClusterCodeJobType
 		mountSource       bool

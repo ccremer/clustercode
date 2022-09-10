@@ -8,36 +8,42 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
-type (
-	StorageSpec struct {
-		SourcePvc       ClusterCodeVolumeRef `json:"sourcePvc"`
-		IntermediatePvc ClusterCodeVolumeRef `json:"intermediatePvc"`
-		TargetPvc       ClusterCodeVolumeRef `json:"targetPvc"`
-	}
-	ClusterCodeVolumeRef struct {
-		// +kubebuilder:validation:Required
-		ClaimName string `json:"claimName"`
-		SubPath   string `json:"subPath,omitempty"`
-	}
-	EncodeSpec struct {
-		// +kubebuilder:default=-y;-hide_banner;-nostats
-		DefaultCommandArgs []string `json:"defaultCommandArgs"`
-		// +kubebuilder:default=-i;"\"${INPUT}\"";-c;copy;-map;0;-segment_time;"\"${SLICE_SIZE}\"";-f;segment;"\"${OUTPUT}\""
-		SplitCommandArgs []string `json:"splitCommandArgs"`
-		// +kubebuilder:default=-i;"\"${INPUT}\"";"-c:v";copy;"-c:a";copy;"\"${OUTPUT}\""
-		TranscodeCommandArgs []string `json:"transcodeCommandArgs"`
-		// +kubebuilder:default=-f;concat;-i;concat.txt;-c;copy;media_out.mkv
-		MergeCommandArgs []string `json:"mergeCommandArgs"`
+type StorageSpec struct {
+	SourcePvc       ClusterCodeVolumeRef `json:"sourcePvc"`
+	IntermediatePvc ClusterCodeVolumeRef `json:"intermediatePvc"`
+	TargetPvc       ClusterCodeVolumeRef `json:"targetPvc"`
+}
 
-		SliceSize int `json:"sliceSize,omitempty"`
-	}
-	ClusterCodeUrl string
-)
+type ClusterCodeVolumeRef struct {
+	// +kubebuilder:validation:Required
+	ClaimName string `json:"claimName"`
+	SubPath   string `json:"subPath,omitempty"`
+}
+
+type EncodeSpec struct {
+	SplitCommandArgs     []string `json:"splitCommandArgs"`
+	TranscodeCommandArgs []string `json:"transcodeCommandArgs"`
+	MergeCommandArgs     []string `json:"mergeCommandArgs"`
+
+	// PodTemplate contains a selection of fields to customize the spawned ffmpeg-based pods.
+	// Some fields will be overwritten:
+	//  * Volumes and volume mounts will be set based on StorageSpec.
+	//  * Container args of the `ffmpeg` container will be set based on SplitCommandArgs, TranscodeCommandArgs, MergeCommandArgs.
+	PodTemplate PodTemplate `json:"podTemplate,omitempty"`
+
+	// SliceSize is the time in seconds of the slice lengths.
+	// Higher values yield lower parallelization but less overhead.
+	// Lower values yield high parallelization but more overhead.
+	// If SliceSize is higher than the total length of the media, there may be just 1 slice with effectively no parallelization.
+	SliceSize int `json:"sliceSize,omitempty"`
+}
 
 const (
 	MediaFileDoneSuffix = "_done"
 	ConfigMapFileName   = "file-list.txt"
 )
+
+type ClusterCodeUrl string
 
 func ToUrl(root, path string) ClusterCodeUrl {
 	newUrl, err := url.Parse(fmt.Sprintf("cc://%s/%s", root, strings.Replace(path, root, "", 1)))

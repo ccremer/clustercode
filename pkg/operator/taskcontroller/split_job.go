@@ -18,7 +18,7 @@ func (r *TaskReconciler) createSplitJob(ctx *TaskContext) error {
 	variables := map[string]string{
 		"${INPUT}":      filepath.Join(sourceMountRoot, ctx.task.Spec.SourceUrl.GetPath()),
 		"${OUTPUT}":     getSegmentFileNameTemplatePath(ctx, intermediateMountRoot),
-		"${SLICE_SIZE}": strconv.Itoa(ctx.task.Spec.EncodeSpec.SliceSize),
+		"${SLICE_SIZE}": strconv.Itoa(ctx.task.Spec.Encode.SliceSize),
 	}
 	job := &batchv1.Job{ObjectMeta: metav1.ObjectMeta{
 		Name:      fmt.Sprintf("%s-%s", ctx.task.Spec.TaskId, internaltypes.JobTypeSplit),
@@ -26,8 +26,10 @@ func (r *TaskReconciler) createSplitJob(ctx *TaskContext) error {
 	}}
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
-		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
-			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.DefaultCommandArgs, ctx.task.Spec.EncodeSpec.SplitCommandArgs),
+		createClustercodeJobDefinition(job, ctx.task, TaskOpts{
+			template:          ctx.task.Spec.Encode.PodTemplate,
+			image:             DefaultFfmpegContainerImage,
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.Encode.SplitCommandArgs),
 			jobType:           internaltypes.JobTypeSplit,
 			mountSource:       true,
 			mountIntermediate: true,
