@@ -137,8 +137,10 @@ spec:
       maxCount: 1
   encodeSpec:
     sliceSize: 120 # after how many seconds to split
-    defaultCommandArgs: ["-y","-hide_banner","-nostats"]
     splitCommandArgs:
+      - -y
+      - -hide_banner
+      - -nostats
       - -i
       - ${INPUT}
       - -c
@@ -151,6 +153,9 @@ spec:
       - segment
       - ${OUTPUT}
     transcodeCommandArgs:
+      - -y
+      - -hide_banner
+      - -nostats
       - -i
       - ${INPUT}
       - -c:v
@@ -159,6 +164,9 @@ spec:
       - copy
       - ${OUTPUT}
     mergeCommandArgs:
+      - -y
+      - -hide_banner
+      - -nostats
       - -f
       - concat
       - -safe
