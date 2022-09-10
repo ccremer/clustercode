@@ -6,17 +6,24 @@ import (
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
 	internaltypes "github.com/ccremer/clustercode/pkg/internal/types"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type Validator struct{}
+type Validator struct {
+	Log logr.Logger
+}
 
 func (v *Validator) ValidateCreate(_ context.Context, obj runtime.Object) error {
-	return v.validateSpec(obj.(*v1alpha1.Blueprint))
+	bp := obj.(*v1alpha1.Blueprint)
+	v.Log.V(1).Info("Validate Create", "name", bp.Name, "namespace", bp.Namespace)
+	return v.validateSpec(bp)
 }
 
 func (v *Validator) ValidateUpdate(_ context.Context, _, newObj runtime.Object) error {
-	return v.validateSpec(newObj.(*v1alpha1.Blueprint))
+	bp := newObj.(*v1alpha1.Blueprint)
+	v.Log.V(1).Info("Validate Update", "name", bp.Name, "namespace", bp.Namespace)
+	return v.validateSpec(bp)
 }
 
 func (v *Validator) ValidateDelete(_ context.Context, _ runtime.Object) error {

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -98,7 +99,7 @@ func TestValidator_ValidateCreate(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			v := &Validator{}
+			v := &Validator{Log: logr.Discard()}
 			err := v.validateSpec(&v1alpha1.Blueprint{Spec: tt.givenSpec})
 			if tt.expectedError != "" {
 				assert.EqualError(t, err, tt.expectedError)

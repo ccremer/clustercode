@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -28,7 +29,7 @@ func TestDefaulter_Default(t *testing.T) {
 	}
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			d := &Defaulter{}
+			d := &Defaulter{Log: logr.Discard()}
 			bp := &v1alpha1.Blueprint{Spec: tt.givenSpec}
 			err := d.Default(nil, bp)
 			assert.NoError(t, err)

@@ -4,13 +4,17 @@ import (
 	"context"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-type Defaulter struct{}
+type Defaulter struct {
+	Log logr.Logger
+}
 
 func (d *Defaulter) Default(_ context.Context, obj runtime.Object) error {
 	bp := obj.(*v1alpha1.Blueprint)
+	d.Log.V(1).Info("Applying defaults", "name", bp.Name, "namespace", bp.Namespace)
 
 	if bp.Spec.MaxParallelTasks == 0 {
 		bp.Spec.MaxParallelTasks = 1

@@ -12,7 +12,11 @@ import (
 func SetupWebhook(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(&v1alpha1.Blueprint{}).
-		WithValidator(&Validator{}).
-		WithDefaulter(&Defaulter{}).
+		WithValidator(&Validator{
+			Log: mgr.GetLogger().WithName("blueprint.validator"),
+		}).
+		WithDefaulter(&Defaulter{
+			Log: mgr.GetLogger().WithName("blueprint.defaulter"),
+		}).
 		Complete()
 }
