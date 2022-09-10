@@ -5628,15 +5628,10 @@ spec:
                 - transcodeCommandArgs
                 type: object
               maxParallelTasks:
-                default: 1
                 type: integer
               scan:
                 properties:
                   mediaFileExtensions:
-                    default:
-                    - mkv
-                    - mp4
-                    - avi
                     items:
                       type: string
                     type: array
