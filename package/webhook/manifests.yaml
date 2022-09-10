@@ -11,7 +11,7 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /validate-clustercode-github-io-v1alpha1-blueprint
+      path: /mutate-clustercode-github-io-v1alpha1-blueprint
   failurePolicy: Fail
   name: blueprints.clustercode.github.io
   rules:
@@ -38,7 +38,7 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
-      path: /mutate-clustercode-github-io-v1alpha1-blueprint
+      path: /validate-clustercode-github-io-v1alpha1-blueprint
   failurePolicy: Fail
   name: blueprints.clustercode.github.io
   rules:
