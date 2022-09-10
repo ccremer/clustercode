@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "clustercode.fullname" . }}
+  name: {{ include "clustercode.fullname" . }}-operator
   labels:
     {{- include "clustercode.labels" . | nindent 4 }}
 spec:
@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "clustercode.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: operator
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -17,6 +18,7 @@ spec:
       {{- end }}
       labels:
         {{- include "clustercode.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: operator
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -26,7 +28,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: operator
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ include "clustercode.containerImage" . | quote }}
@@ -52,7 +54,7 @@ spec:
               path: /metrics
               port: http
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.operator.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

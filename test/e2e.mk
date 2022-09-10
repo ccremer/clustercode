@@ -41,7 +41,7 @@ clean_targets += .e2e-test-clean
 tls_dir = $(WORK_DIR)/tls
 webhook_key = $(tls_dir)/tls.key
 webhook_cert = $(tls_dir)/tls.crt
-webhook_service_name = clustercode.clustercode-system.svc
+webhook_service_name = clustercode-webhook.clustercode-system.svc
 webhook_values = $(tls_dir)/webhook-values.yaml
 
 $(tls_dir):
