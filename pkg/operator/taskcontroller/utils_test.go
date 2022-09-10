@@ -25,7 +25,7 @@ func Test_createClustercodeJobDefinition(t *testing.T) {
 				Spec: v1alpha1.TaskSpec{
 					Encode: v1alpha1.EncodeSpec{},
 					Storage: v1alpha1.StorageSpec{
-						SourcePvc: v1alpha1.ClusterCodeVolumeRef{
+						SourcePvc: v1alpha1.VolumeRef{
 							ClaimName: "source-claim"}}}},
 			expectedJob: &batchv1.Job{
 				Spec: batchv1.JobSpec{
@@ -83,7 +83,7 @@ func Test_createClustercodeJobDefinition(t *testing.T) {
 						},
 					},
 					Storage: v1alpha1.StorageSpec{
-						SourcePvc: v1alpha1.ClusterCodeVolumeRef{
+						SourcePvc: v1alpha1.VolumeRef{
 							ClaimName: "source-claim"}}}},
 			expectedJob: &batchv1.Job{
 				Spec: batchv1.JobSpec{

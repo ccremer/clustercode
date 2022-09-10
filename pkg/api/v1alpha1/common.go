@@ -9,15 +9,23 @@ import (
 )
 
 type StorageSpec struct {
-	SourcePvc       ClusterCodeVolumeRef `json:"sourcePvc"`
-	IntermediatePvc ClusterCodeVolumeRef `json:"intermediatePvc"`
-	TargetPvc       ClusterCodeVolumeRef `json:"targetPvc"`
+	// SourcePvc is a reference to the PVC which contains the source media files to encode.
+	// If `sourcePvc.claimName` is empty, then you need to specify a pod template that configures a volume named "source".
+	SourcePvc VolumeRef `json:"sourcePvc"`
+	// SourcePvc is a reference to the PVC which contains the intermediate media files as part of the splitting and merging.
+	// If `intermediatePvc.claimName` is empty, then you need to specify a pod template that configures a volume named "intermediate".
+	IntermediatePvc VolumeRef `json:"intermediatePvc"`
+	// SourcePvc is a reference to the PVC which contains the final result files.
+	// If `targetPvc.claimName` is empty, then you need to specify a pod template that configures a volume named "target".
+	TargetPvc VolumeRef `json:"targetPvc"`
 }
 
-type ClusterCodeVolumeRef struct {
-	// +kubebuilder:validation:Required
+type VolumeRef struct {
+	// ClaimName is the name of the PVC.
 	ClaimName string `json:"claimName"`
-	SubPath   string `json:"subPath,omitempty"`
+	// SubPath is an optional path within the referenced PVC.
+	// This is useful if the same PVC is shared.
+	SubPath string `json:"subPath,omitempty"`
 }
 
 type EncodeSpec struct {
@@ -27,7 +35,7 @@ type EncodeSpec struct {
 
 	// PodTemplate contains a selection of fields to customize the spawned ffmpeg-based pods.
 	// Some fields will be overwritten:
-	//  * Volumes and volume mounts will be set based on StorageSpec.
+	//  * Volumes and volume mounts will be set based on StorageSpec, if the claim names are given.
 	//  * Container args of the `ffmpeg` container will be set based on SplitCommandArgs, TranscodeCommandArgs, MergeCommandArgs.
 	PodTemplate PodTemplate `json:"podTemplate,omitempty"`
 

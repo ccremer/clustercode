@@ -19,7 +19,7 @@ func EnsureVolumeMountIf(enabled bool, container *corev1.Container, volumeName, 
 		corev1.VolumeMount{Name: volumeName, MountPath: podMountRoot, SubPath: subPath})
 }
 
-func EnsurePVCVolume(job *v1.Job, name string, volume v1alpha1.ClusterCodeVolumeRef) {
+func EnsurePVCVolume(job *v1.Job, name string, volume v1alpha1.VolumeRef) {
 	for _, v := range job.Spec.Template.Spec.Volumes {
 		if v.Name == name {
 			return
