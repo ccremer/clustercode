@@ -7,6 +7,7 @@ MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-builtin-variables
 .SUFFIXES:
 .SECONDARY:
+.DEFAULT_GOAL := help
 
 # extensible array of targets. Modules can add target to this variable for the all-in-one target.
 clean_targets := build-clean
