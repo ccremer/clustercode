@@ -26,8 +26,10 @@ func (r *TaskReconciler) createSliceJob(ctx *TaskContext) error {
 		Namespace: ctx.task.Namespace,
 	}}
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
-		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
-			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.TranscodeCommandArgs),
+		createClustercodeJobDefinition(job, ctx.task, TaskOpts{
+			template:          ctx.task.Spec.Encode.PodTemplate,
+			image:             DefaultFfmpegContainerImage,
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.Encode.TranscodeCommandArgs),
 			jobType:           internaltypes.JobTypeSlice,
 			mountIntermediate: true,
 		})

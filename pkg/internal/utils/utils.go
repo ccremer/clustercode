@@ -11,19 +11,20 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-func EnsurePVCVolume(job *v1.Job, name, podMountRoot string, volume v1alpha1.ClusterCodeVolumeRef) {
-	found := false
-	for _, container := range job.Spec.Template.Spec.Containers {
-		if HasVolumeMount(name, container) {
-			found = true
-			break
-		}
-	}
-	if found {
+func EnsureVolumeMountIf(enabled bool, container *corev1.Container, volumeName, podMountRoot, subPath string) {
+	if !enabled || HasVolumeMount(*container, volumeName) {
 		return
 	}
-	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts,
-		corev1.VolumeMount{Name: name, MountPath: podMountRoot, SubPath: volume.SubPath})
+	container.VolumeMounts = append(container.VolumeMounts,
+		corev1.VolumeMount{Name: volumeName, MountPath: podMountRoot, SubPath: subPath})
+}
+
+func EnsurePVCVolume(job *v1.Job, name string, volume v1alpha1.ClusterCodeVolumeRef) {
+	for _, v := range job.Spec.Template.Spec.Volumes {
+		if v.Name == name {
+			return
+		}
+	}
 	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, corev1.Volume{
 		Name: name,
 		VolumeSource: corev1.VolumeSource{
@@ -33,15 +34,13 @@ func EnsurePVCVolume(job *v1.Job, name, podMountRoot string, volume v1alpha1.Clu
 		}})
 }
 
-func HasVolumeMount(name string, container corev1.Container) bool {
-	found := false
+func HasVolumeMount(container corev1.Container, name string) bool {
 	for _, mount := range container.VolumeMounts {
 		if mount.Name == name {
-			found = true
-			break
+			return true
 		}
 	}
-	return found
+	return false
 }
 
 func GetOwner(obj metav1.Object) types.NamespacedName {

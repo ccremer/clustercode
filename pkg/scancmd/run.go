@@ -135,7 +135,7 @@ func (c *Command) selectNewFile(ctx *commandContext) error {
 		if info.IsDir() {
 			return nil
 		}
-		if !containsExtension(filepath.Ext(path), ctx.blueprint.Spec.ScanSpec.MediaFileExtensions) {
+		if !containsExtension(filepath.Ext(path), ctx.blueprint.Spec.Scan.MediaFileExtensions) {
 			log.V(1).Info("file extension not accepted", "path", path)
 			return nil
 		}
@@ -183,7 +183,8 @@ func (c *Command) createTask(ctx *commandContext) error {
 			TaskId:               v1alpha1.ClustercodeTaskId(taskId),
 			SourceUrl:            v1alpha1.ToUrl(internaltypes.SourceSubMountPath, selectedFile),
 			TargetUrl:            v1alpha1.ToUrl(internaltypes.TargetSubMountPath, selectedFile),
-			EncodeSpec:           bp.Spec.EncodeSpec,
+			Encode:               bp.Spec.Encode,
+			Cleanup:              bp.Spec.Cleanup,
 			Storage:              bp.Spec.Storage,
 			ServiceAccountName:   bp.GetServiceAccountName(),
 			FileListConfigMapRef: taskId + "-slice-list",

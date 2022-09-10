@@ -32,23 +32,6 @@ type PodTemplate struct {
 	// List of volumes that can be mounted by containers belonging to the pod.
 	// More info: https://kubernetes.io/docs/concepts/storage/volumes
 	Volumes []corev1.Volume `json:"volumes,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
-
-	// +kubebuilder:validation:Optional
-
-	// If specified, the pod's scheduling constraints
-	Affinity *corev1.Affinity `json:"affinity,omitempty"`
-
-	// +kubebuilder:validation:Optional
-
-	// NodeSelector is a selector which must be true for the pod to fit on a node.
-	// Selector which must match a node's labels for the pod to be scheduled on that node.
-	// More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
-
-	// +kubebuilder:validation:Optional
-
-	// If specified, the pod's tolerations.
-	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 type PodMetadata struct {
@@ -85,11 +68,6 @@ type ContainerTemplate struct {
 	// Args to the entrypoint.
 	// More info: https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#running-a-command-in-a-shell
 	Args []string `json:"args,omitempty"`
-
-	// +kubebuilder:validation:Optional
-
-	// Ports is a List of ports to expose from the container.
-	Ports []corev1.ContainerPort `json:"ports,omitempty" patchStrategy:"merge" patchMergeKey:"containerPort"`
 
 	// +kubebuilder:validation:Optional
 
@@ -131,14 +109,13 @@ func (in *ContainerTemplate) ToContainer() corev1.Container {
 	return corev1.Container{
 		Name:            in.Name,
 		Image:           in.Image,
+		ImagePullPolicy: in.ImagePullPolicy,
 		Command:         in.Command,
 		Args:            in.Args,
-		Ports:           in.Ports,
 		EnvFrom:         in.EnvFrom,
 		Env:             in.Env,
 		Resources:       in.Resources,
 		VolumeMounts:    in.VolumeMounts,
-		ImagePullPolicy: in.ImagePullPolicy,
 		SecurityContext: in.SecurityContext,
 	}
 }

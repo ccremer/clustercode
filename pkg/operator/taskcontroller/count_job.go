@@ -17,7 +17,6 @@ import (
 
 func (r *TaskReconciler) ensureCountJob(ctx *TaskContext) error {
 	taskId := ctx.task.Spec.TaskId
-	intermediateMountRoot := filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath)
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%.*s-%s", 62-len(internaltypes.JobTypeCount), taskId, internaltypes.JobTypeCount),
@@ -29,22 +28,23 @@ func (r *TaskReconciler) ensureCountJob(ctx *TaskContext) error {
 		job.Spec.BackoffLimit = pointer.Int32(0)
 		job.Spec.Template.Spec.ServiceAccountName = ctx.task.Spec.ServiceAccountName
 		job.Spec.Template.Spec.RestartPolicy = corev1.RestartPolicyNever
-		if len(job.Spec.Template.Spec.Containers) == 0 {
-			job.Spec.Template.Spec.Containers = []corev1.Container{
-				{
-					Name:            "clustercode",
-					Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
-					ImagePullPolicy: corev1.PullIfNotPresent,
-					Args: []string{
-						"--log-level=1",
-						"count",
-						"--task-name=" + ctx.task.Name,
-						"--namespace=" + ctx.task.Namespace,
-					},
-				},
-			}
-			utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, intermediateMountRoot, ctx.task.Spec.Storage.IntermediatePvc)
+
+		container := corev1.Container{
+			Name:            "clustercode",
+			Image:           blueprintcontroller.DefaultClusterCodeContainerImage,
+			ImagePullPolicy: corev1.PullIfNotPresent,
+			Args: []string{
+				"--log-level=1",
+				"count",
+				"--task-name=" + ctx.task.Name,
+				"--namespace=" + ctx.task.Namespace,
+			},
 		}
+		utils.EnsureVolumeMountIf(true, &container, internaltypes.IntermediateSubMountPath,
+			filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath), ctx.task.Spec.Storage.IntermediatePvc.SubPath)
+		utils.EnsurePVCVolume(job, internaltypes.IntermediateSubMountPath, ctx.task.Spec.Storage.IntermediatePvc)
+
+		job.Spec.Template.Spec.Containers = []corev1.Container{container}
 		return controllerutil.SetControllerReference(ctx.task, job, r.Client.Scheme())
 	})
 	return err

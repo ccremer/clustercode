@@ -25,8 +25,10 @@ func (r *TaskReconciler) createMergeJob(ctx *TaskContext) error {
 	}}
 
 	_, err := controllerutil.CreateOrUpdate(ctx, r.Client, job, func() error {
-		createFfmpegJobDefinition(job, ctx.task, &TaskOpts{
-			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.EncodeSpec.MergeCommandArgs),
+		createClustercodeJobDefinition(job, ctx.task, TaskOpts{
+			template:          ctx.task.Spec.Encode.PodTemplate,
+			image:             DefaultFfmpegContainerImage,
+			args:              utils.MergeArgsAndReplaceVariables(variables, ctx.task.Spec.Encode.MergeCommandArgs),
 			jobType:           internaltypes.JobTypeMerge,
 			mountIntermediate: true,
 			mountTarget:       true,
