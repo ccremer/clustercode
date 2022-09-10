@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/ccremer/clustercode/pkg/api"
 	pipeline "github.com/ccremer/go-command-pipeline"
@@ -53,6 +54,7 @@ func (c *Command) Execute(ctx context.Context) error {
 			ws := ctx.manager.GetWebhookServer()
 			ws.CertDir = c.WebhookCertDir
 			ws.TLSMinVersion = "1.3"
+			ws.Register("/healthz", &healthHandler{})
 			return SetupWebhooks(ctx.manager)
 		}),
 		p.NewStep("run manager", func(ctx *commandContext) error {
@@ -62,4 +64,10 @@ func (c *Command) Execute(ctx context.Context) error {
 	)
 
 	return p.RunWithContext(pctx)
+}
+
+type healthHandler struct{}
+
+func (h *healthHandler) ServeHTTP(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusNoContent)
 }
