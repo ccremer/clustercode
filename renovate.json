@@ -23,6 +23,15 @@
       "automerge": true
     },
     {
+      "matchPackagePatterns": [
+        "github.com/urfave/cli/v2"
+      ],
+      "groupName": "urfave/cli/v2",
+      "schedule": [
+        "on the first day of the month"
+      ]
+    },
+    {
       "matchPaths": [
         "docs/**"
       ],
