@@ -35,10 +35,8 @@ type BlueprintList struct {
 
 // BlueprintSpec specifies Clustercode settings
 type BlueprintSpec struct {
-	// +kubebuilder:validation:Required
-	Storage StorageSpec `json:"storage,omitempty"`
-	// +kubebuilder:default=1
-	MaxParallelTasks int `json:"maxParallelTasks,omitempty"`
+	Storage          StorageSpec `json:"storage,omitempty"`
+	MaxParallelTasks int         `json:"maxParallelTasks,omitempty"`
 
 	Suspend                 bool                `json:"suspend,omitempty"`
 	TaskConcurrencyStrategy ClustercodeStrategy `json:"taskConcurrencyStrategy,omitempty"`
@@ -49,8 +47,7 @@ type BlueprintSpec struct {
 }
 
 type ScanSpec struct {
-	Schedule string `json:"schedule"`
-	// +kubebuilder:default=mkv;mp4;avi
+	Schedule            string   `json:"schedule"`
 	MediaFileExtensions []string `json:"mediaFileExtensions,omitempty"`
 }
 

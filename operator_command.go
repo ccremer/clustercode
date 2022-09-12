@@ -11,7 +11,7 @@ func newOperatorCommand() *cli.Command {
 	command := &operator.Command{}
 	return &cli.Command{
 		Name:   "operator",
-		Usage:  "Start provider in operator mode",
+		Usage:  "Start clustercode in operator mode",
 		Before: LogMetadata,
 		Action: func(ctx *cli.Context) error {
 			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)

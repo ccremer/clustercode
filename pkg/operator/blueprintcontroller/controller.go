@@ -155,7 +155,7 @@ func (r *BlueprintProvisioner) ensureCronJob(ctx *BlueprintContext) error {
 					{
 						Name:      internaltypes.IntermediateSubMountPath,
 						MountPath: filepath.Join("/clustercode", internaltypes.IntermediateSubMountPath),
-						SubPath:   ctx.blueprint.Spec.Storage.SourcePvc.SubPath,
+						SubPath:   ctx.blueprint.Spec.Storage.IntermediatePvc.SubPath,
 					},
 				},
 			}}

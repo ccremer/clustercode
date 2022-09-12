@@ -4,6 +4,7 @@ kind: Blueprint
 metadata:
   name: test-blueprint
 spec:
+  maxParallelTasks: 1
   storage:
     sourcePvc:
       claimName: source

@@ -22,13 +22,3 @@ func SetupControllers(mgr ctrl.Manager) error {
 	}
 	return nil
 }
-
-// SetupWebhooks creates all webhooks and adds them to the supplied manager.
-func SetupWebhooks(mgr ctrl.Manager) error {
-	for _, setup := range []func(ctrl.Manager) error{} {
-		if err := setup(mgr); err != nil {
-			return err
-		}
-	}
-	return nil
-}
