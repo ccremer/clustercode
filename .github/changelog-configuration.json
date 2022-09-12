@@ -1,5 +1,8 @@
 {
-  "pr_template": "- ${{TITLE}} (#${{NUMBER}}) by ${{AUTHOR}}",
+  "pr_template": "- ${{TITLE}} by @${{AUTHOR}} (#${{NUMBER}})",
+  "ignore_labels": [
+    "area:chart"
+  ],
   "categories": [
     {
       "title": "## 🚀 Features",
