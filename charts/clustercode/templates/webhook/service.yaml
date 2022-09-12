@@ -1,0 +1,22 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clustercode.fullname" . }}-webhook
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+  {{- with .Values.webhook.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 443
+      targetPort: webhook
+      protocol: TCP
+      name: webhook
+  selector:
+    {{- include "clustercode.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: webhook
+{{- end }}

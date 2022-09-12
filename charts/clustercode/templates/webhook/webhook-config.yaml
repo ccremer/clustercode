@@ -1,0 +1,68 @@
+{{- if .Values.webhook.enabled -}}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: '{{ include "clustercode.fullname" . }}'
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.webhook.annotations | nindent 4 }}
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: '{{ include "clustercode.fullname" . }}-webhook'
+        namespace: '{{ .Release.Namespace }}'
+        path: /mutate-clustercode-github-io-v1alpha1-blueprint
+{{- with .Values.webhook.caBundle }}
+      caBundle: '{{ . }}'
+{{- end }}
+    failurePolicy: Fail
+    name: blueprints.clustercode.github.io
+    rules:
+      - apiGroups:
+          - clustercode.github.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - blueprints
+    sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: '{{ include "clustercode.fullname" . }}'
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.webhook.annotations | nindent 4 }}
+webhooks:
+  - admissionReviewVersions:
+      - v1
+    clientConfig:
+      service:
+        name: '{{ include "clustercode.fullname" . }}-webhook'
+        namespace: '{{ .Release.Namespace }}'
+        path: /validate-clustercode-github-io-v1alpha1-blueprint
+{{- with .Values.webhook.caBundle }}
+      caBundle: '{{ . }}'
+{{- end }}
+    failurePolicy: Fail
+    name: blueprints.clustercode.github.io
+    rules:
+      - apiGroups:
+          - clustercode.github.io
+        apiVersions:
+          - v1alpha1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - blueprints
+    sideEffects: None
+{{- end -}}

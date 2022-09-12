@@ -6,9 +6,6 @@ clustercode:
   # -- Set additional environment variables to the Operator
   env: []
 
-# -- The operator's pod replica count
-replicaCount: 1
-
 image:
   registry: ghcr.io
   repository: ccremer/clustercode
@@ -48,6 +45,31 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
+service:
+  # -- Annotations to add to the service.
+  annotations: {}
+
+webhook:
+  # -- Enable admission webhooks
+  enabled: true
+  # -- Certificate in PEM format for the ValidatingWebhookConfiguration.
+  caBundle: ""
+  # -- Certificate in PEM format for the TLS secret.
+  certificate: ""
+  # -- Private key in PEM format for the TLS secret.
+  privateKey: ""
+  # -- Name of an existing or external Secret with TLS to mount in the operator.
+  # The secret is expected to have `tls.crt` and `tls.key` keys.
+  # Note: You will still need to set `.caBundle` if the certificate is not verifiable (self-signed) by Kubernetes.
+  externalSecretName: ""
+  # -- Annotations to add to the webhook configuration resources.
+  annotations: {}
+  # -- The webhook's pod replica count
+  replicaCount: 1
+  service:
+    # -- Annotations to add to the webhook service.
+    annotations: {}
+
 metrics:
   # -- Specifies whether metrics should be enabled
   enabled: false
@@ -55,12 +77,15 @@ metrics:
     type: ClusterIP
     port: 9090
 
-resources:
-  limits:
-    memory: 128Mi
-  requests:
-    cpu: 10m
-    memory: 32Mi
+operator:
+  # -- The operator's pod replica count
+  replicaCount: 1
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
 
 # -- The operator's pod node selector
 nodeSelector: {}
