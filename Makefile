@@ -24,7 +24,9 @@ include Makefile.vars.mk
 # Optional Helm chart module
 -include charts/charts.mk
 # Local Env & testing
--include test/integration.mk test/e2e.mk test/media.mk
+include test/integration.mk test/e2e.mk test/media.mk
+# UI
+include ui/Makefile
 
 .PHONY: help
 help: ## Show this help
@@ -62,7 +64,13 @@ vet: ## Run 'go vet' against code
 	go vet ./...
 
 .PHONY: lint
-lint: fmt vet generate ## All-in-one linting
+lint: lint-go lint-ui git-diff ## All-in-one linting
+
+.PHONY: lint-go
+lint-go: fmt vet generate ## Run linting for Go code
+
+.PHONY: git-diff
+git-diff:
 	@echo 'Check for uncommitted changes ...'
 	git diff --exit-code
 
