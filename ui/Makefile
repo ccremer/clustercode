@@ -12,5 +12,6 @@ lint-ui: ui/node_modules ## Runs linters for the UI code
 	$(npm_run) lint
 	$(npm_run) check
 
-.npm-install:
-	$(npm) install
+.PHONY: test-ui
+test-ui: ui/node_modules ## Runs tests for the UI code
+	$(npm_run) cy:run

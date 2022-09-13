@@ -9,7 +9,7 @@ on:
       - docs/**
 
 jobs:
-  integration:
+  go:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,3 +38,17 @@ jobs:
         with:
           coverageLocations: cover.out:gocov
           prefix: github.com/${{ github.repository }}
+
+  cypress:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Run tests
+        run: make test-ui
