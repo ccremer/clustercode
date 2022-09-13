@@ -4,7 +4,7 @@ on:
   pull_request: {}
 
 jobs:
-  lint:
+  go:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -24,4 +24,18 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Run linters
-        run: make lint
+        run: make lint-go git-diff
+
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Run linters
+        run: make lint-ui git-diff

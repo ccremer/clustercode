@@ -1,6 +1,6 @@
 <script lang="ts">
-  import LoginForm from "./lib/LoginForm.svelte";
-  import { Container } from "sveltestrap";
+  import LoginForm from './lib/LoginForm.svelte'
+  import { Container } from 'sveltestrap'
 </script>
 
 <main>
