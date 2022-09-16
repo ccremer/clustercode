@@ -1,0 +1,16 @@
+apiVersion: v1
+entries:
+  clustercode:
+  - apiVersion: v2
+    created: "2022-09-16T21:23:04.192441685Z"
+    description: Movie and Series conversion Operator with Ffmpeg
+    digest: 9a89888422a5f8179d22ad8cc8cc1b5e6185fa40d830f35199b53d2dba2573a1
+    home: https://ccremer.github.io/clustercode
+    name: clustercode
+    sources:
+    - https://github.com/ccremer/clustercode
+    type: application
+    urls:
+    - https://github.com/ccremer/clustercode/releases/download/chart/clustercode-0.2.0/clustercode-0.2.0.tgz
+    version: 0.2.0
+generated: "2022-09-16T21:23:04.192448785Z"
