@@ -33,12 +33,12 @@ help: ## Show this help
 	@grep -E -h '\s##\s' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: build
-build: build-docker ## All-in-one build
+build: build-ui build-docker ## All-in-one build
 
 .PHONY: build-bin
 build-bin: export CGO_ENABLED = 0
 build-bin: fmt vet ## Build binary
-	@go build -o $(BIN_FILENAME) .
+	@go build $(go_build_args) -o $(BIN_FILENAME) .
 
 .PHONY: build-docker
 build-docker: build-bin ## Build docker image
@@ -107,5 +107,6 @@ run-operator: ## Run in Operator mode against your current kube context
 clean: $(clean_targets) ## All-in-one target to cleanup local artifacts
 
 .PHONY: release-prepare
-release-prepare: generate-go ## Prepares artifacts for releases
+release-prepare: build-ui generate-go ## Prepares artifacts for releases
 	@cat package/crds/*.yaml | yq > .github/crds.yaml
+	@tar -czf .github/ui.tar.gz ui/dist

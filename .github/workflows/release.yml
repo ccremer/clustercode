@@ -36,6 +36,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
       - name: Import GPG signing key
         uses: crazy-max/ghaction-import-gpg@v5
         with:

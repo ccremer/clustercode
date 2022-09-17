@@ -2,6 +2,7 @@
 /dist/
 /.github/release-notes.md
 /.github/crds.yaml
+/.github/ui.tar.gz
 
 # Build
 /clustercode
@@ -19,7 +20,3 @@
 /data/intermediate/**
 /data/source/**
 /data/target/**
-
-# e2e
-/e2e/node_modules/
-/e2e/debug/

@@ -28,4 +28,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run build
-        run: make build
+        run: make build-docker
+
+  vite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Run build
+        run: make build-ui
