@@ -9,6 +9,8 @@ builds:
       - linux
     goarm:
       - 8
+    flags:
+      - -tags=ui
 
 checksum:
   name_template: 'checksums.txt'
@@ -64,3 +66,4 @@ release:
   prerelease: auto
   extra_files:
   - glob: ./.github/crds.yaml
+  - glob: ./.github/ui.tar.gz

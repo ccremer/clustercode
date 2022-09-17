@@ -9,7 +9,7 @@ func newWebhookCommand() *cli.Command {
 	command := &webhook.Command{}
 	return &cli.Command{
 		Name:   "webhook",
-		Usage:  "Start cluster in admission controller mode",
+		Usage:  "Start clustercode in admission controller mode",
 		Before: LogMetadata,
 		Action: func(ctx *cli.Context) error {
 			command.Log = AppLogger(ctx).WithName(ctx.Command.Name)
