@@ -16,10 +16,6 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
-rbac:
-  # -- Specifies whether RBAC roles and rolebindings should be enabled for users
-  create: true
-
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
@@ -45,10 +41,6 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-service:
-  # -- Annotations to add to the service.
-  annotations: {}
-
 webhook:
   # -- Enable admission webhooks
   enabled: true
@@ -70,14 +62,9 @@ webhook:
     # -- Annotations to add to the webhook service.
     annotations: {}
 
-metrics:
-  # -- Specifies whether metrics should be enabled
-  enabled: false
-  service:
-    type: ClusterIP
-    port: 9090
-
 operator:
+  # -- Whether the Operator deployment is enabled
+  enabled: true
   # -- The operator's pod replica count
   replicaCount: 1
   resources:
@@ -86,6 +73,63 @@ operator:
     requests:
       cpu: 10m
       memory: 32Mi
+  rbac:
+    # -- Specifies whether RBAC roles and rolebindings should be enabled for users
+    create: true
+
+webui:
+  # -- Whether the WebUI deployment is enabled
+  enabled: true
+  # -- The webserver's pod replica count
+  replicaCount: 1
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 32Mi
+
+  api:
+    # -- The mode under which the Kubernetes API is served.
+    # Supported values: ["externalName", "proxy"]
+    # In case of CORS issues, you may use the integrated proxy.
+    mode: proxy
+    # -- The internal service name where the API service is served.
+    externalName:
+      # -- The Kubernetes service which the Ingress exposes additionally.
+      # This is likely only working with TLS.
+      service: kubernetes.default.svc.cluster.local
+    proxy:
+      # -- The Kubernetes full base URL for the API.
+      # Ideally this is an internal URL.
+      url: https://kubernetes.default.svc.cluster.local:443
+      # -- Whether TLS certificate verifications should be skipped.
+      skipTlsVerify: false
+
+  service:
+    # -- Annotations to add to the webhook service.
+    annotations: {}
+    # -- Service port
+    port: 80
+
+  ingress:
+    # -- Whether the WebUI ingress is enabled
+    enabled: true
+    className: ""
+    # -- Annotations to add to the Ingress
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+
+    # -- The root path of the Ingress
+    rootPath: /
+    pathType: Prefix
+    hosts:
+      - host: 127.0.0.1.nip.io
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
 # -- The operator's pod node selector
 nodeSelector: {}

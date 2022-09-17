@@ -1,16 +1,16 @@
-{{- if .Values.operator.enabled }}
+{{- if .Values.webui.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "clustercode.fullname" . }}-operator
+  name: {{ include "clustercode.fullname" . }}-webui
   labels:
     {{- include "clustercode.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.operator.replicaCount }}
+  replicas: {{ .Values.webui.replicaCount }}
   selector:
     matchLabels:
       {{- include "clustercode.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: operator
+      app.kubernetes.io/component: webui
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,7 +19,7 @@ spec:
       {{- end }}
       labels:
         {{- include "clustercode.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: operator
+        app.kubernetes.io/component: webui
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -29,7 +29,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: operator
+        - name: webui
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: {{ include "clustercode.containerImage" . | quote }}
@@ -43,19 +43,21 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           args:
-            - operator
-            - --clustercode-image={{ include "clustercode.containerImage" . }}
-            - --ffmpeg-image={{ include "clustercode.ffmpegImage" . }}
+            - webui
+            {{- if eq .Values.webui.api.mode "proxy" }}
+            - --api-url={{ .Values.webui.api.proxy.url }}
+            - --api-tls-skip-verify={{ .Values.webui.api.proxy.skipTlsVerify }}
+            {{- end }}
           livenessProbe:
             httpGet:
-              path: /metrics
+              path: /healthz
               port: http
           readinessProbe:
             httpGet:
-              path: /metrics
+              path: /healthz
               port: http
           resources:
-            {{- toYaml .Values.operator.resources | nindent 12 }}
+            {{- toYaml .Values.webui.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

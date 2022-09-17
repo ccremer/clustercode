@@ -25,6 +25,8 @@ kind-setup: $(KIND_KUBECONFIG) ## Creates the kind cluster
 kind-setup-ingress: export KUBECONFIG = $(KIND_KUBECONFIG)
 kind-setup-ingress: kind-setup ## Install NGINX as ingress controller onto kind cluster (localhost:8081)
 	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+	kubectl wait -n ingress-nginx --for condition=Available deploy/ingress-nginx-controller
+	kubectl wait -n ingress-nginx --for condition=ContainersReady $$(kubectl -n ingress-nginx get pods -o name -l app.kubernetes.io/component=controller)
 
 .PHONY: kind-load-image
 # We fix the arch to linux/amd64 since kind runs in amd64 even on Mac/arm.

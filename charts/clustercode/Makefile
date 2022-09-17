@@ -36,9 +36,11 @@ $(webhook_gen_tgt):
 .PHONY: $(rbac_gen_tgt)
 $(rbac_gen_tgt):
 	@cp $(rbac_gen_src) $@
-	@yq -i e '.metadata.name="{{ include \"clustercode.fullname\" . }}-manager", del(.metadata.creationTimestamp)' $@
+	@yq -i e '.metadata.name="{{ include \"clustercode.fullname\" . }}-operator", del(.metadata.creationTimestamp)' $@
 	@yq -i e '.metadata.labels.replace="LABELS"' $@
+	@$(sed) -e '1s/^/{{- if .Values.operator.enabled -}}\n/' $@
 	@$(sed) -e 's/replace: LABELS/{{- include "clustercode.labels" . | nindent 4 }}/g' $@
+	@echo "{{- end -}}" >> $@
 
 #
 # "Interface" for parent Makefile

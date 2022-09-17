@@ -8,7 +8,7 @@ on:
       - docs/**
 
 jobs:
-  test-e2e:
+  kuttl:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
