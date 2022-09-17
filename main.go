@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"sync/atomic"
-	"syscall"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -32,19 +30,17 @@ func init() {
 }
 
 func main() {
-	ctx, stop, app := newApp()
-	defer stop()
+	ctx, app := newApp()
 	err := app.RunContext(ctx, os.Args)
 	// If required flags aren't set, it will return with error before we could set up logging
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
-		stop()
 		os.Exit(1)
 	}
 
 }
 
-func newApp() (context.Context, context.CancelFunc, *cli.App) {
+func newApp() (context.Context, *cli.App) {
 	logInstance := &atomic.Value{}
 	logInstance.Store(logr.Discard())
 	app := &cli.App{
@@ -65,6 +61,7 @@ func newApp() (context.Context, context.CancelFunc, *cli.App) {
 		Commands: []*cli.Command{
 			newOperatorCommand(),
 			newWebhookCommand(),
+			newWebuiCommand(),
 			newScanCommand(),
 			newCountCommand(),
 			newCleanupCommand(),
@@ -82,8 +79,7 @@ func newApp() (context.Context, context.CancelFunc, *cli.App) {
 	// However, since we are configuring and replacing this logger after starting up and parsing the flags,
 	// we'll store a thread-safe atomic reference.
 	parentCtx := context.WithValue(context.Background(), loggerContextKey{}, logInstance)
-	ctx, stop := signal.NotifyContext(parentCtx, syscall.SIGINT, syscall.SIGTERM)
-	return ctx, stop, app
+	return parentCtx, app
 }
 
 func rootAction(hasSubcommands bool) func(context *cli.Context) error {
