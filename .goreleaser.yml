@@ -12,8 +12,15 @@ builds:
     flags:
       - -tags=ui
 
+archives:
+  - format: binary
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
+
 checksum:
-  name_template: 'checksums.txt'
+  name_template: checksums.txt
+  extra_files:
+    - glob: ./.github/crds.yaml
+    - glob: ./.github/ui.tar.gz
 
 snapshot:
   name_template: "{{ .Tag }}-snapshot"
