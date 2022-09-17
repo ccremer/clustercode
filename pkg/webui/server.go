@@ -2,9 +2,12 @@ package webui
 
 import (
 	"context"
+	"crypto/tls"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"github.com/ccremer/clustercode/pkg/internal/pipe"
 	"github.com/ccremer/clustercode/ui"
@@ -16,6 +19,10 @@ import (
 
 type Command struct {
 	Log logr.Logger
+	// ApiURL is the Kubernetes API URL to proxy the API requests.
+	// The frontend is making API calls directly to Kubernetes.
+	ApiURL           string
+	ApiTLSSkipVerify bool
 }
 
 type commandContext struct {
@@ -37,9 +44,14 @@ func (c *Command) Execute(ctx context.Context) error {
 	p.WithSteps(
 		p.NewStep("create server", c.createServer),
 		p.NewStep("setup routes", c.setupRoutes),
+		p.When(c.isProxyEnabled, "proxy API server", c.setupProxy),
 		p.NewStep("run server", c.startServer),
 	)
 	return p.RunWithContext(pctx)
+}
+
+func (c *Command) isProxyEnabled(_ *commandContext) bool {
+	return c.ApiURL != ""
 }
 
 func (c *Command) createServer(ctx *commandContext) error {
@@ -59,7 +71,37 @@ func (c *Command) setupRoutes(ctx *commandContext) error {
 	ctx.echo.GET("/", echo.WrapHandler(assetHandler))
 	ctx.echo.GET("/vite.svg", echo.WrapHandler(assetHandler))
 	ctx.echo.GET("/assets/*", echo.WrapHandler(assetHandler))
+	ctx.echo.GET("/robots.txt", echo.WrapHandler(assetHandler))
 	ctx.echo.GET("/healthz", healthz)
+	return nil
+}
+
+func (c *Command) setupProxy(ctx *commandContext) error {
+	u, err := url.Parse(c.ApiURL)
+	if err != nil {
+		return err
+	}
+	d := http.DefaultTransport.(*http.Transport)
+	config := middleware.ProxyConfig{
+		Balancer: middleware.NewRoundRobinBalancer([]*middleware.ProxyTarget{
+			{URL: u},
+		}),
+		Skipper: func(c echo.Context) bool {
+			return !strings.HasPrefix(c.Path(), "/api")
+		},
+		// copy default settings but allow skip TLS verification
+		Transport: &http.Transport{
+			Proxy:                 d.Proxy,
+			DialContext:           d.DialContext,
+			TLSClientConfig:       &tls.Config{InsecureSkipVerify: c.ApiTLSSkipVerify},
+			TLSHandshakeTimeout:   d.TLSHandshakeTimeout,
+			MaxIdleConns:          d.MaxIdleConns,
+			IdleConnTimeout:       d.IdleConnTimeout,
+			ExpectContinueTimeout: d.ExpectContinueTimeout,
+			ForceAttemptHTTP2:     d.ForceAttemptHTTP2,
+		},
+	}
+	ctx.echo.Use(middleware.ProxyWithConfig(config))
 	return nil
 }
 
@@ -84,21 +126,18 @@ func (c *Command) startServer(ctx *commandContext) error {
 	return ctx.echo.Start(":8080")
 }
 
-var publicRoutes = []string{
-	"/favicon.ico",
-	"/robots.txt",
-	"/vite.svg",
-	"/assets/*",
-	"/healthz",
+var publicRoutes = map[string]bool{
+	"/favicon.ico": true,
+	"/robots.txt":  true,
+	"/vite.svg":    true,
+	"/assets/*":    true,
+	"/healthz":     true,
 }
 
 func skipAccessLogs(ctx echo.Context) bool {
-	for _, path := range publicRoutes {
-		if path == ctx.Path() {
-			return true
-		}
-	}
-	return false
+	// given an exact known key, lookups in maps are faster than iterating over slices.
+	_, exists := publicRoutes[ctx.Path()]
+	return exists
 }
 
 func healthz(c echo.Context) error {
