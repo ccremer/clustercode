@@ -10,7 +10,7 @@ MAKEFLAGS += --no-builtin-variables
 .DEFAULT_GOAL := help
 
 # extensible array of targets. Modules can add target to this variable for the all-in-one target.
-clean_targets := build-clean
+clean_targets := build-clean release-clean
 test_targets := test-unit
 
 # General variables
@@ -103,10 +103,18 @@ delete-samples: kind-setup
 run-operator: ## Run in Operator mode against your current kube context
 	go run . -v 1 operator
 
+.PHONY: release-prepare
+release-prepare: .github/crds.yaml .github/ui.tar.gz ## Prepares artifacts for releases
+
+.PHONY: release-clean
+release-clean:
+	rm -rf .github/ui.tar.gz .github/crds.yaml
+
+.github/crds.yaml: generate-go
+	@cat package/crds/*.yaml | yq > .github/crds.yaml
+
+.github/ui.tar.gz: build-ui
+	@tar -czf .github/ui.tar.gz ui/dist
+
 .PHONY: clean
 clean: $(clean_targets) ## All-in-one target to cleanup local artifacts
-
-.PHONY: release-prepare
-release-prepare: build-ui generate-go ## Prepares artifacts for releases
-	@cat package/crds/*.yaml | yq > .github/crds.yaml
-	@tar -czf .github/ui.tar.gz ui/dist

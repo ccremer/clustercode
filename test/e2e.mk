@@ -2,7 +2,8 @@ chart_deploy_args =
 
 .PHONY: chart-deploy
 chart-deploy: export KUBECONFIG = $(KIND_KUBECONFIG)
-chart-deploy: blank-media kind-load-image install-crd webhook-cert ## Install Operator in local cluster
+chart-deploy: go_build_args = -tags=ui
+chart-deploy: blank-media build-ui kind-load-image kind-setup-ingress install-crd webhook-cert ## Install Operator in local cluster
 	helm upgrade --install clustercode ./charts/clustercode \
 		--create-namespace --namespace clustercode-system \
 		--set podAnnotations.sha="$(shell docker inspect $(CONTAINER_IMG) | jq -r '.[].Id')" \
