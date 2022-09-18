@@ -8,7 +8,7 @@ $(helm_docs_bin): | $(go_bin)
 	go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
 
 .PHONY: chart-generate
-chart-generate: release-prepare ## Prepare the Helm charts
+chart-generate: .github/crds.yaml ## Prepare the Helm charts
 	@find charts -type f -name Makefile | sed 's|/[^/]*$$||' | xargs -I '%' $(MAKE) -C '%' prepare
 
 .PHONY: chart-docs
@@ -25,4 +25,4 @@ chart-lint: chart-generate chart-docs ## Lint charts
 
 .PHONY: chart-clean
 chart-clean:
-	rm -f $(helm_docs_bin) .github/crds.yaml
+	rm -f $(helm_docs_bin)

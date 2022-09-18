@@ -1,0 +1,14 @@
+{{- if eq .Values.webui.api.mode "externalName" }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "clustercode.fullname" . }}-api
+  labels:
+    {{- include "clustercode.labels" . | nindent 4 }}
+spec:
+  type: ExternalName
+  externalName: {{ .Values.webui.api.externalName }}
+  ports:
+    - port: 443
+      protocol: TCP
+{{- end }}

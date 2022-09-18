@@ -1,4 +1,4 @@
-{{- if .Values.serviceAccount.create -}}
+{{- if and .Values.operator.enabled .Values.operator.rbac.create -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -8,7 +8,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "clustercode.fullname" . }}-manager
+  name: {{ include "clustercode.fullname" . }}-operator
 subjects:
 - kind: ServiceAccount
   name: {{ include "clustercode.serviceAccountName" . }}

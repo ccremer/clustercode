@@ -1,8 +1,9 @@
+{{- if .Values.operator.enabled -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: '{{ include "clustercode.fullname" . }}-manager'
+  name: '{{ include "clustercode.fullname" . }}-operator'
   labels:
     {{- include "clustercode.labels" . | nindent 4 }}
 rules:
@@ -123,3 +124,4 @@ rules:
       - get
       - list
       - watch
+{{- end -}}

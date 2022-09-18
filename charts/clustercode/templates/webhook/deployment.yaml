@@ -6,7 +6,7 @@ metadata:
   labels:
     {{- include "clustercode.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.webhook.replicaCount }}
   selector:
     matchLabels:
       {{- include "clustercode.selectorLabels" . | nindent 6 }}
