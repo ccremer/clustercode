@@ -87,7 +87,7 @@ func (c *Command) setupProxy(ctx *commandContext) error {
 			{URL: u},
 		}),
 		Skipper: func(c echo.Context) bool {
-			return !strings.HasPrefix(c.Path(), "/api")
+			return !strings.HasPrefix(c.Path(), "/apis")
 		},
 		// copy default settings but allow skip TLS verification
 		Transport: &http.Transport{

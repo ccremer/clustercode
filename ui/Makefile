@@ -27,4 +27,11 @@ build-ui: ui/node_modules ## Builds the UI for packaging
 
 .PHONY: clean-ui
 clean-ui: ## Removes all UI-related artifacts (node_modules, dist)
-	rm -rf ui/node_modules ui/dist
+	rm -rf ui/node_modules ui/dist ui/.env
+
+.PHONY: run-ui
+run-ui: ui/.env ## Prepares the local environment to run the UI in development mode including kind cluster
+	$(npm_run) dev
+
+ui/.env: $(KIND_KUBECONFIG)
+	@echo "VITE_KUBERNETES_API_URL=$$(yq e '.clusters[0].cluster.server' $(KIND_KUBECONFIG))" > $@
