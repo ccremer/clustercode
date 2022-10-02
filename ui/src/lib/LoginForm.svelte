@@ -3,6 +3,7 @@
   import { authToken } from '../stores/AuthStore'
   import { Client } from '../kube/client'
   import { SelfSubjectAccessReview } from '../kube/types/selfSubjectAccessReview'
+    import { SelfSubjectRulesReview } from '../kube/types/selfSubjectRulesReview'
 
   let token = ''
   let allowed = false
@@ -10,17 +11,12 @@
   function login() {
     authToken.set(token)
     let client = new Client()
-    let obj = new SelfSubjectAccessReview(
-      'get',
-      'blueprints',
-      'clustercode.github.io',
-      'default'
-    )
+    let obj = new SelfSubjectRulesReview(     ''    )
     client
-      .get<SelfSubjectAccessReview>(obj)
+      .get<SelfSubjectRulesReview>(obj)
       .then(obj => {
         console.log(obj)
-        allowed = obj.status.allowed
+        allowed = true
       })
       .catch(err => {
         console.log(err)
