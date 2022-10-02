@@ -11,10 +11,7 @@ export class SelfSubjectAccessReview implements KubeObject {
       group: ''
     }
   }
-  readonly status = {
-    allowed: false,
-    reason: ''
-  }
+  status?: SelfSubjectAccessReviewStatus
 
   constructor(verb: string, resource: string, group: string, namespace: string) {
     this.spec.resourceAttributes.verb = verb
@@ -22,4 +19,9 @@ export class SelfSubjectAccessReview implements KubeObject {
     this.spec.resourceAttributes.group = group
     this.spec.resourceAttributes.namespace = namespace
   }
+}
+
+export interface SelfSubjectAccessReviewStatus {
+  allowed: boolean
+  reason: string
 }
