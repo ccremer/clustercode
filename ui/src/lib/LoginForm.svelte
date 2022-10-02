@@ -1,17 +1,35 @@
 <script lang="ts">
-  import { Button, Form, FormGroup, Input } from 'sveltestrap'
+  import { Button, FormGroup, Input, Label } from 'sveltestrap'
+  import { authToken } from '../stores/AuthStore'
+  import { Client } from '../kube/client'
+  import { SelfSubjectAccessReview } from '../kube/types/selfSubjectAccessReview'
 
   let token = ''
+  let allowed = false
 
-  async function login() {
-    // TODO: implement
+  function login() {
+    authToken.set(token)
+    let client = new Client()
+    let obj = new SelfSubjectAccessReview(
+      'get',
+      'blueprints',
+      'clustercode.github.io',
+      'default'
+    )
+    client
+      .get<SelfSubjectAccessReview>(obj)
+      .then(obj => {
+        console.log(obj)
+        allowed = obj.status.allowed
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 </script>
 
-<div />
-<Form on:submit={login}>
-  <FormGroup floating label="Token">
-    <Input placeholder="Token" id="token" type="password" bind:value={token} />
-  </FormGroup>
-  <Button id="btn-submit" color="primary">Submit</Button>
-</Form>
+<FormGroup floating label="Token">
+  <Input placeholder="Token" id="token" type="password" bind:value={token} />
+</FormGroup>
+<Button on:click={login} id="btn-submit" color="primary">Submit</Button>
+<Label>{allowed}</Label>
