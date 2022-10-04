@@ -16,11 +16,9 @@ describe('LoginForm', () => {
   })
 
   it('should disable button after text box has been cleared', () => {
-    let input = getTextInput()
-    input.type('a')
-    let button = getButton()
-    button.should('be.enabled')
-    input.type('{backspace}')
+    getTextInput().type('a')
+    getButton().should('be.enabled')
+    getTextInput().type('{backspace}')
     getButton().should('be.disabled')
   })
 

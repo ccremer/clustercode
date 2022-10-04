@@ -3,8 +3,8 @@ import { svelte } from '@sveltejs/vite-plugin-svelte'
 import 'dotenv/config'
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
-  if (!process.env.VITE_KUBERNETES_API_URL) {
+export default defineConfig(({mode}) => {
+  if (mode !== "production" && !process.env.VITE_KUBERNETES_API_URL) {
     console.log('environment variable VITE_KUBERNETES_API_URL is not defined')
     process.exit(1)
   }

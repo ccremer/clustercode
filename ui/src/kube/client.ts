@@ -3,7 +3,7 @@ import type { KubeObject } from './object'
 import { SelfSubjectAccessReview } from './types/selfSubjectAccessReview'
 
 export class Client {
-  token: string = ''
+  token = ''
 
   async create<T extends KubeObject>(obj: T): Promise<T> {
     return this.makeRequest(obj, 'POST')
@@ -25,8 +25,11 @@ export class Client {
     })
       .then(response => response.json())
       .then(json => {
-        if (json.kind === 'Status') {
-          throw new RequestError(json.message, json.reason, json.status, json.code)
+        if (Object.prototype.hasOwnProperty.call(json, 'kind')) {
+          const err: kubeerror = json as kubeerror
+          if (err.kind === 'Status') {
+            throw new RequestError(err.message, err.reason, err.status, err.code)
+          }
         }
         return json as Promise<T>
       })
@@ -72,6 +75,14 @@ export interface ServiceAccountToken {
   readonly sub: string
   readonly namespace: string
   readonly name: string
+}
+
+interface kubeerror {
+  message: string
+  reason: string
+  code: number
+  status: string
+  kind?: string
 }
 
 export class RequestError extends Error {
