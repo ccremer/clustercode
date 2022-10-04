@@ -1,17 +1,67 @@
 <script lang="ts">
-  import { Button, Form, FormGroup, Input } from 'sveltestrap'
+  import { Button, FormGroup, Input, Alert } from 'sveltestrap'
+  import { Client, RequestError } from '../kube/client'
 
   let token = ''
+  let displayError = ''
+  let alertVisible = false
 
-  async function login() {
-    // TODO: implement
+  function login() {
+    let client = new Client()
+    client
+      .login(token)
+      .then(ssar => {
+        if (ssar.status.allowed) {
+          dismissError()
+        } else {
+          showError('You are not allowed to view blueprints.')
+          return
+        }
+      })
+      .catch(err => {
+        console.log('cannot login', err)
+        if (err instanceof RequestError) {
+          showError(`Kubernetes error: ${err.message}`)
+        }
+        if (err instanceof Error) {
+          showError(`Cannot login: ${err.message}`)
+        }
+      })
+  }
+  function showError(message: string) {
+    displayError = message
+    alertVisible = true
+  }
+  function dismissError() {
+    alertVisible = false
+    displayError = ''
   }
 </script>
 
-<div />
-<Form on:submit={login}>
-  <FormGroup floating label="Token">
-    <Input placeholder="Token" id="token" type="password" bind:value={token} />
-  </FormGroup>
-  <Button id="btn-submit" color="primary">Submit</Button>
-</Form>
+{#if alertVisible}
+  <Alert
+    color="danger"
+    fade={false}
+    isOpen={alertVisible}
+    dismissible={true}
+    toggle={dismissError}
+    data-cy="alert">{displayError}</Alert
+  >
+{/if}
+
+<FormGroup floating={true} label="Token">
+  <Input
+    placeholder="Token"
+    id="token"
+    type="password"
+    bind:value={token}
+    data-cy="token"
+  />
+</FormGroup>
+<Button
+  on:click={login}
+  disabled={!token}
+  id="btn-submit"
+  color="primary"
+  data-cy="submit">Submit</Button
+>
