@@ -1,9 +1,6 @@
 import * as jose from 'jose'
 import type { KubeObject } from './object'
-import {
-  SelfSubjectAccessReview,
-  type SelfSubjectAccessReviewStatus
-} from './types/selfSubjectAccessReview'
+import { SelfSubjectAccessReview } from './types/selfSubjectAccessReview'
 
 export class Client {
   token: string = ''

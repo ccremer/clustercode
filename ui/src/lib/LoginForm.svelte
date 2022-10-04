@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, FormGroup, Input, Label, Alert } from 'sveltestrap'
+  import { Button, FormGroup, Input, Alert } from 'sveltestrap'
   import { Client, RequestError } from '../kube/client'
 
   let token = ''
@@ -19,7 +19,7 @@
         }
       })
       .catch(err => {
-        console.log(err)
+        console.log('cannot login', err)
         if (err instanceof RequestError) {
           showError(`Kubernetes error: ${err.message}`)
         }
@@ -43,12 +43,25 @@
     color="danger"
     fade={false}
     isOpen={alertVisible}
+    dismissible={true}
     toggle={dismissError}
-    dismissible>{displayError}</Alert
+    data-cy="alert">{displayError}</Alert
   >
 {/if}
 
-<FormGroup floating label="Token">
-  <Input placeholder="Token" id="token" type="password" bind:value={token} />
+<FormGroup floating={true} label="Token">
+  <Input
+    placeholder="Token"
+    id="token"
+    type="password"
+    bind:value={token}
+    data-cy="token"
+  />
 </FormGroup>
-<Button on:click={login} disabled={!token} id="btn-submit" color="primary">Submit</Button>
+<Button
+  on:click={login}
+  disabled={!token}
+  id="btn-submit"
+  color="primary"
+  data-cy="submit">Submit</Button
+>
