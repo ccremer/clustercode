@@ -14,7 +14,7 @@ jobs:
         uses: giantswarm/install-binary-action@v1.0.0
         with:
           binary: cr
-          version: "1.4.0"
+          version: "1.4.1"
           download_url: https://github.com/helm/chart-releaser/releases/download/v${version}/chart-releaser_${version}_linux_amd64.tar.gz
           tarball_binary_path: "${binary}"
           smoke_test: "${binary} version"
@@ -66,7 +66,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Helm chart
-        run: make chart-release
+        run: |
+          make chart-release
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CR_OWNER: ${{ github.repository_owner }}
@@ -75,6 +76,6 @@ jobs:
       # there doesn't seem to be any maintained GitHub actions that allow uploading assets after release has been made.
       - name: Update release
         run: |
-          gh release upload ${CHART_NAME}-${CHART_VERSION} .github/crds.yaml
+          gh release upload chart/${CHART_NAME}-${CHART_VERSION} .github/crds.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
