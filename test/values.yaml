@@ -2,8 +2,3 @@ clustercode:
   env:
     - name: CC_LOG_LEVEL
       value: "2"
-
-webui:
-  api:
-    proxy:
-      skipTlsVerify: true

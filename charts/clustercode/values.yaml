@@ -102,9 +102,10 @@ webui:
     proxy:
       # -- The Kubernetes full base URL for the API.
       # Ideally this is an internal URL.
-      url: https://kubernetes.default.svc.cluster.local:443
+      # If set to `auto`, the URL is detected based on the Service Account token.
+      url: auto
       # -- Whether TLS certificate verifications should be skipped.
-      skipTlsVerify: false
+      skipTlsVerify: true
 
   service:
     # -- Annotations to add to the webhook service.
