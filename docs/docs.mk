@@ -14,7 +14,9 @@ docs-preview: docs-build ## Preview Antora build in local web server and browser
 
 .PHONY: docs-publish
 docs-publish: export ANTORA_OUTPUT_DIR = $(docs_output_dir)
-docs-publish: docs-build ## Publishes the documentation in gh-pages
+docs-publish: docs-build | $(docs_output_dir) ## Publishes the documentation in gh-pages
+	touch $(docs_output_dir)/.nojekyll
+	wget -O $(docs_output_dir)/index.yaml https://raw.githubusercontent.com/$(PROJECT_OWNER)/$(PROJECT_NAME)/gh-pages/index.yaml
 	npm --prefix ./docs run deploy
 
 .PHONY: .docs-clean
@@ -24,3 +26,6 @@ docs-publish: docs-build ## Publishes the documentation in gh-pages
 # Download node packages
 docs/node_modules:
 	npm --prefix ./docs install
+
+$(docs_output_dir):
+	mkdir -p $@

@@ -14,7 +14,6 @@
     "watch": "watch 'npm run build' modules",
     "serve": "reload -d ${ANTORA_OUTPUT_DIR} -b",
     "preview": "run-p watch serve",
-    "predeploy": "touch ${ANTORA_OUTPUT_DIR}/.nojekyll",
     "deploy": "gh-pages -d ${ANTORA_OUTPUT_DIR} --dotfiles -m \"Update documentation $(date --utc '+%Y-%m-%d %H:%M')\""
   }
 }
