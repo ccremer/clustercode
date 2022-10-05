@@ -60,17 +60,13 @@ jobs:
         with:
           configuration: ".github/configuration.json"
           ignorePreReleases: true
-          outputFile: .github/release-notes.md
+          outputFile: charts/${{ env.CHART_NAME}}/CHANGELOG.md
           fromTag: chart/${{ env.CHART_NAME }}-${{ env.PREVIOUS_CHART_VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Helm chart
-        run: |
-          mkdir -p .cr-index
-          cr package charts/${CHART_NAME}
-          cr upload "--release-name-template=chart/{{ .Name }}-{{ .Version }}" --release-notes-file=.github/release-notes.md
-          cr index  "--release-name-template=chart/{{ .Name }}-{{ .Version }}" --push
+        run: make chart-release
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CR_OWNER: ${{ github.repository_owner }}

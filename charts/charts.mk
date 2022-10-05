@@ -24,5 +24,16 @@ chart-lint: chart-generate chart-docs ## Lint charts
 	git diff --exit-code
 
 .PHONY: chart-clean
-chart-clean:
-	rm -f $(helm_docs_bin)
+chart-clean: ## Clean the Helm chart artifacts
+	rm -rf $(helm_docs_bin) .cr-index .cr-release-packages charts/*/CHANGELOG.md
+
+.PHONY: chart-release
+chart-release: | .cr-index ## Release the Helm chart to GitHub
+# CHART_NAME is given by GH action
+# Download 'cr' manually from https://github.com/helm/chart-releaser/releases, 'go install' doesn't work...
+	cr package charts/$(CHART_NAME)
+	cr upload "--release-name-template=chart/{{ .Name }}-{{ .Version }}" --release-notes-file=CHANGELOG.md
+	cr index  "--release-name-template=chart/{{ .Name }}-{{ .Version }}" --push
+
+.cr-index:
+	mkdir -p $@
