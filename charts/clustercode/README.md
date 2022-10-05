@@ -60,7 +60,7 @@ Document your changes in values.yaml and let `make docs:helm` generate this sect
 | clustercode.env | list | `[]` | Set additional environment variables to the Operator |
 | clustercode.ffmpegImage.registry | string | `"ghcr.io"` |  |
 | clustercode.ffmpegImage.repository | string | `"jrottenberg/ffmpeg"` |  |
-| clustercode.ffmpegImage.tag | string | `"5.0-alpine"` |  |
+| clustercode.ffmpegImage.tag | string | `"5.1-alpine"` |  |
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.registry | string | `"ghcr.io"` |  |
