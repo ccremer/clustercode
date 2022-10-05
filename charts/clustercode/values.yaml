@@ -131,6 +131,16 @@ webui:
     #    hosts:
     #      - chart-example.local
 
+  # -- List of Service Accounts that can access the web-ui.
+  # @default -- see below
+  users:
+    - # -- name of the Service Account
+      name: clustercode-webadmin
+      # -- namespace of the Service Account, defaults to release namespace
+      namespace: ""
+      # -- If true, no Secret will be created for the Service Account
+      skipSecret: false
+
 # -- The operator's pod node selector
 nodeSelector: {}
 
