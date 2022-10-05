@@ -31,6 +31,25 @@ helm install {{ template "chart.name" . }} clustercode/{{ template "chart.name" 
 ```
 (Note that the name and namespace must match the certificate you created in the step before.)
 
+### WebUI
+
+By default, the WebUI is also installed.
+To log into the frontend, you must provide Kubernetes tokens in the login form as the frontend talks directly to the Kubernetes API.
+
+To get a token, you can create Service Accounts with the `webui.users` parameter.
+Once deployed, get the token by the following command:
+
+```bash
+kubectl -n clustercode-system get secret clustercode-webadmin -o jsonpath='{.data.token}' | base64 -d
+```
+
+Alternatively, set `.skipSecret` in `webui.users[*]` to skip creating a Secret for the Service Account.
+To get a time-limited token without permanent Secret, you can generate one with kubectl:
+
+```bash
+kubectl -n clustercode-system create token clustercode-webadmin
+```
+
 ## Handling CRDs
 
 * Always upgrade the CRDs before upgrading the Helm release.

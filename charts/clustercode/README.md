@@ -1,6 +1,6 @@
 # clustercode
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Movie and Series conversion Operator with Ffmpeg
 
@@ -15,7 +15,7 @@ Edit the README.gotmpl.md template instead.
 
 Install the CRDs:
 ```bash
-kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.3.0/crds.yaml
+kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.4.0/crds.yaml
 ```
 
 To prepare the webhook server, you need `yq`, `openssl`, `base64` tools and run this:
@@ -37,6 +37,25 @@ helm install clustercode clustercode/clustercode \
   --values webhook-values.yaml
 ```
 (Note that the name and namespace must match the certificate you created in the step before.)
+
+### WebUI
+
+By default, the WebUI is also installed.
+To log into the frontend, you must provide Kubernetes tokens in the login form as the frontend talks directly to the Kubernetes API.
+
+To get a token, you can create Service Accounts with the `webui.users` parameter.
+Once deployed, get the token by the following command:
+
+```bash
+kubectl -n clustercode-system get secret clustercode-webadmin -o jsonpath='{.data.token}' | base64 -d
+```
+
+Alternatively, set `.skipSecret` in `webui.users[*]` to skip creating a Secret for the Service Account.
+To get a time-limited token without permanent Secret, you can generate one with kubectl:
+
+```bash
+kubectl -n clustercode-system create token clustercode-webadmin
+```
 
 ## Handling CRDs
 
@@ -109,6 +128,10 @@ Document your changes in values.yaml and let `make docs:helm` generate this sect
 | webui.resources.requests.memory | string | `"32Mi"` |  |
 | webui.service.annotations | object | `{}` | Annotations to add to the webhook service. |
 | webui.service.port | int | `80` | Service port |
+| webui.users | list | see below | List of Service Accounts that can access the web-ui. |
+| webui.users[0].name | string | `"clustercode-webadmin"` | name of the Service Account |
+| webui.users[0].namespace | string | `""` | namespace of the Service Account, defaults to release namespace |
+| webui.users[0].skipSecret | bool | `false` | If true, no Secret will be created for the Service Account |
 
 ## Source Code
 

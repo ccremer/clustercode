@@ -1,0 +1,14 @@
+{{- range .Values.webui.users -}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace | default $.Release.Namespace }}
+  labels:
+    {{- include "clustercode.labels" $ | nindent 4 }}
+{{- if not .skipSecret }}
+secrets:
+  - name: {{ .name }}
+{{ end }}
+{{- end }}
