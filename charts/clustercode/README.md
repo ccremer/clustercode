@@ -1,6 +1,6 @@
 # clustercode
 
-![Version: 0.4.0](https://img.shields.io/badge/Version-0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Movie and Series conversion Operator with Ffmpeg
 
@@ -15,7 +15,7 @@ Edit the README.gotmpl.md template instead.
 
 Install the CRDs:
 ```bash
-kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.4.0/crds.yaml
+kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.3.0/crds.yaml
 ```
 
 To prepare the webhook server, you need `yq`, `openssl`, `base64` tools and run this:

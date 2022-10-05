@@ -20,3 +20,8 @@
 /data/intermediate/**
 /data/source/**
 /data/target/**
+
+# Chart
+/charts/**/CHANGELOG.md
+/.cr-index/
+/.cr-release-packages/
