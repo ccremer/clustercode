@@ -40,6 +40,15 @@
         "on the first day of the month"
       ],
       "automerge": true
+    },
+    {
+      "matchPaths": [
+        "ui/**"
+      ],
+      "groupName": "npm",
+      "schedule": [
+        "on the first day of the month"
+      ]
     }
   ],
   "prBodyNotes": [
