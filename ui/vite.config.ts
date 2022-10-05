@@ -5,8 +5,7 @@ import 'dotenv/config'
 // https://vitejs.dev/config/
 export default defineConfig(({mode}) => {
   if (mode !== "production" && !process.env.VITE_KUBERNETES_API_URL) {
-    console.log('environment variable VITE_KUBERNETES_API_URL is not defined')
-    process.exit(1)
+    console.log('⚠️  WARNING ⚠️ :environment variable VITE_KUBERNETES_API_URL is not defined. API may not be working!')
   }
   return {
     plugins: [svelte()],

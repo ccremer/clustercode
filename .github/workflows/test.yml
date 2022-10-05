@@ -51,4 +51,7 @@ jobs:
           cache-dependency-path: ui/package-lock.json
 
       - name: Run tests
-        run: make test-ui
+        uses: cypress-io/github-action@v4
+        with:
+          component: true
+          working-directory: ui
