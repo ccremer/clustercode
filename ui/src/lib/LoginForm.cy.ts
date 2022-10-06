@@ -3,6 +3,12 @@ import LoginForm from "./LoginForm.svelte"
 describe("LoginForm", () => {
   beforeEach(() => {
     cy.mount(LoginForm)
+    cy.intercept("GET", "/settings", {
+      statusCode: 200,
+      body: {
+        authCookieMaxAge: 10
+      }
+    }).as("settings")
   })
 
   it("should render empty form", () => {
@@ -65,6 +71,25 @@ describe("LoginForm", () => {
     getAlert()
       .should("be.visible")
       .should("contain.text", "You are not allowed to view blueprints.")
+  })
+
+  it("should save token in cookie if login successful", () => {
+    cy.intercept("POST", "/apis/authorization.k8s.io/v1/selfsubjectaccessreviews", {
+      statusCode: 201,
+      body: {
+        status: {
+          allowed: true,
+          reason:
+            'RBAC: allowed by ClusterRoleBinding "clustercode" of ClusterRole "clustercode-operator" to ServiceAccount "clustercode/clustercode-system"'
+        }
+      }
+    }).as("selfSubjectAccessReview")
+
+    getTextInput().type(e2eToken, { delay: 0 })
+    getButton().click()
+    cy.wait("@selfSubjectAccessReview")
+    cy.getCookie("kubetoken").should("have.property", "value", e2eToken)
+    // TODO: check if expiration date correct (https://github.com/cypress-io/cypress/issues/5599)
   })
 })
 
