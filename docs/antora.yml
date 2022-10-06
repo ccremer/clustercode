@@ -1,9 +1,8 @@
 name: clustercode
 title: Clustercode
 nav:
-- modules/ROOT/nav.adoc
-version: master
-
+  - modules/ROOT/nav.adoc
+version: "2.0"
 asciidoc:
   attributes:
     releaseVersion: latest
