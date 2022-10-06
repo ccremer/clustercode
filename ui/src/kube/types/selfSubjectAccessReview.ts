@@ -1,14 +1,14 @@
-import type { KubeObject } from '../object'
+import type { KubeObject } from "../object"
 
 export class SelfSubjectAccessReview implements KubeObject {
-  readonly kind = 'SelfSubjectAccessReview'
-  readonly apiVersion = 'authorization.k8s.io/v1'
+  readonly kind = "SelfSubjectAccessReview"
+  readonly apiVersion = "authorization.k8s.io/v1"
   readonly spec = {
     resourceAttributes: {
-      namespace: '',
-      verb: '',
-      resource: '',
-      group: ''
+      namespace: "",
+      verb: "",
+      resource: "",
+      group: ""
     }
   }
   status?: SelfSubjectAccessReviewStatus

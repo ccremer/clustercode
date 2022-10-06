@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Button, FormGroup, Input, Alert } from 'sveltestrap'
-  import { Client, RequestError } from '../kube/client'
+  import { Button, FormGroup, Input, Alert } from "sveltestrap"
+  import { Client, RequestError } from "../kube/client"
 
-  let token = ''
-  let displayError = ''
+  let token = ""
+  let displayError = ""
   let alertVisible = false
 
   function login() {
@@ -14,12 +14,12 @@
         if (ssar.status.allowed) {
           dismissError()
         } else {
-          showError('You are not allowed to view blueprints.')
+          showError("You are not allowed to view blueprints.")
           return
         }
       })
       .catch(err => {
-        console.log('cannot login', err)
+        console.log("cannot login", err)
         if (err instanceof RequestError) {
           showError(`Kubernetes error: ${err.message}`)
         }
@@ -34,7 +34,7 @@
   }
   function dismissError() {
     alertVisible = false
-    displayError = ''
+    displayError = ""
   }
 </script>
 
