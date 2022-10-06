@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/ccremer/clustercode/pkg/internal/pipe"
 	"github.com/ccremer/clustercode/ui"
@@ -21,15 +22,18 @@ type Command struct {
 	Log logr.Logger
 	// ApiURL is the Kubernetes API URL to proxy the API requests.
 	// The frontend is making API calls directly to Kubernetes.
-	ApiURL           string
+	ApiURL string
+	// ApiTLSSkipVerify controls whether the certificate of the Kubernetes API is verified.
 	ApiTLSSkipVerify bool
+	AuthCookieMaxAge time.Duration
 }
 
 type commandContext struct {
 	context.Context
 	dependencyResolver pipeline.DependencyResolver[*commandContext]
 
-	echo *echo.Echo
+	echo     *echo.Echo
+	settings Settings
 }
 
 // Execute runs the command and returns an error, if any.
@@ -43,6 +47,7 @@ func (c *Command) Execute(ctx context.Context) error {
 	p := pipeline.NewPipeline[*commandContext]().WithBeforeHooks(pipe.DebugLogger[*commandContext](c.Log), pctx.dependencyResolver.Record)
 	p.WithSteps(
 		p.NewStep("create server", c.createServer),
+		p.NewStep("prepare ui settings", c.prepareSettings),
 		p.NewStep("setup routes", c.setupRoutes),
 		p.When(c.isProxyEnabled, "proxy API server", c.setupProxy),
 		p.NewStep("run server", c.startServer),
@@ -65,10 +70,16 @@ func (c *Command) createServer(ctx *commandContext) error {
 	return nil
 }
 
+func (c *Command) prepareSettings(ctx *commandContext) error {
+	ctx.settings.AuthCookieMaxAge = int(c.AuthCookieMaxAge.Seconds())
+	return nil
+}
+
 func (c *Command) setupRoutes(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createServer)
 	assetHandler := http.FileServer(c.getFileSystem())
 	ctx.echo.GET("/", echo.WrapHandler(assetHandler))
+	ctx.echo.GET("/settings", c.settings(ctx))
 	ctx.echo.GET("/vite.svg", echo.WrapHandler(assetHandler))
 	ctx.echo.GET("/assets/*", echo.WrapHandler(assetHandler))
 	ctx.echo.GET("/robots.txt", echo.WrapHandler(assetHandler))
@@ -125,6 +136,12 @@ func (c *Command) getFileSystem() http.FileSystem {
 func (c *Command) startServer(ctx *commandContext) error {
 	ctx.dependencyResolver.MustRequireDependencyByFuncName(c.createServer)
 	return ctx.echo.Start(":8080")
+}
+
+func (c *Command) settings(ctx *commandContext) func(echo.Context) error {
+	return func(e echo.Context) error {
+		return e.JSON(http.StatusOK, ctx.settings)
+	}
 }
 
 var publicRoutes = map[string]bool{
