@@ -77,6 +77,7 @@ func (c *Command) setupRoutes(ctx *commandContext) error {
 }
 
 func (c *Command) setupProxy(ctx *commandContext) error {
+	c.Log.Info("Setting up proxy", "url", c.ApiURL, "skip_tls_verify", c.ApiTLSSkipVerify)
 	u, err := url.Parse(c.ApiURL)
 	if err != nil {
 		return err
