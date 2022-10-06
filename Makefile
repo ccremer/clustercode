@@ -26,7 +26,7 @@ include Makefile.vars.mk
 # Local Env & testing
 include test/integration.mk test/e2e.mk test/media.mk
 # UI
-include ui/Makefile
+include ui/ui.mk
 
 .PHONY: help
 help: ## Show this help
@@ -102,6 +102,14 @@ delete-samples: kind-setup
 .PHONY: run-operator
 run-operator: ## Run in Operator mode against your current kube context
 	go run . -v 1 operator
+
+.PHONY: run-webui
+run-webui: ## Run in webui mode on localhost:8080
+	go run . -v 1 webui
+
+.PHONY: run
+run: ## Run webui and vite in local mode
+	$(MAKE) -j 2 run-webui run-ui
 
 .PHONY: release-prepare
 release-prepare: .github/crds.yaml .github/ui.tar.gz ## Prepares artifacts for releases

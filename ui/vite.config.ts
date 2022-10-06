@@ -15,6 +15,12 @@ export default defineConfig(({mode}) => {
           target: process.env.VITE_KUBERNETES_API_URL,
           changeOrigin: true,
           secure: false,
+        },
+        "/settings": {
+          // this is for running "go run . webui"
+          target: "http://localhost:8080",
+          changeOrigin: true,
+          secure: false,
         }
       }
     }
