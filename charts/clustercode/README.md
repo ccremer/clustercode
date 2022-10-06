@@ -1,6 +1,6 @@
 # clustercode
 
-![Version: 0.3.0](https://img.shields.io/badge/Version-0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
+![Version: 0.3.1](https://img.shields.io/badge/Version-0.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)
 
 Movie and Series conversion Operator with Ffmpeg
 
@@ -15,7 +15,7 @@ Edit the README.gotmpl.md template instead.
 
 Install the CRDs:
 ```bash
-kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.3.0/crds.yaml
+kubectl apply -f https://github.com/ccremer/clustercode/releases/download/clustercode-0.3.1/crds.yaml
 ```
 
 To prepare the webhook server, you need `yq`, `openssl`, `base64` tools and run this:
@@ -112,8 +112,8 @@ Document your changes in values.yaml and let `make docs:helm` generate this sect
 | webui.api.externalName | object | `{"service":"kubernetes.default.svc.cluster.local"}` | The internal service name where the API service is served. |
 | webui.api.externalName.service | string | `"kubernetes.default.svc.cluster.local"` | The Kubernetes service which the Ingress exposes additionally. This is likely only working with TLS. |
 | webui.api.mode | string | `"proxy"` | The mode under which the Kubernetes API is served. Supported values: ["externalName", "proxy"] In case of CORS issues, you may use the integrated proxy. |
-| webui.api.proxy.skipTlsVerify | bool | `false` | Whether TLS certificate verifications should be skipped. |
-| webui.api.proxy.url | string | `"https://kubernetes.default.svc.cluster.local:443"` | The Kubernetes full base URL for the API. Ideally this is an internal URL. |
+| webui.api.proxy.skipTlsVerify | bool | `true` | Whether TLS certificate verifications should be skipped. |
+| webui.api.proxy.url | string | `"auto"` | The Kubernetes full base URL for the API. Ideally this is an internal URL. If set to `auto`, the URL is detected based on the Service Account token. |
 | webui.enabled | bool | `true` | Whether the WebUI deployment is enabled |
 | webui.ingress.annotations | object | `{}` | Annotations to add to the Ingress |
 | webui.ingress.className | string | `""` |  |
