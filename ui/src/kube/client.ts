@@ -1,23 +1,23 @@
-import * as jose from 'jose'
-import type { KubeObject } from './object'
-import { SelfSubjectAccessReview } from './types/selfSubjectAccessReview'
+import * as jose from "jose"
+import type { KubeObject } from "./object"
+import { SelfSubjectAccessReview } from "./types/selfSubjectAccessReview"
 
 export class Client {
-  token = ''
+  token = ""
 
   async create<T extends KubeObject>(obj: T): Promise<T> {
-    return this.makeRequest(obj, 'POST')
+    return this.makeRequest(obj, "POST")
   }
 
   async get<T extends KubeObject>(obj: T): Promise<T> {
-    return this.makeRequest(obj, 'GET')
+    return this.makeRequest(obj, "GET")
   }
 
   private async makeRequest<T extends KubeObject>(obj: T, method: string): Promise<T> {
     const endpoint = `/apis/${obj.apiVersion}/${obj.kind.toLowerCase()}s`
     return await fetch(endpoint, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${this.token}`
       },
       body: JSON.stringify(obj),
@@ -25,9 +25,9 @@ export class Client {
     })
       .then(response => response.json())
       .then(json => {
-        if (Object.prototype.hasOwnProperty.call(json, 'kind')) {
+        if (Object.prototype.hasOwnProperty.call(json, "kind")) {
           const err: kubeerror = json as kubeerror
-          if (err.kind === 'Status') {
+          if (err.kind === "Status") {
             throw new RequestError(err.message, err.reason, err.status, err.code)
           }
         }
@@ -43,9 +43,9 @@ export class Client {
   async login(token: string): Promise<SelfSubjectAccessReview> {
     const saToken: ServiceAccountToken = decodeToken(token)
     const obj = new SelfSubjectAccessReview(
-      'get',
-      'blueprints',
-      'clustercode.github.io',
+      "get",
+      "blueprints",
+      "clustercode.github.io",
       saToken.namespace
     )
     this.token = token
@@ -61,7 +61,7 @@ export class Client {
  */
 export function decodeToken(token: string): ServiceAccountToken {
   const payload = jose.decodeJwt(token)
-  const parts = payload.sub.split(':')
+  const parts = payload.sub.split(":")
   const namespace = parts[2]
   const name = parts[3]
   return {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"time"
 
 	"github.com/ccremer/clustercode/pkg/webui"
 	"github.com/lestrrat-go/jwx/v2/jwt"
@@ -33,6 +34,11 @@ func newWebuiCommand() *cli.Command {
 			&cli.PathFlag{Name: "sa-token-path", EnvVars: envVars("API_SA_TOKEN_PATH"),
 				Usage: "Path to the Kubernetes Service Account token secret for auto-discovery",
 				Value: "/var/run/secrets/kubernetes.io/serviceaccount/token",
+			},
+			&cli.DurationFlag{Name: "auth-cookie-max-age", EnvVars: envVars("AUTH_COOKIE_MAX_AGE"),
+				Usage:       "Duration of authentication cookie(s) when logging in to web UI. Accepts units [h, m, s]. If 0 or negative, cookies are disabled",
+				Value:       24 * time.Hour,
+				Destination: &command.AuthCookieMaxAge,
 			},
 		},
 	}
