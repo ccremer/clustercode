@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "@antora/cli": "3.1.0",
-    "@antora/site-generator": "3.1.0",
+    "@antora/cli": "3.1.2",
+    "@antora/site-generator": "3.1.2",
     "gh-pages": "4.0.0"
   },
   "devDependencies": {
