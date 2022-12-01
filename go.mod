@@ -9,7 +9,7 @@ require (
 	github.com/labstack/echo/v4 v4.9.1
 	github.com/lestrrat-go/jwx/v2 v2.0.7
 	github.com/stretchr/testify v1.8.1
-	github.com/urfave/cli/v2 v2.23.4
+	github.com/urfave/cli/v2 v2.23.5
 	go.uber.org/zap v1.23.0
 	k8s.io/api v0.25.2
 	k8s.io/apimachinery v0.25.2
