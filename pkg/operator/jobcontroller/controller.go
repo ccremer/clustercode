@@ -33,7 +33,6 @@ type (
 		job        *batchv1.Job
 		jobType    internaltypes.ClusterCodeJobType
 		task       *v1alpha1.Task
-		log        logr.Logger
 		sliceIndex int
 	}
 )

@@ -35,7 +35,6 @@ type BlueprintProvisioner struct {
 type BlueprintContext struct {
 	context.Context
 	blueprint *v1alpha1.Blueprint
-	log       logr.Logger
 }
 
 func (r *BlueprintProvisioner) NewObject() *v1alpha1.Blueprint {

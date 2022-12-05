@@ -34,7 +34,6 @@ type commandContext struct {
 
 	kube            client.Client
 	blueprint       *v1alpha1.Blueprint
-	segmentFiles    []string
 	currentTasks    []v1alpha1.Task
 	selectedRelPath string
 }
