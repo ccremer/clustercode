@@ -13,8 +13,6 @@ endif::[]
 image:https://img.shields.io/github/workflow/status/ccremer/clustercode/Test[Test,link=https://github.com/ccremer/clustercode/actions?query=workflow%3ATest]
 image:https://img.shields.io/github/go-mod/go-version/ccremer/clustercode[Go version]
 image:https://img.shields.io/github/v/release/ccremer/clustercode?include_prereleases[Version,link=https://github.com/ccremer/clustercode/releases]
-image:https://img.shields.io/codeclimate/maintainability/ccremer/clustercode[Maintainability,link=https://codeclimate.com/github/ccremer/clustercode]
-image:https://img.shields.io/codeclimate/coverage/ccremer/clustercode[Code Coverage,link=https://codeclimate.com/github/ccremer/clustercode]
 
 Automatically convert your movies and TV shows from one file format to another using ffmpeg in a cluster.
 It's like an Ffmpeg operator!

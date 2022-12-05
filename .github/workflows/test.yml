@@ -31,14 +31,6 @@ jobs:
       - name: Run tests
         run: make test-integration
 
-      - name: Upload code coverage report to Code Climate
-        uses: paambaati/codeclimate-action@v3.1.1
-        env:
-          CC_TEST_REPORTER_ID: 273b145c3b441d2abc054951c66b99a6d55f9eb4a25ddacd0731e14fcc921dc2
-        with:
-          coverageLocations: cover.out:gocov
-          prefix: github.com/${{ github.repository }}
-
   cypress:
     runs-on: ubuntu-latest
     steps:

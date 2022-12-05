@@ -26,6 +26,13 @@ jobs:
       - name: Run linters
         run: make lint-go git-diff
 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          skip-pkg-cache: true
+          args: --timeout 5m --out-${NO_FUTURE}format colored-line-number
+
   ui:
     runs-on: ubuntu-latest
     steps:
