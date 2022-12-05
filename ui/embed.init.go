@@ -10,8 +10,5 @@ var PublicFs embed.FS
 // The UI assets are embedded when built with `ui` tag.
 func IsEmbedded() bool {
 	_, err := PublicFs.ReadFile("dist/index.html")
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }

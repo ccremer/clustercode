@@ -1,6 +1,0 @@
-version: "2"
-exclude_patterns:
-- '**/node_modules/'
-- 'e2e/lib/'
-- '**/zz_generated.deepcopy.go'
-- 'docs/*.js'

@@ -1,6 +1,7 @@
 package blueprintwebhook
 
 import (
+	"context"
 	"testing"
 
 	"github.com/ccremer/clustercode/pkg/api/v1alpha1"
@@ -31,7 +32,7 @@ func TestDefaulter_Default(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			d := &Defaulter{Log: logr.Discard()}
 			bp := &v1alpha1.Blueprint{Spec: tt.givenSpec}
-			err := d.Default(nil, bp)
+			err := d.Default(context.TODO(), bp)
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectedSpec, bp.Spec)
 		})

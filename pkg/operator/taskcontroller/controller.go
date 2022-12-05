@@ -29,7 +29,6 @@ type (
 		context.Context
 		resolver       pipeline.DependencyResolver[*TaskContext]
 		task           *v1alpha1.Task
-		blueprint      *v1alpha1.Blueprint
 		job            *batchv1.Job
 		nextSliceIndex int
 	}
