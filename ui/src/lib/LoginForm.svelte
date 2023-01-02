@@ -57,10 +57,12 @@
         }
       })
   }
+
   function showError(message: string) {
     displayError = message
     alertVisible = true
   }
+
   function dismissError() {
     alertVisible = false
     displayError = ""
@@ -74,23 +76,12 @@
     isOpen={alertVisible}
     dismissible={true}
     toggle={dismissError}
-    data-cy="alert">{displayError}</Alert
   >
+    {displayError}
+  </Alert>
 {/if}
 
 <FormGroup floating={true} label="Token">
-  <Input
-    placeholder="Token"
-    id="token"
-    type="password"
-    bind:value={token}
-    data-cy="token"
-  />
+  <Input placeholder="Token" id="token" type="password" bind:value={token} />
 </FormGroup>
-<Button
-  on:click={login}
-  disabled={!token}
-  id="btn-submit"
-  color="primary"
-  data-cy="submit">Submit</Button
->
+<Button on:click={login} disabled={!token} id="btn-submit" color="primary">Submit</Button>
