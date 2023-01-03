@@ -94,15 +94,15 @@ describe("LoginForm", () => {
 })
 
 function getButton() {
-  return cy.get('[data-cy="submit"]')
+  return cy.get("[id=btn-submit]")
 }
 
 function getTextInput() {
-  return cy.get('[data-cy="token"]')
+  return cy.get("[id=token]")
 }
 
 function getAlert() {
-  return cy.get('[data-cy="alert"]')
+  return cy.get(".alert")
 }
 
 /**
