@@ -47,3 +47,9 @@ jobs:
         with:
           component: true
           working-directory: ui
+
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-videos
+          path: ui/cypress/videos
