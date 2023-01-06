@@ -88,6 +88,7 @@ describe("LoginForm", () => {
     getTextInput().type(e2eToken, { delay: 0 })
     getButton().click()
     cy.wait("@selfSubjectAccessReview")
+    cy.wait(200) // workaround on GitHub Actions
     cy.getCookie("kubetoken").should("have.property", "value", e2eToken)
     // TODO: check if expiration date correct (https://github.com/cypress-io/cypress/issues/5599)
   })
