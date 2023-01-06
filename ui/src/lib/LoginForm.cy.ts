@@ -2,13 +2,13 @@ import LoginForm from "./LoginForm.svelte"
 
 describe("LoginForm", () => {
   beforeEach(() => {
-    cy.mount(LoginForm)
     cy.intercept("GET", "/settings", {
       statusCode: 200,
       body: {
         authCookieMaxAge: 10
       }
     }).as("settings")
+    cy.mount(LoginForm)
   })
 
   it("should render empty form", () => {
