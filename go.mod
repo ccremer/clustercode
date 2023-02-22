@@ -6,7 +6,7 @@ require (
 	github.com/ccremer/go-command-pipeline v0.20.0
 	github.com/go-logr/logr v1.2.3
 	github.com/go-logr/zapr v1.2.3
-	github.com/labstack/echo/v4 v4.10.1
+	github.com/labstack/echo/v4 v4.10.2
 	github.com/lestrrat-go/jwx/v2 v2.0.7
 	github.com/stretchr/testify v1.8.1
 	github.com/urfave/cli/v2 v2.24.2
