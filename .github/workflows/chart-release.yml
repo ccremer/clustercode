@@ -11,7 +11,7 @@ jobs:
     steps:
       # We can't use 'go install' due to some go.mod conflicts.
       - name: Download cr
-        uses: giantswarm/install-binary-action@v1.0.0
+        uses: giantswarm/install-binary-action@v1.1.0
         with:
           binary: cr
           version: "1.4.1"
