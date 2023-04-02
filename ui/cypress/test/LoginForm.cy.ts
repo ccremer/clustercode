@@ -1,4 +1,4 @@
-import LoginForm from "./LoginForm.svelte"
+import LoginForm from "../../src/routes/login/LoginForm.svelte"
 
 describe("LoginForm", () => {
   beforeEach(() => {

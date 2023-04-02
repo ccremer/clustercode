@@ -10,7 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+/build
+/.svelte-kit
+/package
 *.local
+/src/routes/*.css*
 
 # Editor directories and files
 .vscode/*

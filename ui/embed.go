@@ -6,8 +6,7 @@ import (
 	"embed"
 )
 
-//go:embed dist/*
-//go:embed dist/assets
+//go:embed all:build
 var publicFs embed.FS
 
 func init() {

@@ -1,12 +1,11 @@
 package main
 
 import (
-	"os"
-	"time"
-
 	"github.com/ccremer/clustercode/pkg/webui"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/urfave/cli/v2"
+	"k8s.io/client-go/tools/clientcmd"
+	"os"
 )
 
 const apiUrlFlag = "api-url"
@@ -35,10 +34,10 @@ func newWebuiCommand() *cli.Command {
 				Usage: "Path to the Kubernetes Service Account token secret for auto-discovery",
 				Value: "/var/run/secrets/kubernetes.io/serviceaccount/token",
 			},
-			&cli.DurationFlag{Name: "auth-cookie-max-age", EnvVars: envVars("AUTH_COOKIE_MAX_AGE"),
-				Usage:       "Duration of authentication cookie(s) when logging in to web UI. Accepts units [h, m, s]. If 0 or negative, cookies are disabled",
-				Value:       24 * time.Hour,
-				Destination: &command.AuthCookieMaxAge,
+			&cli.PathFlag{Name: "ui-dir", EnvVars: envVars("UI_ASSET_DIR"),
+				Usage:       "Relative Path to the web interface static assets directory. If not found, it will use embedded assets.",
+				Value:       "ui",
+				Destination: &command.UIAssetDir,
 			},
 		},
 	}
@@ -58,6 +57,14 @@ func discoverKubernetesAPI(ctx *cli.Context) error {
 		log.Info("Cannot read the token", "error", err.Error())
 		return ctx.Set(apiUrlFlag, "")
 	}
+
+	clientConfig, err := clientcmd.NewClientConfigFromBytes(raw)
+	if err == nil {
+		cfg, _ := clientConfig.ClientConfig()
+		log.Info("Discovered Kubernetes API URL from kubeconfig", "url", cfg.Host)
+		return ctx.Set(apiUrlFlag, cfg.Host)
+	}
+
 	token, err := jwt.Parse(raw, jwt.WithVerify(false))
 	if err != nil {
 		log.Info("Cannot parse the token", "error", err.Error())
