@@ -10,6 +10,7 @@ export interface Blueprint extends KubeObject {
 export interface BlueprintSpec {
 	taskConcurrencyStrategy: ClustercodeStrategy
 	scan?: ScanSpec
+	cleanup?: CleanupSpec
 }
 
 export interface ClustercodeStrategy {
@@ -28,6 +29,10 @@ export interface BlueprintStatus {
 
 export interface TaskRef {
 	taskName?: string
+}
+
+export interface CleanupSpec {
+	podTemplate?: object
 }
 
 export function newBlueprint(name?: string, namespace?: string): Blueprint {

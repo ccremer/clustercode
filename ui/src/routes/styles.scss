@@ -17,23 +17,50 @@ $css--default-type: true;
 $css--plex: false;
 
 @import "carbon-components/scss/globals/scss/component-tokens";
-@import "carbon-components/src/components/tag/tag";
-@import "carbon-components/src/components/notification/inline-notification";
-@import "carbon-components/src/components/notification/toast-notification";
 @import "carbon-components-svelte/css/_popover.scss";
 
+@import "carbon-components/scss/globals/scss/feature-flags";
 @import "carbon-components/scss/globals/scss/_css--reset";
 @import "carbon-components/scss/globals/scss/_css--font-face";
 @import "carbon-components/scss/globals/scss/_css--helpers";
 @import "carbon-components/scss/globals/scss/_css--body";
 @import "carbon-components/scss/globals/grid/grid";
+@import "carbon-components/scss/globals/scss/functions";
 
 // Import all component styles
-@import "carbon-components/scss/globals/scss/styles";
+//@import "carbon-components/scss/globals/scss/styles";
+
+// Import component styles
+@import "carbon-components/scss/components/ui-shell/ui-shell";
+@import "carbon-components/scss/components/accordion/accordion";
+@import "carbon-components/scss/components/structured-list/structured-list";
+@import "carbon-components/scss/components/accordion/accordion";
+@import "carbon-components/scss/components/tile/tile";
+@import "carbon-components/scss/components/code-snippet/code-snippet";
+@import "carbon-components/scss/components/form/form";
+@import "carbon-components/scss/components/text-input/text-input";
+@import "carbon-components/scss/components/notification/inline-notification";
+@import "carbon-components/scss/components/notification/toast-notification";
+@import "carbon-components/scss/components/button/button";
+@import "carbon-components/scss/components/inline-loading/inline-loading";
+@import "carbon-components/scss/components/tag/tag";
+@import "carbon-components/scss/components/tooltip/tooltip";
+
+
+
 
 .alert-container {
   position: fixed;
   top: 4rem;
   right: 0;
   z-index: 9999;
+}
+
+.bx--snippet-container {
+  padding-bottom: inherit;
+  min-height: unset !important;
+}
+
+.bx--snippet--multi.bx--snippet--expand .bx--snippet-container, .bx--snippet--multi .bx--snippet-container pre {
+  padding-bottom: 0;
 }

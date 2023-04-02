@@ -33,7 +33,9 @@
     "carbon-components-svelte": "0.73.5",
     "carbon-icons-svelte": "11.4.0",
     "carbon-preprocess-svelte": "0.9.1",
+    "cronstrue": "2.24.0",
     "cypress": "12.9.0",
+    "dayjs": "1.11.7",
     "dotenv": "16.0.3",
     "eslint": "8.37.0",
     "eslint-config-prettier": "8.8.0",
@@ -49,6 +51,7 @@
     "tslib": "2.5.0",
     "typescript": "5.0.3",
     "vite": "4.2.1",
-    "vitest": "0.29.8"
+    "vitest": "0.29.8",
+    "yaml": "2.2.1"
   }
 }

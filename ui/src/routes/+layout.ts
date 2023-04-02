@@ -4,6 +4,8 @@ import { user } from "../lib/stores/user"
 import { ClientStore } from "../lib/stores/ClientStore"
 import { KubernetesClient } from "../lib/kube/kubernetes-client"
 import { get } from "svelte/store"
+import dayjs from "dayjs"
+import relativeTime from "dayjs/plugin/relativeTime"
 
 // make SPA
 export const ssr = false
@@ -13,6 +15,7 @@ export const prerender = false
 
 export const load = ((e: LoadEvent) => {
 	console.debug("Layout loaded")
+	dayjs.extend(relativeTime)
 	if (user.restore()) {
 		ClientStore.set(new KubernetesClient(e.fetch, get(user).rawToken ?? ""))
 	}
