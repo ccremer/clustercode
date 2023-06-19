@@ -2,7 +2,7 @@ clustercode:
   ffmpegImage:
     registry: ghcr.io
     repository: jrottenberg/ffmpeg
-    tag: 5.1-alpine
+    tag: 6.0-alpine
   # -- Set additional environment variables to the Operator
   env: []
 
