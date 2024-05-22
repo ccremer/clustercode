@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/ccremer/go-command-pipeline v0.20.0
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.2.3
 	github.com/labstack/echo/v4 v4.10.2
 	github.com/lestrrat-go/jwx/v2 v2.0.9
