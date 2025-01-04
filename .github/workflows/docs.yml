@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ contains(github.ref, 'tags') }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -70,7 +70,7 @@ jobs:
     needs: antora
     if: always()
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
